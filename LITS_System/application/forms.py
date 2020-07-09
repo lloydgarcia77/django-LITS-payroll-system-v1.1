@@ -947,6 +947,9 @@ class AttendanceForm(forms.ModelForm):
         model = AttendanceInfo
         exclude = ("id", "employee_profile", "cut_off_period")
 
+        default_val = Decimal('0.00') 
+        overtime = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+
         time_in = forms.TimeField(
         widget=forms.TimeInput(
             format='%I:%M', 
@@ -1001,9 +1004,9 @@ class AttendanceForm(forms.ModelForm):
             'readonly': 'readonly',
         }
         self.fields['overtime'].label = False
-        self.fields['overtime'].widget.attrs = {
-            'class': 'form-control',
-            'readonly': 'readonly',
+        self.fields['overtime'].widget.attrs = { 
+            'class': 'form-control', 
+            # 'readonly': 'readonly',
         }
         self.fields['payment_computation_for_work_done'].label = False
         self.fields['payment_computation_for_work_done'].widget.attrs = {
@@ -1075,7 +1078,8 @@ class AttendanceFormManual(forms.ModelForm):
         self.fields['overtime'].label = False
         self.fields['overtime'].widget.attrs = {
             'class': 'form-control',
-            'readonly': 'readonly',
+            'type': 'number',
+            #'readonly': 'readonly',
         }
         self.fields['payment_computation_for_work_done'].label = False
         self.fields['payment_computation_for_work_done'].widget.attrs = {

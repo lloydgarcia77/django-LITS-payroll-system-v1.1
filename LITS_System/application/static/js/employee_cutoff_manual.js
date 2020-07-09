@@ -114,11 +114,11 @@ $(document).ready(function () {
                 // }
                 if(to.getTime() > min_ot.getTime()){
                     
-                    let milliseconds = to.getTime() - min_ot.getTime();
+                    let milliseconds = to.getTime() - et.getTime();
                     let seconds = milliseconds / 1000.0;
                     let minutes = seconds / 60.0;
                     let hours = minutes / 60.0;
-                    overtime = hours;  
+                    overtime = parseFloat(hours);  
                 }
             } 
             $(`#id_cut_off_period_fk-${index}-late`).val(late); 

@@ -171,7 +171,7 @@ class AttendanceInfo(models.Model):
     payment_computation_for_work_done = models.CharField(max_length=100, choices=Computing_Pay_for_Work_Done, default=Computing_Pay_for_Work_Done[0][0])
     late = models.CharField(max_length=30, blank=True, null=True, default=None)
     undertime = models.CharField(max_length=30, blank=True,  null=True, default=None)
-    overtime = models.CharField(max_length=30, blank=True, null=True, default=None)
+    overtime = models.IntegerField(default=0)
     payment_computation_overtime = models.CharField(max_length=100, choices=Computing_Overtime, default=Computing_Overtime[0][0] )
     date_created = models.DateField(auto_now_add=True)
 
