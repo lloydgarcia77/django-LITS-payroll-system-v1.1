@@ -181,8 +181,8 @@ def read_attendance_file(attendance_file, request, form, data):
                                 under_time = int((out_time - d_time_out).total_seconds() / 60.0)
                             #for ot computation
                             if d_time_out > min_overtime:
-                                under_time = int((d_time_out - out_time).total_seconds() / 60.0)
-                                print('-------------------->yes',under_time)
+                                overtime = int((d_time_out - out_time).total_seconds() / 60.0)
+                                print('-------------------->yes',overtime)
                             #ot here
                         #columns
                         if starting_col < schedule_information.ncols:     
