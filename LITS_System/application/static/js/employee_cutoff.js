@@ -101,7 +101,8 @@ $(document).ready(function () {
                     let seconds = milliseconds / 1000.0;
                     let minutes = seconds / 60.0;
                     let hours = minutes / 60.0;
-                    overtime = parseFloat(hours);   
+                    //round off
+                    overtime = hours.toFixed(2);   
                 }
             } 
             

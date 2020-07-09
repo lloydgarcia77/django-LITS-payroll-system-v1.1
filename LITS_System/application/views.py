@@ -168,7 +168,7 @@ def read_attendance_file(attendance_file, request, form, data):
                         timeOut = hours[-5:]    
                         t_diff = None
                         under_time = None
-                        overtime_hours = None
+                        overtime_hours = 0
                         if timeIn and timeOut:
                             d_time_in = datetime.datetime.strptime(timeIn, '%H:%M')
                             d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
@@ -200,7 +200,7 @@ def read_attendance_file(attendance_file, request, form, data):
                                         #employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).filter(Q(name__icontains=name.casefold()))
                                         try:
                                             employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).get(Q(name__icontains=name.casefold()))
-                                            attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time)
+                                            attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
                                             attendance.save()
                                     
                                         except PersonalInfo.MultipleObjectsReturned:
