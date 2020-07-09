@@ -181,8 +181,10 @@ def read_attendance_file(attendance_file, request, form, data):
                                 under_time = int((out_time - d_time_out).total_seconds() / 60.0)
                             #for ot computation
                             if d_time_out > min_overtime:
-                                overtime = int((d_time_out - out_time).total_seconds() / 60.0)
-                                print('-------------------->yes',overtime)
+                                overtime_minutes = int((d_time_out - out_time).total_seconds() / 60.0)
+                                overtime_hours = round(float(overtime_minutes/60),2)
+
+                                #print('-------------------->yes',overtime_minutes,overtime_hours)
                             #ot here
                         #columns
                         if starting_col < schedule_information.ncols:     
@@ -213,7 +215,7 @@ def read_attendance_file(attendance_file, request, form, data):
 
                                 #print(row,hours,end=" ")
                                 #output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
-                                output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut)
+                                output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
                                 print(output, end=" ")
                                 print()
                                 #print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")  
