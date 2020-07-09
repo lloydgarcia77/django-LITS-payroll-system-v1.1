@@ -155,7 +155,9 @@ def read_attendance_file(attendance_file, request, form, data):
         for row in range(3, att_log_report.nrows):
                 starting_row += 2    
                 starting_col = 3
+                #cols
                 for col in range(att_log_report.ncols):
+                    #rows
                     if not starting_row > att_log_report.nrows: 
                         starting_col += 1
                         date = att_log_report.cell_value(3,col)
@@ -171,11 +173,18 @@ def read_attendance_file(attendance_file, request, form, data):
                             d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
                             grace_period =  datetime.datetime.strptime('8:45', '%H:%M')
                             out_time = datetime.datetime.strptime('18:00', '%H:%M')
+                            min_overtime = datetime.datetime.strptime('19:00', '%H:%M')
                             if d_time_in > grace_period:
                                 # convert time diff to minutes 1 min = 60 secs
                                 t_diff =  int((d_time_in - grace_period).total_seconds() / 60.0)
                             if d_time_out < out_time:
                                 under_time = int((out_time - d_time_out).total_seconds() / 60.0)
+                            #for ot computation
+                            if d_time_out > min_overtime:
+                                under_time = int((d_time_out - out_time).total_seconds() / 60.0)
+                                print('-------------------->yes',under_time)
+                            #ot here
+                        #columns
                         if starting_col < schedule_information.ncols:     
                             days_of_month = schedule_information.cell_value(3, starting_col)    
                             if date != "": 
@@ -202,10 +211,12 @@ def read_attendance_file(attendance_file, request, form, data):
                                 # attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time)
                                 # attendance.save()
 
-                                # print(row,hours,end=" ")
-                                # output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
-                                # print(output, end=" ")
-                                # print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")  
+                                #print(row,hours,end=" ")
+                                #output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
+                                output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut)
+                                print(output, end=" ")
+                                print()
+                                #print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")  
                         
                 print('')             
         
@@ -1351,7 +1362,7 @@ def employee_create_payroll(request, key, id):
         } 
 
         output = day_shift_payroll_computation(attendance_data)
-
+        print('')
         basic_pay = basic_pay + output["Basic Pay"]
         overtime_pay = overtime_pay + output["Overtime Pay"]
         legal_holiday = legal_holiday + output["Legal Holiday"]
