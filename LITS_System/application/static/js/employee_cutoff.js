@@ -13,8 +13,7 @@ $(document).ready(function () {
             }
         }
         return "";
-    }
-
+    } 
 //https://github.com/jdewit/bootstrap-timepicker/
 //http://jdewit.github.io/bootstrap-timepicker/
 //https://adminlte.io/themes/AdminLTE/documentation/index.html
@@ -82,7 +81,10 @@ $(document).ready(function () {
     
             const et = new Date();
             //hour, min, sec, milli sec
-            et.setHours(ending_time_hour, ending_time_min, 0, 0);
+            et.setHours(ending_time_hour, ending_time_min, 0, 0)
+            //Minimum Overtime
+            const min_ot = new Date();
+            min_ot.setHours(19,0,0,0);  
     
             if(to.getTime() < et.getTime()){
                 let milliseconds = et.getTime() - to.getTime();
@@ -90,8 +92,16 @@ $(document).ready(function () {
                 let minutes = seconds / 60.0;
                 undertime = minutes;
             }else{
-                if(time_out_hour > ending_time_hour){
-                    overtime = time_out_hour - ending_time_hour; 
+                // if(time_out_hour > ending_time_hour){
+                //     overtime = time_out_hour - ending_time_hour; 
+                // }
+                if(to.getTime() > min_ot.getTime()){
+                    
+                    let milliseconds = to.getTime() - min_ot.getTime();
+                    let seconds = milliseconds / 1000.0;
+                    let minutes = seconds / 60.0;
+                    let hours = minutes / 60.0;
+                    overtime = hours;  
                 }
             } 
             

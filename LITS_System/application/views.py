@@ -168,6 +168,7 @@ def read_attendance_file(attendance_file, request, form, data):
                         timeOut = hours[-5:]    
                         t_diff = None
                         under_time = None
+                        overtime_hours = None
                         if timeIn and timeOut:
                             d_time_in = datetime.datetime.strptime(timeIn, '%H:%M')
                             d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
