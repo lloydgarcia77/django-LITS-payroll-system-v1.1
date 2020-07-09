@@ -121,16 +121,17 @@ Employee Attendance Cut-Off Page
                     </div>
                     <div class="box-body"> 
                         <table class="table table-bordered">
-                            <tr>
-                                <th>Days of week</th>
-                                <th>Date</th>
-                                <th>Time In</th>
-                                <th>Time Out</th>
-                                <th>Late (Min)</th>
-                                <th>Undertime (Min)</th>
-                                <th>Computing Pay for Work Done on</th>
-                                <th>Overtime (Hour)</th>
-                                <th>Computing Overtime</th>
+                            <tr >
+                                <th class="text-center" style="width: 8%;">Days of week</th>
+                                <th class="text-center" style="width: 10%;">Date</th>
+                                <th class="text-center" style="width: 13%;">Time In</th>
+                                <th class="text-center" style="width: 13%;">Time Out</th>
+                                <th class="text-center" style="width: 10%;">Late (Min)</th>
+                                <th class="text-center" style="width: 10%;">Undertime (Min)</th>
+                                <th class="text-center" style="width: 10%;">Overtime (Hour)</th>
+                                <th class="text-center" style="width: 5%;">Itinerary</th> 
+                                <th class="text-center" style="width: 5%;">Leaves</th>
+                                <th class="text-center" style="width: 16%">Overtime Category</th>
                             </tr>
                             <!-- tbody -->
                             {{ formset.management_form }}
@@ -162,9 +163,11 @@ Employee Attendance Cut-Off Page
                                 </td>
                                 <td>{{form.late}}</td>
                                 <td>{{form.undertime}}</td>
-                                <td>{{form.payment_computation_for_work_done}}</td>
                                 <td>{{form.overtime}}</td>
-                                <td>{{form.payment_computation_overtime}}</td>
+                                <td class="text-center" style="vertical-align: middle;">{{form.has_itenerary}}</td>
+                                <td class="text-center" style="vertical-align: middle;">{{form.has_leave}}</td>
+                                <td class="text-center" >{{form.overtime_category}}</td>
+                                
                             </tr>
 
                             {% endfor %}
@@ -178,8 +181,14 @@ Employee Attendance Cut-Off Page
                         </div>  
                     </div>
                     <div class="box-footer clearfix">
-                        <button type="button" class="btn bg-navy margin pull-right" onclick="location.reload()">Reset Default</button>
-                        <button id="btnApplyChanges" type="button" class="btn bg-purple margin pull-right">Apply Changes</button>
+                        <div class="btn-group pull-right">
+                            <button type="button" class="btn bg-navy" onclick="location.reload()">Reset Default</button>
+                            <button id="btnApplyChanges" type="button" class="btn bg-navy">Apply Changes</button>
+                            <button id="" type="button" class="btn bg-navy">Itinerary Form</button>
+                            <button id="" type="button" class="btn bg-navy">Leaves Form</button> 
+                            <button id="" type="button" class="btn bg-navy">Overtime Form</button> 
+                        </div>
+                     
                     </div>
                 </div> 
                 {% endif %}

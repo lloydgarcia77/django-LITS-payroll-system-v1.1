@@ -947,9 +947,6 @@ class AttendanceForm(forms.ModelForm):
         model = AttendanceInfo
         exclude = ("id", "employee_profile", "cut_off_period")
 
-        default_val = Decimal('0.00') 
-        overtime = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-
         time_in = forms.TimeField(
         widget=forms.TimeInput(
             format='%I:%M', 
@@ -1008,14 +1005,26 @@ class AttendanceForm(forms.ModelForm):
             'class': 'form-control', 
             # 'readonly': 'readonly',
         }
-        self.fields['payment_computation_for_work_done'].label = False
-        self.fields['payment_computation_for_work_done'].widget.attrs = {
-            'class': 'form-control select2',
+        # self.fields['payment_computation_for_work_done'].label = False
+        # self.fields['payment_computation_for_work_done'].widget.attrs = {
+        #     'class': 'form-control select2',
+        # }
+        # self.fields['payment_computation_overtime'].label = False
+        # self.fields['payment_computation_overtime'].widget.attrs = {
+        #     'class': 'form-control select2',
+        # }
+        self.fields['has_itenerary'].label = False
+        self.fields['has_itenerary'].widget.attrs = {
+            # 'class': 'form-control',
         }
-        self.fields['payment_computation_overtime'].label = False
-        self.fields['payment_computation_overtime'].widget.attrs = {
-            'class': 'form-control select2',
+        self.fields['has_leave'].label = False
+        self.fields['has_leave'].widget.attrs = {
+            # 'class': 'form-control',
         }
+        self.fields['overtime_category'].label = False
+        self.fields['overtime_category'].widget.attrs = {
+            'class': 'form-control select2',
+        }   
 
 class AttendanceFormManual(forms.ModelForm):
     class Meta():
@@ -1081,14 +1090,27 @@ class AttendanceFormManual(forms.ModelForm):
             'type': 'number',
             #'readonly': 'readonly',
         }
-        self.fields['payment_computation_for_work_done'].label = False
-        self.fields['payment_computation_for_work_done'].widget.attrs = {
-            'class': 'form-control select2',
+        self.fields['has_itenerary'].label = False
+        self.fields['has_itenerary'].widget.attrs = {
+            # 'class': 'form-control',
         }
-        self.fields['payment_computation_overtime'].label = False
-        self.fields['payment_computation_overtime'].widget.attrs = {
-            'class': 'form-control select2',
+        self.fields['has_leave'].label = False
+        self.fields['has_leave'].widget.attrs = {
+            # 'class': 'form-control',
         }
+        self.fields['overtime_category'].label = False
+        self.fields['overtime_category'].widget.attrs = {
+            'class': 'form-control select2',
+        }   
+
+        # self.fields['payment_computation_for_work_done'].label = False
+        # self.fields['payment_computation_for_work_done'].widget.attrs = {
+        #     'class': 'form-control select2',
+        # }
+        # self.fields['payment_computation_overtime'].label = False
+        # self.fields['payment_computation_overtime'].widget.attrs = {
+        #     'class': 'form-control select2',
+        # }
   
 class EmployeePayrollForm(forms.ModelForm):
     default_val = Decimal('0.00')

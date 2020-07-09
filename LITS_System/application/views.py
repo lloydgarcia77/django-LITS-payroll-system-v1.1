@@ -216,9 +216,9 @@ def read_attendance_file(attendance_file, request, form, data):
 
                                 #print(row,hours,end=" ")
                                 #output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
-                                output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
-                                print(output, end=" ")
-                                print()
+                                # output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
+                                # print(output, end=" ")
+                                # print()
                                 #print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")  
                         
                 print('')             

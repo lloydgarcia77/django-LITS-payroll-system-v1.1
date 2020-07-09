@@ -161,6 +161,11 @@ Computing_Overtime = (
     #('Night Shift Ordinary Day','Night Shift Ordinary Day'),
     #('Night Shift Rest Day, Special Day or Regular Holiday','Night Shift Rest Day, Special Day or Regular Holiday'),
 )
+Overtime_Category = (
+    ('No Overtime','No Overtime'),
+    ('Regular Day','Regular Day'),
+    ('Rest Day','Rest Day'),
+)
 class AttendanceInfo(models.Model):
     employee_profile = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name='employee_personal_info_fk')
     cut_off_period = models.ForeignKey(CutOffPeriodInfo, on_delete=models.CASCADE, related_name='cut_off_period_fk')
@@ -168,11 +173,14 @@ class AttendanceInfo(models.Model):
     date = models.CharField(max_length=30, blank=True,  null=True, default=None)
     time_in = models.CharField(max_length=30, blank=True,  null=True, default=None)
     time_out = models.CharField(max_length=30, blank=True,  null=True, default=None)
-    payment_computation_for_work_done = models.CharField(max_length=100, choices=Computing_Pay_for_Work_Done, default=Computing_Pay_for_Work_Done[0][0])
+   # payment_computation_for_work_done = models.CharField(max_length=100, choices=Computing_Pay_for_Work_Done, default=Computing_Pay_for_Work_Done[0][0])
     late = models.CharField(max_length=30, blank=True, null=True, default=None)
     undertime = models.CharField(max_length=30, blank=True,  null=True, default=None)
     overtime = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    payment_computation_overtime = models.CharField(max_length=100, choices=Computing_Overtime, default=Computing_Overtime[0][0] )
+  #  payment_computation_overtime = models.CharField(max_length=100, choices=Computing_Overtime, default=Computing_Overtime[0][0] )
+    has_itenerary = models.BooleanField(default=False)
+    has_leave = models.BooleanField(default=False)
+    overtime_category = models.CharField(max_length=100, choices=Overtime_Category, default=Overtime_Category[0][0] )
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
