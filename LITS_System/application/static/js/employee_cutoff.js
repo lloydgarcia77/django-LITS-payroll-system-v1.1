@@ -13,7 +13,7 @@ $(document).ready(function () {
             }
         }
         return "";
-    } 
+    }  
 //https://github.com/jdewit/bootstrap-timepicker/
 //http://jdewit.github.io/bootstrap-timepicker/
 //https://adminlte.io/themes/AdminLTE/documentation/index.html
@@ -56,7 +56,7 @@ $(document).ready(function () {
     
             let late = "";
             let undertime = "";
-            let overtime = "";
+            let overtime = 0;
     
             // for late calculation
             const ti = new Date(); 
@@ -85,7 +85,7 @@ $(document).ready(function () {
             //Minimum Overtime
             const min_ot = new Date();
             min_ot.setHours(19,0,0,0);  
-    
+            
             if(to.getTime() < et.getTime()){
                 let milliseconds = et.getTime() - to.getTime();
                 let seconds = milliseconds / 1000.0;
@@ -102,7 +102,9 @@ $(document).ready(function () {
                     let minutes = seconds / 60.0;
                     let hours = minutes / 60.0;
                     //round off
-                    overtime = hours.toFixed(2);   
+                    overtime = hours.toFixed(2);    
+                }else{
+                    overtime = 0.0;
                 }
             } 
             

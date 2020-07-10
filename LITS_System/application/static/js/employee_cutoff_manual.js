@@ -72,7 +72,7 @@ $(document).ready(function () {
     
             let late = "";
             let undertime = "";
-            let overtime = "";
+            let overtime = 0;
     
             // for late calculation
             const ti = new Date(); 
@@ -120,6 +120,8 @@ $(document).ready(function () {
                     let hours = minutes / 60.0;
                     //round off
                     overtime = hours.toFixed(2);  
+                }else{
+                    overtime = 0.0;
                 }
             } 
             $(`#id_cut_off_period_fk-${index}-late`).val(late); 

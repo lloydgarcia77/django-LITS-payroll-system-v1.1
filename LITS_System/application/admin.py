@@ -118,10 +118,10 @@ admin.site.register(CutOffPeriodInfo, CutOffPeriodAdmin)
 
 
 class AttendanceAdmin(ImportExportModelAdmin):
-    list_display = ("id", "employee_profile", "cut_off_period", "days_of_week", "date", "time_in", "time_out", "late", "undertime","overtime","has_itenerary","has_leave","overtime_category","date_created")
-    list_editable = ("employee_profile", "cut_off_period", "days_of_week", "date", "time_in", "time_out", "late", "undertime","has_itenerary","has_leave","overtime_category", "overtime",)
+    list_display = ("id", "employee_profile", "cut_off_period", "days_of_week", "date", "time_in", "time_out", "late", "undertime","overtime","has_itenerary","has_leave","overtime_category","holiday","date_created")
+    list_editable = ("employee_profile", "cut_off_period", "days_of_week", "date", "time_in", "time_out", "late", "undertime","has_itenerary","has_leave","overtime_category", "overtime","holiday",)
     list_per_page = 15
-    search_fields = ("days_of_week", "date", "time_in", "time_out", "late", "undertime" , "overtime","overtime_category","has_itenerary","has_leave","overtime_category",)
+    search_fields = ("days_of_week", "date", "time_in", "time_out", "late", "undertime" , "overtime","overtime_category","has_itenerary","has_leave","overtime_category","holiday",)
     list_filter = ("employee_profile", "cut_off_period")
 
 admin.site.register(AttendanceInfo, AttendanceAdmin)

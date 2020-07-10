@@ -1024,7 +1024,11 @@ class AttendanceForm(forms.ModelForm):
         self.fields['overtime_category'].label = False
         self.fields['overtime_category'].widget.attrs = {
             'class': 'form-control select2',
-        }   
+        }  
+        self.fields['holiday'].label = False
+        self.fields['holiday'].widget.attrs = {
+            'class': 'form-control select2',
+        }    
 
 class AttendanceFormManual(forms.ModelForm):
     class Meta():
@@ -1102,6 +1106,10 @@ class AttendanceFormManual(forms.ModelForm):
         self.fields['overtime_category'].widget.attrs = {
             'class': 'form-control select2',
         }   
+        self.fields['holiday'].label = False
+        self.fields['holiday'].widget.attrs = {
+            'class': 'form-control select2',
+        } 
 
         # self.fields['payment_computation_for_work_done'].label = False
         # self.fields['payment_computation_for_work_done'].widget.attrs = {

@@ -166,6 +166,20 @@ Overtime_Category = (
     ('Regular Day','Regular Day'),
     ('Rest Day','Rest Day'),
 )
+
+ph_regular_holidays = (
+    ('Regulary Day','Regulary Day'),
+    ('New Year’s Day','New Year’s Day'),
+    ('Araw ng Kagitingan','Araw ng Kagitingan'),
+    ('Maundy Thursday','Maundy Thursday'),
+    ('Good Friday','Good Friday'),
+    ('Labor Day','Labor Day'),
+    ('Independence Day','Independence Day'),
+    ('National Heroes’ Day','National Heroes’ Day'),
+    ('Bonifacio Day','Bonifacio Day'),
+    ('Christmas Day','Christmas Day'),
+    ('Rizal Day','Rizal Day'), 
+)
 class AttendanceInfo(models.Model):
     employee_profile = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name='employee_personal_info_fk')
     cut_off_period = models.ForeignKey(CutOffPeriodInfo, on_delete=models.CASCADE, related_name='cut_off_period_fk')
@@ -180,7 +194,8 @@ class AttendanceInfo(models.Model):
   #  payment_computation_overtime = models.CharField(max_length=100, choices=Computing_Overtime, default=Computing_Overtime[0][0] )
     has_itenerary = models.BooleanField(default=False)
     has_leave = models.BooleanField(default=False)
-    overtime_category = models.CharField(max_length=100, choices=Overtime_Category, default=Overtime_Category[0][0] )
+    overtime_category = models.CharField(max_length=100, choices=Overtime_Category, default=Overtime_Category[0][0])
+    holiday = models.CharField(max_length=100, choices=ph_regular_holidays, default=ph_regular_holidays[0][0])
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):

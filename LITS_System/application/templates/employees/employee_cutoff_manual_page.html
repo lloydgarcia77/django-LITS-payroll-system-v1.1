@@ -114,19 +114,24 @@ Employee Attendance Cut-Off Manual Setting Page
                         <h3 class="box-title">Employee Attendance Cut-Off Period Table <strong>({{ cutoff.cut_off_period }})</strong></h3>
                     </div>
                     <div class="box-body">
-                        
+                        <div class="callout callout-warning">
+                        <h4>Yearly Holidays</h4> 
+                        <p>To get the latest updates for this year's holidays please click <a href="https://publicholidays.ph/{{year_today}}-dates/" target="_blank">here</a>.</p>
+                        </div>
                         <table class="table table-bordered">
                             <tr>
                                 <th class="text-center" style="width: 8%;">Days of week</th>
-                                <th class="text-center" style="width: 10%;">Date</th>
-                                <th class="text-center" style="width: 13%;">Time In</th>
-                                <th class="text-center" style="width: 13%;">Time Out</th>
-                                <th class="text-center" style="width: 10%;">Late (Min)</th>
-                                <th class="text-center" style="width: 10%;">Undertime (Min)</th>
-                                <th class="text-center" style="width: 10%;">Overtime (Hour)</th>
+                                <th class="text-center" style="width: 8%;">Date</th>
+                                <th class="text-center" style="width: 11%;">Time In</th>
+                                <th class="text-center" style="width: 11%;">Time Out</th>
+                                <th class="text-center" style="width: 9%;">Late (Min)</th>
+                                <th class="text-center" style="width: 9%;">Undertime (Min)</th>
+                                <th class="text-center" style="width: 9%;">Overtime (Hour)</th>
                                 <th class="text-center" style="width: 5%;">Itinerary</th> 
                                 <th class="text-center" style="width: 5%;">Leaves</th>
-                                <th class="text-center" style="width: 16%">Overtime Category</th>
+                                <th class="text-center" style="width: 13%">Overtime Category</th> 
+                                <th class="text-center" style="width: 13%">Holiday</th> 
+                                
                             </tr>
                                 <!-- tbody -->
                                 {{ formset.management_form }}
@@ -170,6 +175,7 @@ Employee Attendance Cut-Off Manual Setting Page
                                     <td class="text-center" style="vertical-align: middle;">{{form.has_itenerary}}</td>
                                     <td class="text-center" style="vertical-align: middle;">{{form.has_leave}}</td>
                                     <td class="text-center" >{{form.overtime_category}}</td>
+                                    <td class="text-center" >{{form.holiday}}</td>
                                 </tr>
     
                                 {% endfor %}
