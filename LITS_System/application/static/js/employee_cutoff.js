@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(document).ready(function () { 
     function getCookie(cname) {
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
@@ -27,7 +27,7 @@ $(document).ready(function () {
         if($(`#id_employee_personal_info_fk-${index}-time_in`).val() == "0:00" || $(`#id_employee_personal_info_fk-${index}-time_out`) == 0){
             $(`#id_employee_personal_info_fk-${index}-late`).val("");  
             $(`#id_employee_personal_info_fk-${index}-undertime`).val("");
-            $(`#id_employee_personal_info_fk-${index}-overtime`).val("");
+            $(`#id_employee_personal_info_fk-${index}-overtime`).val("0.00");
         }else{
             const starting_time = "08:30";
             const ending_time = "18:00";
@@ -106,7 +106,8 @@ $(document).ready(function () {
                 }else{
                     overtime = 0.0;
                 }
-            } 
+                
+            }  
             
             // $(`#id_employee_profile_fk-${index-1}-late`).val(late);  
             // $(`#id_employee_profile_fk-${index-1}-undertime`).val(undertime);

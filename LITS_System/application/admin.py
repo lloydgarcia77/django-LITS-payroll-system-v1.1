@@ -127,10 +127,10 @@ class AttendanceAdmin(ImportExportModelAdmin):
 admin.site.register(AttendanceInfo, AttendanceAdmin)
 
 class EmployeePayrollAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'employee_fk','payroll_cutoff_period','payroll_date','monthly_rate','monthly_allowance','basic_pay','allowance','overtime_pay','legal_holiday','special_holiday','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','net_pay','thirteenth_month_pay','date_added','is_seen')
-    list_editable = ('employee_fk','payroll_cutoff_period','monthly_rate','monthly_allowance','basic_pay','allowance','overtime_pay','legal_holiday','special_holiday','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay','is_seen')
+    list_display = ('id', 'employee_fk','payroll_cutoff_period','payroll_date','basic_pay','allowance','overtime_pay','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','net_pay','thirteenth_month_pay','date_added','is_seen')
+    list_editable = ('employee_fk','payroll_cutoff_period','basic_pay','allowance','overtime_pay','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay','is_seen')
     list_per_page = 10
-    search_fields = ('employee_fk','payroll_cutoff_period','payroll_date','monthly_rate','monthly_allowance','basic_pay','allowance','overtime_pay','legal_holiday','special_holiday','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay')
+    search_fields = ('employee_fk','payroll_cutoff_period','payroll_date','basic_pay','allowance','overtime_pay','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay')
     list_filter = ('employee_fk','payroll_cutoff_period','payroll_date')
 
 admin.site.register(EmployeePayroll, EmployeePayrollAdmin)

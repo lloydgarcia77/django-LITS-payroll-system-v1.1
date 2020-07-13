@@ -1137,8 +1137,8 @@ class EmployeePayrollForm(forms.ModelForm):
     basic_pay = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val, required=True)
     allowance = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     overtime_pay = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    legal_holiday = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    special_holiday = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    # legal_holiday = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    # special_holiday = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     late_or_absences = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     salary_or_cash_advance = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
 
@@ -1154,7 +1154,7 @@ class EmployeePayrollForm(forms.ModelForm):
 
     class Meta():
         model = EmployeePayroll
-        exclude = ("employee_fk","payroll_cutoff_period","payroll_date" ,"date_added","is_seen","monthly_rate","monthly_allowance","thirteenth_month_pay")
+        exclude = ("employee_fk","payroll_cutoff_period","payroll_date" ,"date_added","is_seen","thirteenth_month_pay")
     
     def __init__(self, *args, **kwargs):
         super(EmployeePayrollForm, self).__init__(*args, **kwargs)
@@ -1162,71 +1162,85 @@ class EmployeePayrollForm(forms.ModelForm):
         self.fields['basic_pay'].widget.attrs = {
             'id':'basicPay',
             'class': 'form-control',
+            'step': 'any',
         }
         self.fields['allowance'].widget.attrs = {
             'id':'allowance',
             'class': 'form-control',
+            'step': 'any',
         }
         self.fields['overtime_pay'].widget.attrs = {
             'id':'overtimePay',
             'class': 'form-control',
+            'step': 'any',
         }
-        self.fields['legal_holiday'].widget.attrs = {
-            'id':'legalHoliday',
-            'class': 'form-control',
-        }
-        self.fields['special_holiday'].widget.attrs = {
-            'id':'sundaySpecialHoliday',
-            'class': 'form-control',
-        }
+        # self.fields['legal_holiday'].widget.attrs = {
+        #     'id':'legalHoliday',
+        #     'class': 'form-control',
+        # }
+        # self.fields['special_holiday'].widget.attrs = {
+        #     'id':'sundaySpecialHoliday',
+        #     'class': 'form-control',
+        # }
         self.fields['late_or_absences'].widget.attrs = {
             'id':'lateAbsences',
             'class': 'form-control',
+            'step': 'any',
         }
         self.fields['salary_or_cash_advance'].widget.attrs = {
             'id':'salaryCashAdvance',
             'class': 'form-control',
+            'step': 'any',
         } 
         self.fields['gross_pay'].widget.attrs = {
             'id': 'grossPay',
             'class': 'form-control text-green',
             'readonly': 'readonly',
+            'step': 'any',
         }
         self.fields['net_pay'].widget.attrs = {
             'id': 'netPay',
             'class': 'form-control text-green',
             'style': 'font-weight:bold;',
             'readonly': 'readonly',
+            'step': 'any',
         }
         #---
         self.fields['philhealth_contribution'].widget.attrs = {
             'id':'philhealContribution',
             'class': 'form-control',
+            'step': 'any',
         } 
         self.fields['pagibig_contribution'].widget.attrs = {
             'id':'pagibigContribution',
             'class': 'form-control',
+            'step': 'any',
         } 
         self.fields['sss_premiums'].widget.attrs = {
             'id':'sssPremius',
             'class': 'form-control',
+            'step': 'any',
         }
         self.fields['withholding_tax'].widget.attrs = {
             'id':'withholdingTax',
             'class': 'form-control',
+            'step': 'any',
         } 
         self.fields['pagibig_loan'].widget.attrs = {
             'id':'pagibigLoan',
             'class': 'form-control',
+            'step': 'any',
         } 
         self.fields['deducted_salary_cash_advance'].widget.attrs = {
             'id':'deductionSalaryCashAdvance',
             'class': 'form-control',
+            'step': 'any',
         }  
         self.fields['total_deduction'].widget.attrs = {
             'id': 'totalDeduction',
             'class': 'form-control text-red',
             'readonly': 'readonly',
+            'step': 'any',
         }
 
 class EmployeeSalaryForm(forms.ModelForm):

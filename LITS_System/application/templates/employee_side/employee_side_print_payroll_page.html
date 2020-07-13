@@ -79,7 +79,8 @@
             <b>Cut-Off ID:</b> {{cutoff.id}}<br>
             <b>Payroll Cut-Off Period:</b> {{ cutoff.cut_off_period}}<br>
             <b>Payroll Date:</b> {{date_today}} <br>
-            <b>Monthly Salary:</b> <b class="text-green"><u>{{employee_salary.amount|intcomma}}</u></b>
+            <b>Monthly Salary:</b> <b class="text-green"><u>{{employee_salary.amount|intcomma}}</u></b><br>
+            <b>Monthly Allowance:</b> <b class="text-green"><u>{{employee_salary.allowance|intcomma}}</u></b>
         </div>
         <!-- /.col -->
     </div>
@@ -110,20 +111,20 @@
                             {{emp_payroll_count.overtime_pay|intcomma}}    
                         </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <th>Legal Holiday:</th>
                         <td> 
                             &#8369;
-                            {{emp_payroll_count.legal_holiday|intcomma}}    
+                           
                         </td>
                     </tr>
                     <tr>
                         <th>Sunday/Special Holiday:</th>
                         <td> 
                             &#8369;
-                            {{emp_payroll_count.special_holiday|intcomma}}    
+                             
                         </td>
-                    </tr>
+                    </tr> -->
                     <tr>
                         <th>Late/Absences:</th>
                         <td> 

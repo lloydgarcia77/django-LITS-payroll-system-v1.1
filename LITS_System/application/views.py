@@ -217,9 +217,9 @@ def read_attendance_file(attendance_file, request, form, data):
 
                                 #print(row,hours,end=" ")
                                 #output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
-                                output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
-                                print(output, end=" ")
-                                print()
+                                # output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
+                                # print(output, end=" ")
+                                # print()
                                 #print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")  
                         
                 print('')             
@@ -900,12 +900,12 @@ def delete_employee(request, id):
             
             context = {
             'personal_info': personal_info,
-            'user':user,
+            'user':current_user,
             }
             data['html_form'] = render_to_string(template_name, context, request)
 
         elif request.method == 'POST':
-            user.delete()
+            current_user.delete()
             data['form_is_valid'] = True 
             profiles = PersonalInfo.objects.all().distinct().order_by('-id')
             for p in profiles:
@@ -1202,6 +1202,10 @@ def sss_contribution(monthy_salary_credit):
     elif monthy_salary_credit >= 19750:
         return 800 
 
+def phlhealth_contribution(monthy_salary_credit):
+    ph_contrib = float(monthy_salary_credit) * 0.03
+    return ph_contrib
+
 def day_shift_payroll_computation(data):
     WORKING_DAYS = [
         "MON","TUE","WED","THU","FRI", 
@@ -1341,6 +1345,11 @@ def day_shift_payroll_computation_v1_1(data):
         "total_overtime": 0,
         "total_absences": 0,
     }
+    OVERTIME_CATEGORY = [
+        "No Overtime",
+        "Regular Day",
+        "Rest Day",
+    ]
     total_overtime = 0 # total overtime
     total_late_absences = 0
 
@@ -1380,30 +1389,84 @@ def day_shift_payroll_computation_v1_1(data):
     if data["Day"] in REST_DAYS:
         if time_in != invalid_time and time_out != invalid_time:
             if time_out > time_in:
-                t_diff = int((time_out - time_in).total_seconds() / 60.0)
-                t_diff_h = round(float(t_diff/60),2)  
+                if data['OTCategory'] != OVERTIME_CATEGORY[0]: 
+                    if data['Overtime']: 
+                        overtime = float(data['Overtime'])
+                        if overtime > 0.00:
+                            if data['OTCategory'] == OVERTIME_CATEGORY[1]:
+                                t_diff = int((time_out - time_in).total_seconds() / 60.0)
+                                t_diff_h = round(float(t_diff/60),2)   
+                                total_overtime = round(t_diff_h * float(regular_hourly_rate_overtime),2) 
+                                # print('Time-In: {timein} | Time-Out: {timeout} | Diff Min: {min} | Diff Hour: {hour} | total cost: {tcost}'
+                                # .format(timein=time_in, timeout=time_out, min=t_diff, hour=t_diff_h, tcost=total_overtime)) 
+                            if data['OTCategory'] == OVERTIME_CATEGORY[2]:
+                                t_diff = int((time_out - time_in).total_seconds() / 60.0)
+                                t_diff_h = round(float(t_diff/60),2)   
+                                total_overtime = round(t_diff_h * float(rest_day_hourly_rate_overtime),2)  
+                        else:
+                            total_overtime = total_overtime + 0.00
+              
 
-                total_overtime = round(t_diff_h * float(rest_day_hourly_rate_overtime),2) 
-                # print('Time-In: {timein} | Time-Out: {timeout} | Diff Min: {min} | Diff Hour: {hour} | total cost: {tcost}'
-                # .format(timein=time_in, timeout=time_out, min=t_diff, hour=t_diff_h, tcost=total_overtime))
+            late = data["Late"] if None else 0.0 #ternary operator
+            #undertime? to be verified on monday
+            total_late_absences = float(late) * float(min_rate)
                 
         else:
             total_overtime = 0
             print("Invalid overtime either no time in or time out!") 
 
-        PAYROLL_INFO.update({"total_overtime": float(total_overtime)})
+        PAYROLL_INFO.update({"total_overtime": round(float(total_overtime),2), "total_absences": round(total_late_absences,2)})
         
-        print(PAYROLL_INFO)
+        #print('#',PAYROLL_INFO)
         return PAYROLL_INFO
     elif data["Day"] in WORKING_DAYS:
         if time_in != invalid_time and time_out != invalid_time:
-            pass
+            #if present
+
+            if data['Late']:
+                late = data['Late']
+                #total_late_absences = total_late_absences + (float(late) * float(min_rate))
+                deduction = float(late) * float(min_rate)
+                if deduction > daily_rate:
+                    total_late_absences = float(daily_rate)
+                else: 
+                    total_late_absences = total_late_absences + deduction
+
+            if data['Undertime']:
+                undertime = data['Undertime']
+                #total_late_absences = total_late_absences + (float(undertime) * float(min_rate))
+                deduction = float(undertime) * float(min_rate)
+                if deduction > daily_rate:
+                    total_late_absences = float(daily_rate)
+                else: 
+                    total_late_absences = total_late_absences + deduction
+
+            #overtime
+            if data['OTCategory'] != OVERTIME_CATEGORY[0]: 
+                if data['Overtime']: 
+                    overtime = float(data['Overtime'])
+                    if overtime > 0.00:
+                        if data['OTCategory'] == OVERTIME_CATEGORY[1]:
+                            total_overtime = total_overtime + (float(overtime) * regular_hourly_rate_overtime)
+                        if data['OTCategory'] == OVERTIME_CATEGORY[2]:
+                            total_overtime = total_overtime + (float(overtime) * rest_day_hourly_rate_overtime)
+                    else:
+                        total_overtime = total_overtime + 0.00
+
+            PAYROLL_INFO.update({"total_overtime": float(total_overtime), "total_absences": total_late_absences})
         else:
-            pass
-
-
-    
-
+            # boolean
+            if data["Itinerary"] or data["Leave"] or data['Holiday'] != "Regulary Day":
+                #no deductions
+                PAYROLL_INFO.update({"total_absences": 0.0})
+                pass
+            else:
+                PAYROLL_INFO.update({"total_absences": round(float(daily_rate),2)})
+                # how much absent per day? or - daily rate
+        #print('~',PAYROLL_INFO)
+        return PAYROLL_INFO
+        
+ 
 
 @login_required
 def employee_create_payroll(request, key, id): 
@@ -1425,11 +1488,15 @@ def employee_create_payroll(request, key, id):
     #check if payroll exists
     emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
     
-    basic_pay = 0
-    overtime_pay = 0
-    legal_holiday = 0
-    sunday_spec_holiday = 0
-    late_absences = 0
+    # basic_pay = 0
+    # overtime_pay = 0
+    # legal_holiday = 0
+    # sunday_spec_holiday = 0
+    # late_absences = 0
+    
+    total_lates_absences = 0.00
+    total_overtime = 0.00
+    total_deductions = 0.00
 
     #print(attendance,attendance.count())
     for data in attendance:
@@ -1450,7 +1517,20 @@ def employee_create_payroll(request, key, id):
             "employee_allowance": employee_salary.allowance,
         } 
         #calculation 
-        day_shift_payroll_computation_v1_1(attendance_data) 
+        output = day_shift_payroll_computation_v1_1(attendance_data) 
+        total_lates_absences = total_lates_absences + output['total_absences'] 
+        total_overtime = total_overtime + output['total_overtime']
+
+    
+    total_late_absences= round(total_lates_absences, 2)
+    total_sss_contribution = round(sss_contribution(float(employee_salary.amount)),2)
+    total_philhealth_contribution = round(phlhealth_contribution(float(employee_salary.amount)),2)
+
+    total_deductions = total_lates_absences + total_sss_contribution + total_philhealth_contribution
+    total_gross_pay = float(employee_salary.amount/2) + float(employee_salary.allowance/2)  + total_overtime
+    total_net_pay = total_gross_pay - total_deductions
+    #print('TOTAL OT: {ot} | TOTAL DEDUCT: {deduct}'.format(ot=total_overtime,deduct=total_deductions)) 
+
     # for a in attendance:
 
     #     attendance_data = {
@@ -1521,40 +1601,46 @@ def employee_create_payroll(request, key, id):
             _deductionSalaryCashAdvance = request.POST.get('_deductionSalaryCashAdvance',"0") if request.POST.get('_deductionSalaryCashAdvance',"0")  != "" else "0"
             _totalDeduction = request.POST.get('_totalDeduction',"0") if request.POST.get('_totalDeduction',"0")  != "" else "0"
             _cboSSS = request.POST.get('_cboSSS',"0") 
+            _cboPhilhealth = request.POST.get('_cboPhilhealth',"0")
+            _cboPagibig = request.POST.get('_cboPagibig',"0")
 
-            sss = _sssPremius if _cboSSS else 0
+            print('---------------',_cboSSS,_cboPhilhealth,_cboPagibig)
+            sss = _sssPremius if _cboSSS == 'on'  else 0
+            philhealth = _philhealContribution if _cboPhilhealth == 'on' else 0
+            pagibig = _pagibigContribution if _cboPagibig == 'on' else 0
+            print('---------------',sss,philhealth,pagibig)
           
-            print('SCA:', _salaryCashAdvance)
-            print('PH',_philhealContribution, '-',request.POST.get('_philhealContribution',"0"))
-            print('PC',_pagibigContribution)
-            print('WT',_withholdingTax)
-            print('PL',_pagibigLoan)
-            print('SCA',_deductionSalaryCashAdvance)
+            # print('SCA:', _salaryCashAdvance)
+            # print('PH',_philhealContribution, '-',request.POST.get('_philhealContribution',"0"))
+            # print('PC',_pagibigContribution)
+            # print('WT',_withholdingTax)
+            # print('PL',_pagibigLoan)
+            # print('SCA',_deductionSalaryCashAdvance)
             
 
             #employee_payroll_manage_employee_list
-            # new, existing = EmployeePayroll.objects.update_or_create(employee_fk=employee, payroll_cutoff_period=cutoff, 
-            # defaults= {
-            #     #'payroll_date': date_today, 
-            #     'monthly_rate':float(employee_salary.amount),  
-            #     'monthly_allowance': 0, # for future purposes 
-            #     'basic_pay': round(basic_pay, 2),
-            #     'allowance': float(employee_salary.allowance),
-            #     'overtime_pay': round(overtime_pay, 2),
-            #     'legal_holiday': round(legal_holiday, 2),
-            #     'special_holiday':  round(sunday_spec_holiday, 2),
-            #     'late_or_absences': round(late_absences, 2),
-            #     'salary_or_cash_advance': _salaryCashAdvance,
-            #     'gross_pay': _grossPay,
-            #     'sss_premiums': sss,
-            #     'philhealth_contribution': _philhealContribution,
-            #     'pagibig_contribution': _pagibigContribution,
-            #     'withholding_tax': _withholdingTax,
-            #     'pagibig_loan': _pagibigLoan,
-            #     'deducted_salary_cash_advance': _deductionSalaryCashAdvance,
-            #     'total_deduction': _totalDeduction,
-            #     'net_pay': _netPay, 
-            #     })
+            new, existing = EmployeePayroll.objects.update_or_create(employee_fk=employee, payroll_cutoff_period=cutoff, 
+            defaults= {
+                #'payroll_date': date_today, 
+               # 'monthly_rate':float(employee_salary.amount),  
+                #'monthly_allowance': 0, # for future purposes 
+                'basic_pay': round(float(employee_salary.amount/2), 2),
+                'allowance': round(float(employee_salary.allowance/2), 2),
+                'overtime_pay': round(total_overtime, 2),
+                # 'legal_holiday': round(legal_holiday, 2),
+                # 'special_holiday':  round(sunday_spec_holiday, 2),
+                'late_or_absences': round(total_lates_absences, 2),
+                'salary_or_cash_advance': _salaryCashAdvance,
+                'gross_pay': _grossPay,
+                'sss_premiums': sss,
+                'philhealth_contribution': philhealth,
+                'pagibig_contribution': pagibig,
+                'withholding_tax': _withholdingTax,
+                'pagibig_loan': _pagibigLoan,
+                'deducted_salary_cash_advance': _deductionSalaryCashAdvance,
+                'total_deduction': _totalDeduction,
+                'net_pay': _netPay, 
+                })
             url = HttpResponseRedirect(reverse_lazy('application:employee_side_view_payroll_page', kwargs={'id':cutoff.id}))
             Notifications.objects.create(sender=user,recipient=employee.fk_user,url=url.url,message="Your payroll for cut-off {cutoffperiod} was created!".format(cutoffperiod=cutoff.cut_off_period),category=category_list[2],level=level_list[1])
             return HttpResponseRedirect(reverse_lazy('application:employee_payroll_manage_employee_list', kwargs={'id': cutoff.id}))
@@ -1568,17 +1654,19 @@ def employee_create_payroll(request, key, id):
             'attendance':attendance,
             'employee_salary':employee_salary,
 
-            'basic_pay': round(basic_pay, 2),
-            'overtime_pay': round(overtime_pay, 2),
-            'legal_holiday': round(legal_holiday, 2),
-            'sunday_special_holiday': round(sunday_spec_holiday, 2),
+            'basic_pay': round(float(employee_salary.amount/2), 2),
+            'allowance' : round(float(employee_salary.allowance/2), 2),
+            'overtime_pay': round(total_overtime, 2),
+            # 'legal_holiday': round(legal_holiday, 2),
+            # 'sunday_special_holiday': round(sunday_spec_holiday, 2),
 
-            'late_absences': round(late_absences, 2),
-            'sss_contribution': round(sss_contribution(float(employee_salary.amount))),
-
-            # 'gross_pay': round(total_gross_pay, 2),
-            # 'total_deduction': round(total_deduction, 2),
-            # 'net_pay': round(total_net_pay, 2),
+            'late_absences': total_late_absences,
+            'sss_contribution': total_sss_contribution,
+            'philhealth_contribution': total_philhealth_contribution,
+            'pagibig_contribution': 100.00,
+            'gross_pay': round(total_gross_pay, 2),
+            'total_deduction': round(total_deductions, 2),
+            'net_pay': round(total_net_pay, 2),
 
             'notifications': notifications,
             'notifications_count': notifications_count,

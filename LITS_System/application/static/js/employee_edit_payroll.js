@@ -1,31 +1,31 @@
 $(document).ready(function() {
     function calculate() {
-        let basicPay = $("#basicPay").val() == "" ? 0 : $("#basicPay").val();
-        let allowance = $("#allowance").val() == "" ? 0 : $("#allowance").val();
-        let overtimePay = $("#overtimePay").val() == "" ? 0 : $("#overtimePay").val();
-        let legalHoliday = $("#legalHoliday").val() == "" ? 0 : $("#legalHoliday").val();
-        let sundaySpecialHoliday = $("#sundaySpecialHoliday").val() == "" ? 0 : $("#sundaySpecialHoliday").val();
-        let lateAbsences = $("#basilateAbsencescPay").val() == "" ? 0 : $("#lateAbsences").val();
-        let salaryCashAdvance = $("#salaryCashAdvance").val() == "" ? 0 : $("#salaryCashAdvance").val();
+        let basicPay = $("#basicPay").val() == "" || isNaN($("#basicPay").val()) ? 0 : $("#basicPay").val();
+        let allowance = $("#allowance").val() == "" || isNaN($("#allowance").val()) ? 0 : $("#allowance").val();
+        let overtimePay = $("#overtimePay").val() == "" || isNaN($("#overtimePay").val()) ? 0 : $("#overtimePay").val();
+        // let legalHoliday = $("#legalHoliday").val() == "" ? 0 : $("#legalHoliday").val();
+        // let sundaySpecialHoliday = $("#sundaySpecialHoliday").val() == "" ? 0 : $("#sundaySpecialHoliday").val();
+        let lateAbsences = $("#lateAbsences").val() == "" || isNaN($("#lateAbsences").val()) ? 0 : $("#lateAbsences").val();
+        let salaryCashAdvance = $("#salaryCashAdvance").val() == "" || isNaN($("#salaryCashAdvance").val()) ? 0 : $("#salaryCashAdvance").val();
         //let grossPay = $("#grossPay").val() == null ? 0 : $("#grossPay").val();
 
-        let philhealContribution = $("#philhealContribution").val() == "" ? 0 : $("#philhealContribution").val();
-        let pagibigContribution = $("#pagibigContribution").val() == "" ? 0 : $("#pagibigContribution").val();
-        let sssPremius = $("#sssPremius").val() == "" ? 0 : $("#sssPremius").val(); 
-
-        let withholdingTax = $("#withholdingTax").val() == "" ? 0 : $("#withholdingTax").val();
-        let pagibigLoan = $("#pagibigLoan").val() == "" ? 0 : $("#pagibigLoan").val();
-        let deductionSalaryCashAdvance = $("#deductionSalaryCashAdvance").val() == "" ? 0 : $("#deductionSalaryCashAdvance").val();
+        let philhealContribution = $("#philhealContribution").val() == "" || isNaN($("#philhealContribution").val()) ? 0 : $("#philhealContribution").val();
+        let pagibigContribution = $("#pagibigContribution").val() == "" || isNaN($("#pagibigContribution").val()) ? 0 : $("#pagibigContribution").val();
+        let sssPremius = $("#sssPremius").val() == "" || isNaN($("#sssPremius").val()) ? 0 : $("#sssPremius").val();
+ 
+        let withholdingTax = $("#withholdingTax").val() == "" || isNaN($("#withholdingTax").val()) ? 0 : $("#withholdingTax").val();
+        let pagibigLoan = $("#pagibigLoan").val() == "" || isNaN($("#pagibigLoan").val()) ? 0 : $("#pagibigLoan").val();
+        let deductionSalaryCashAdvance = $("#deductionSalaryCashAdvance").val() == "" || isNaN($("#deductionSalaryCashAdvance").val()) ? 0 : $("#deductionSalaryCashAdvance").val();
         //let totalDeduction = $("#totalDeduction").val() == null ? 0 : $("#totalDeduction").val();
 
-        let gp = parseFloat(basicPay) + parseFloat(allowance) + parseFloat(overtimePay) + parseFloat(legalHoliday) + parseFloat(sundaySpecialHoliday) + parseFloat(salaryCashAdvance);
+        let gp = parseFloat(basicPay) + parseFloat(allowance) + parseFloat(overtimePay)  + parseFloat(salaryCashAdvance);
         let td = parseFloat(lateAbsences) + parseFloat(philhealContribution) + parseFloat(pagibigContribution) + parseFloat(sssPremius) + parseFloat(withholdingTax) + parseFloat(pagibigLoan) + parseFloat(deductionSalaryCashAdvance);
         let np = gp - td;
         $("#grossPay").val(gp.toFixed(2));
         $("#totalDeduction").val(td.toFixed(2));
         $("#netPay").val(np.toFixed(2));
     }
-    $("#basicPay, #allowance, #salaryCashAdvance, #overtimePay, #legalHoliday, #sssPremius, #sundaySpecialHoliday, #lateAbsences, #philhealContribution, #pagibigContribution, #withholdingTax, #pagibigLoan, #deductionSalaryCashAdvance").change(function() {
+    $("#basicPay, #allowance, #salaryCashAdvance, #overtimePay, #sssPremius, #lateAbsences, #philhealContribution, #pagibigContribution, #withholdingTax, #pagibigLoan, #deductionSalaryCashAdvance").change(function() {
         calculate();
     });
 

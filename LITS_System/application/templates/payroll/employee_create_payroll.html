@@ -213,7 +213,7 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_allowance" id="allowance" type="number" class="form-control" value="{{employee_salary.allowance}}" readonly>
+                                        <input name="_allowance" id="allowance" type="number" class="form-control" value="{{allowance}}" readonly>
                                         <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
@@ -228,7 +228,7 @@ Create Employee Payroll Page
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
+                            <!-- <tr>
                                 <th>Legal Holiday:</th>
                                 <td>
                                     <div class="input-group">
@@ -247,7 +247,7 @@ Create Employee Payroll Page
                                         <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
-                            </tr>
+                            </tr> -->
                             <tr>
                                 <th>Late/Absences:</th>
                                 <td>
@@ -307,8 +307,10 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_philhealContribution" id="philhealContribution" type="number" class="form-control">
-                                        <span class="input-group-addon">.00</span>
+                                        <input name="_philhealContribution" id="philhealContribution" type="number" value="{{philhealth_contribution|intcomma}}" step="any" class="form-control" readonly>
+                                        <span class="input-group-addon">
+                                            <input name="_cboPhilhealth" id="cboPhilhealth" type="checkbox" data-toggle="tooltip" title="Allow Philhealth Deduction" checked>
+                                        </span>
                                     </div>
                                 </td>
                             </tr>
@@ -318,8 +320,10 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_pagibigContribution" id="pagibigContribution" type="number" class="form-control">
-                                        <span class="input-group-addon">.00</span>
+                                        <input name="_pagibigContribution" id="pagibigContribution" type="number" value="{{pagibig_contribution|intcomma}}" step="any" class="form-control" readonly>
+                                        <span class="input-group-addon">
+                                            <input name="_cboPagibig" id="cboPagibig" type="checkbox" data-toggle="tooltip" title="Allow Pag-ibig Deduction" checked>
+                                        </span>
                                     </div>
                                 </td>
                             </tr>

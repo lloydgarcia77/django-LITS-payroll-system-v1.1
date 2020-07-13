@@ -146,7 +146,7 @@ Employee Attendance Cut-Off Page
                             {{ hidden }}
                             {% endfor %}
                             {{ form.non_field_errors }}
-                            {{ form.errors }}
+                            <p class="text-red"><b> {{ form.errors|striptags }}</b></p>
                             <tr>
                                 <td>{{form.days_of_week}}</td>
                                 <td>{{form.date}}</td>

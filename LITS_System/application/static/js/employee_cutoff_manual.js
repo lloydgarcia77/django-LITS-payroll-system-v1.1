@@ -44,7 +44,7 @@ $(document).ready(function () {
         if ($(`#id_cut_off_period_fk-${index}-time_in`).val() == "0:00" || $(`#id_cut_off_period_fk-${index}-time_out`).val() == "0:00"){
             $(`#id_cut_off_period_fk-${index}-late`).val(""); 
             $(`#id_cut_off_period_fk-${index}-undertime`).val("");
-            $(`#id_cut_off_period_fk-${index}-overtime`).val("");
+            $(`#id_cut_off_period_fk-${index}-overtime`).val("0.00");
         }else{
             const starting_time = "08:30";
             const ending_time = "18:00";

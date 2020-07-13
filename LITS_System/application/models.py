@@ -180,7 +180,7 @@ ph_regular_holidays = (
     ('Christmas Day','Christmas Day'),
     ('Rizal Day','Rizal Day'), 
 )
-class AttendanceInfo(models.Model):
+class AttendanceInfo(models.Model): 
     employee_profile = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name='employee_personal_info_fk')
     cut_off_period = models.ForeignKey(CutOffPeriodInfo, on_delete=models.CASCADE, related_name='cut_off_period_fk')
     days_of_week = models.CharField(max_length=30, blank=True,  null=True, default=None)
@@ -206,14 +206,14 @@ class EmployeePayroll(models.Model):
     employee_fk = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_payroll_fk", null=True)
     payroll_cutoff_period = models.ForeignKey(CutOffPeriodInfo, on_delete=models.CASCADE, related_name="employee_cutoff_fk", null=True) 
     payroll_date = models.DateField(auto_now=True)
-    monthly_rate = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    monthly_allowance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # monthly_rate = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # monthly_allowance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
 
     basic_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     allowance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     overtime_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    legal_holiday = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    special_holiday = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # legal_holiday = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # special_holiday = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     late_or_absences = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     salary_or_cash_advance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     gross_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
