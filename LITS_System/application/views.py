@@ -46,8 +46,8 @@ import logging
 import traceback
 import xlrd 
 from django.forms import modelformset_factory, inlineformset_factory
-from application.forms import UserAccountCredentialsForm, PersonalForm, MobileNumberForm, SkillsForm, CompanyForm, TelephoneNumberForm, CutOffPeriodForm,AttendanceForm,AttendanceFormManual,EmployeeSalaryForm,EmployeePayrollForm,EmployeeLeavesForm, EmployeeIteneraryForm, EmployeeIteneraryDetailsForm, ConcernsEmployeeForm, ConcernsReplyEmployeeForm
-from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, TelephoneNumberInfo, CompanyInfo, AttendanceInfo, CutOffPeriodInfo, EmployeeSalary, EmployeePayroll,EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails, Concerns, Notifications
+from application.forms import UserAccountCredentialsForm, PersonalForm, MobileNumberForm, SkillsForm, CompanyForm, TelephoneNumberForm, CutOffPeriodForm,AttendanceForm,AttendanceFormManual,EmployeeSalaryForm,EmployeePayrollForm,EmployeeLeavesForm, EmployeeIteneraryForm, EmployeeIteneraryDetailsForm, ConcernsEmployeeForm, ConcernsReplyEmployeeForm,OvertimeForm,OvertimeDetailsForm
+from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, TelephoneNumberInfo, CompanyInfo, AttendanceInfo, CutOffPeriodInfo, EmployeeSalary, EmployeePayroll,EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails, Concerns, Notifications,Overtime,OvertimeDetails
 from django.forms import modelformset_factory, inlineformset_factory
 from datetime import date
 # https://www.pythoncircle.com/post/641/encryption-decryption-in-python-django/
@@ -1603,12 +1603,10 @@ def employee_create_payroll(request, key, id):
             _cboSSS = request.POST.get('_cboSSS',"0") 
             _cboPhilhealth = request.POST.get('_cboPhilhealth',"0")
             _cboPagibig = request.POST.get('_cboPagibig',"0")
-
-            print('---------------',_cboSSS,_cboPhilhealth,_cboPagibig)
+ 
             sss = _sssPremius if _cboSSS == 'on'  else 0
             philhealth = _philhealContribution if _cboPhilhealth == 'on' else 0
-            pagibig = _pagibigContribution if _cboPagibig == 'on' else 0
-            print('---------------',sss,philhealth,pagibig)
+            pagibig = _pagibigContribution if _cboPagibig == 'on' else 0 
           
             # print('SCA:', _salaryCashAdvance)
             # print('PH',_philhealContribution, '-',request.POST.get('_philhealContribution',"0"))
@@ -2279,6 +2277,11 @@ def upload_attendance(request):
 
     # For Employees
 
+
+@login_required
+def employee_overtime_management_page(request):
+    pass
+
 @login_required
 def reports_page(request):
     template_name = "reports/reports_page.html"
@@ -2323,6 +2326,8 @@ def maintainance_page(request):
         return render(request, template_name, context)
     else:
         raise Http404()
+
+
 
 # employee side-----------------------------------------------------------------------------
 
@@ -3142,6 +3147,67 @@ def side_employee_reply_concern(request, id):
         return JsonResponse(data)
     else:
         raise Http404()
+
+@login_required
+def side_employee_overtime_management(request):
+    template_name = "employee_side/employee_side_overtime_management_page.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)
+    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+    notifications_count = notifications.count()
+
+
+    overtime_list = Overtime.objects.all().filter(Q(employee_overtime=employee)).order_by('-id').distinct()
+
+    if user.is_active and user.is_staff and not user.is_superuser:
+        if request.method == 'GET':
+            pass 
+        context = {
+            'user': user,  
+            'employee': employee, 
+            'concern_list': overtime_list,
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+        }
+
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
+@login_required
+def side_employee_create_overtime(request):
+    template_name = "employee_side/employee_side_create_overtime.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)
+    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+    notifications_count = notifications.count()
+
+    if user.is_active and user.is_staff and not user.is_superuser:
+        OvertimeDetailsFormset = inlineformset_factory(Overtime, OvertimeDetails, form=OvertimeDetailsForm, extra=1, can_delete=False)
+        if request.method == 'GET':
+            formOvertime = OvertimeForm(request.GET or None) 
+            formOvertimeDetails = OvertimeDetailsFormset(request.GET or None)
+        elif request.method == 'POST': 
+            formOvertime = OvertimeForm(request.POST or None) 
+            formOvertimeDetails = OvertimeDetailsFormset(request.POST or None)
+
+            if formOvertime.is_valid() and formOvertimeDetails.is_valid():
+                pass 
+
+
+        context = {
+            'user': user,  
+            'employee': employee,  
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+            #'formOvertime':formOvertime,
+            'formOvertimeDetails': formOvertimeDetails,
+        }
+
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
 
 @login_required
 def employee_side_maintainance_page(request):

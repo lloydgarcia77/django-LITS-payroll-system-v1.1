@@ -1,5 +1,5 @@
 from django.contrib import admin
-from application.models import PersonalInfo, MobileNumberInfo, TelephoneNumberInfo, SkillsInfo, CompanyInfo, CutOffPeriodInfo, AttendanceInfo,EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary,EmployeeIteneraryDetails,Concerns,Notifications
+from application.models import PersonalInfo, MobileNumberInfo, TelephoneNumberInfo, SkillsInfo, CompanyInfo, CutOffPeriodInfo, AttendanceInfo,EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary,EmployeeIteneraryDetails,Concerns,Notifications,Overtime,OvertimeDetails
 from import_export.admin import ImportExportModelAdmin 
 # Register your models here.
 
@@ -198,6 +198,25 @@ class NotificationsAdmin(ImportExportModelAdmin):
 
 admin.site.register(Notifications, NotificationsAdmin)
 
+
+class OvertimeAdmin(ImportExportModelAdmin): 
+    list_display = ('id','employee_overtime','department','date_filed','noted_by','checked_by','approved_by',)
+    list_editable = ('employee_overtime','department','noted_by','checked_by','approved_by',)
+    list_per_page = 10
+    search_fields = ('id','employee_overtime','department','date_filed','noted_by','checked_by','approved_by',)
+    list_filter = ('id','employee_overtime','department','date_filed',)
+
+admin.site.register(Overtime, OvertimeAdmin)
+
+
+class OvertimeDetailsAdmin(ImportExportModelAdmin):
+    list_display = ('id','overtime','date_rendered','day','re_sp_ot','date_rendered','description','product','timeIn','timeOut','duration',)
+    list_editable = ('overtime','date_rendered','day','re_sp_ot','date_rendered','description','product','timeIn','timeOut','duration',)
+    list_per_page = 10
+    search_fields = ('date_rendered','day','re_sp_ot','date_rendered','description','product',)
+    list_filter = ('overtime','date_rendered','day','re_sp_ot',)
+
+admin.site.register(OvertimeDetails, OvertimeDetailsAdmin)
 
 
 #  list_display = ()

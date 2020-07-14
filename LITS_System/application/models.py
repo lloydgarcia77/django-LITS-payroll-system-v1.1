@@ -352,3 +352,34 @@ class Notifications(models.Model):
 
     def __str__(self):
         return self.message
+
+
+RE_SP = (
+    ("Regulary Day","Regulary Day"),
+    ("Rest Day", "Rest Day"),
+    ("Special Day", "Special Day"),
+)
+class Overtime(models.Model):
+    employee_overtime  = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_overtime")
+    department = models.CharField(max_length=100, null=True, blank = True)
+    date_filed = models.DateField(auto_now_add=True) 
+    noted_by = models.CharField(max_length=100, null=True, blank = True)
+    checked_by =models.CharField(max_length=100, null=True, blank = True)
+    approved_by = models.CharField(max_length=100, null=True, blank = True)
+
+    def __str__(self):
+        return str(self.employee_overtime)
+
+class OvertimeDetails(models.Model):
+    overtime = models.ForeignKey(Overtime, on_delete=models.CASCADE, related_name="overtime")
+    date_rendered = models.CharField(max_length=200)
+    day = models.CharField(max_length=200)
+    re_sp_ot = models.CharField(max_length=100, choices=RE_SP, default=RE_SP[0][0]) 
+    description = models.CharField(max_length=250)
+    product = models.CharField(max_length=200)
+    timeIn = models.CharField(max_length=100)
+    timeOut = models.CharField(max_length=100)
+    duration = models.IntegerField()
+
+    def __str__(self):
+        return str(self.overtime)

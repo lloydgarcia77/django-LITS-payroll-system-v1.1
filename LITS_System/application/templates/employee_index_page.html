@@ -250,7 +250,7 @@ Payroll System Employee Index Page
 
             
             {% block nav_leaves %}
-            <li><a href="{% url 'application:employee_side_manage_leaves_page' %}"><i class="fa fa-fw fa-car text-red"></i> <span>Leaves</span> </a></li>
+            <li ><a href="{% url 'application:employee_side_manage_leaves_page' %}"><i class="fa fa-fw fa-car text-red"></i> <span>Leaves</span> </a></li>
             {% endblock nav_leaves %}
 
             
@@ -262,6 +262,11 @@ Payroll System Employee Index Page
             {% block nav_concerns %}
             <li><a href="{% url 'application:employee_side_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting text-aqua"></i> <span>Concerns</span></a></li> 
             {% endblock nav_concerns %} 
+
+                
+            {% block nav_overtime %}
+            <li><a href="{% url 'application:employee_side_manage_overtime_page' %}"><i class="fa fa-fw fa-clock-o text-yellow"></i> <span>Overtime</span></a></li> 
+            {% endblock nav_overtime %} 
  
         </ul>
     </section>

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, CompanyInfo,TelephoneNumberInfo,CutOffPeriodInfo, AttendanceInfo, EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails,Concerns
+from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, CompanyInfo,TelephoneNumberInfo,CutOffPeriodInfo, AttendanceInfo, EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails,Concerns,Overtime,OvertimeDetails
 import os
 from decimal import Decimal
 
@@ -1396,3 +1396,58 @@ class ConcernsReplyEmployeeForm(forms.ModelForm):
             'class': 'form-control',  
             'rows' : '5',
         }
+
+class OvertimeForm(forms.ModelForm):
+    class Meta():
+        model = Overtime
+        exclude = ("employee_overtime","date_filed")
+    def __init__(self, *args, **kwargs):
+            super(OvertimeForm, self).__init__(*args, **kwargs)
+
+class OvertimeDetailsForm(forms.ModelForm):
+    class Meta():
+        model = OvertimeDetails
+        exclude = ("overtime",)
+    def __init__(self, *args, **kwargs):
+        super(OvertimeDetailsForm, self).__init__(*args, **kwargs)
+        self.fields['date_rendered'].widget.attrs = {  
+            'class': 'form-control frmDateRender',   
+            'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['day'].widget.attrs = {  
+            'class': 'form-control',   
+            'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['re_sp_ot'].widget.attrs = {  
+            'class': 'form-control select2',   
+            #'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['description'].widget.attrs = {  
+            'class': 'form-control',   
+            #'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['product'].widget.attrs = {  
+            'class': 'form-control',   
+            #'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['timeIn'].widget.attrs = {  
+            'class': 'form-control frmTimeIn',   
+            'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['timeOut'].widget.attrs = {  
+            'class': 'form-control frmTimeOut',   
+            'readonly': 'readonly',
+            #'required': 'required',
+        }
+        self.fields['duration'].widget.attrs = {  
+            'class': 'form-control',   
+            'readonly': 'readonly',
+            #'required': 'required',
+        }
+
