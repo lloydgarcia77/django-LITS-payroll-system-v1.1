@@ -1412,7 +1412,7 @@ class OvertimeDetailsForm(forms.ModelForm):
         super(OvertimeDetailsForm, self).__init__(*args, **kwargs)
         self.fields['date_rendered'].widget.attrs = {  
             'class': 'form-control frmDateRender',   
-            'readonly': 'readonly',
+            # 'readonly': 'readonly',
             #'required': 'required',
         }
         self.fields['day'].widget.attrs = {  
@@ -1421,17 +1421,18 @@ class OvertimeDetailsForm(forms.ModelForm):
             #'required': 'required',
         }
         self.fields['re_sp_ot'].widget.attrs = {  
-            'class': 'form-control select2',   
+            'class': 'form-control select2',  
+            'width': '100%', 
             #'readonly': 'readonly',
             #'required': 'required',
         }
         self.fields['description'].widget.attrs = {  
-            'class': 'form-control',   
+            'class': 'form-control frmDescription',    
             #'readonly': 'readonly',
             #'required': 'required',
         }
         self.fields['product'].widget.attrs = {  
-            'class': 'form-control',   
+            'class': 'form-control frmProduct',    
             #'readonly': 'readonly',
             #'required': 'required',
         }

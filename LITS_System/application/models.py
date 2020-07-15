@@ -379,7 +379,7 @@ class OvertimeDetails(models.Model):
     product = models.CharField(max_length=200)
     timeIn = models.CharField(max_length=100)
     timeOut = models.CharField(max_length=100)
-    duration = models.IntegerField()
+    duration = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.overtime)
