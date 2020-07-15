@@ -3179,6 +3179,7 @@ def side_employee_create_overtime(request):
     template_name = "employee_side/employee_side_create_overtime.html"
     user = get_object_or_404(User, username=request.user.username)
     employee = get_object_or_404(PersonalInfo, fk_user=user)
+    company = get_object_or_404(CompanyInfo, fk_company_user=user)
     notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
     notifications_count = notifications.count()
 
@@ -3192,7 +3193,23 @@ def side_employee_create_overtime(request):
             formOvertimeDetails = OvertimeDetailsFormset(request.POST or None)
 
             if formOvertime.is_valid() and formOvertimeDetails.is_valid():
-                pass 
+
+                instanceformOvertime = formOvertime.save(commit=False)
+                instanceformOvertime.employee_overtime = employee
+                instanceformOvertime.department = company.department 
+                instanceformOvertime.save()
+
+                instanceformOvertimeDetails = formOvertimeDetails.save(commit=False)
+
+                for form in instanceformOvertimeDetails:
+                    form.overtime = instanceformOvertime
+                    form.save()
+                url = HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+                admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
+                for admin in admins:
+                    Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="You have been received overtime form from {sender}".format(sender=user),category=category_list[9],level=level_list[1])
+                
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
 
 
         context = {
