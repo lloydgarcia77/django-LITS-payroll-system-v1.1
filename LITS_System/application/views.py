@@ -3165,7 +3165,7 @@ def side_employee_overtime_management(request):
         context = {
             'user': user,  
             'employee': employee, 
-            'concern_list': overtime_list,
+            'overtime_list': overtime_list,
             'notifications': notifications,
             'notifications_count': notifications_count,
         }
@@ -3224,6 +3224,41 @@ def side_employee_create_overtime(request):
         return render(request, template_name, context)
     else:
         raise Http404()
+
+@login_required
+def side_employee_edit_overtime(request, id):
+    template_name = "employee_side/employee_side_edit_overtime.html" 
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)
+    company = get_object_or_404(CompanyInfo, fk_company_user=user)
+    overtime = get_object_or_404(Overtime, id=id)
+    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+    notifications_count = notifications.count()
+    
+    if user.is_active and user.is_staff and not user.is_superuser:
+
+        OvertimeDetailsFormset = inlineformset_factory(Overtime, OvertimeDetails, form=OvertimeDetailsForm, extra=0, can_delete=True)
+
+        if request.method == 'GET': 
+            formOvertimeDetails = OvertimeDetailsFormset(request.GET or None, instance=overtime)
+        elif request.method == 'POST':
+            pass
+
+        context = {
+        'user': user,  
+        'employee': employee,  
+        'notifications': notifications,
+        'notifications_count': notifications_count,
+        #'formOvertime':formOvertime,
+        'formOvertimeDetails': formOvertimeDetails,
+        }
+
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
+  
+
 
 
 @login_required

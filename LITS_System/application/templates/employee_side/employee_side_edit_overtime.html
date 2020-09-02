@@ -1,0 +1,361 @@
+{% extends 'employee_index_page.html' %}
+{% load staticfiles %}
+{% load humanize %} 
+{% block title %}
+Employee Edit Overtime Form
+{% endblock title%}
+
+
+{% block css %}
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<!-- Bootstrap 3.3.7 -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css' %}">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
+<!-- Ionicons -->
+<link rel="stylesheet" href="{% static 'bower_components/Ionicons/css/ionicons.min.css' %}">
+
+
+<!-- daterange picker -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.css' %}">
+<!-- bootstrap datepicker -->
+<link rel="stylesheet"
+    href="{% static 'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+<!-- iCheck for checkboxes and radio inputs -->
+<link rel="stylesheet" href="{% static 'plugins/iCheck/all.css' %}">
+<!-- Bootstrap Color Picker -->
+<link rel="stylesheet"
+    href="{% static 'bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css' %}">
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="{% static 'plugins/timepicker/bootstrap-timepicker.min.css' %}">
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+<!-- DataTables -->
+<link rel="stylesheet" href="{% static 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css' %}">
+<!-- Theme style -->
+<link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+<!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+<link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">
+
+<!-- Google Font -->
+<link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+
+<style>
+    .select2-container{
+        width: 100% !important;
+    }
+</style>
+  
+{% endblock css %}
+{% block nav_dashboard %}
+
+<li class="treeview">
+    <a href="#">
+        <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+        <span class="pull-right-container">
+            <i class="fa fa-angle-left pull-right"></i>
+        </span>
+    </a>
+    <ul class="treeview-menu">
+        <li class=""><a href="{% url 'employee_index' %}"><i class="fa fa-circle-o"></i> Dashboard v1</a></li>
+        <!-- <li><a href="index2.html"><i class="fa fa-circle-o"></i> Dashboard v2</a></li> -->
+    </ul>
+</li>
+
+{% endblock nav_dashboard %} 
+
+
+
+{% block nav_overtime %}
+<li class="active"><a href="{% url 'application:employee_side_manage_overtime_page' %}"><i class="fa fa-fw fa-clock-o text-yellow"></i> <span>Overtime</span></a></li> 
+{% endblock nav_overtime %} 
+
+
+{% block main_content %}
+
+<section class="content-header">
+    <h1>
+        Employee Edit Overtime
+        <small>Manage details</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="{% url 'employee_index' %}"><i class="fa fa-dashboard"></i> Home</a></li> 
+        <li><a href="{% url 'application:employee_side_manage_overtime_page' %}"><i class="fa fa-fw fa-clock-o"></i> <span>Manage Overtime</span></a></li> 
+        <li class="active"><i class="fa fa-fw fa-calendar-minus-o"></i> Edit Overtime</li> 
+    </ol>
+</section>
+
+<section class="content">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="box box-default">
+            <div class="box-header with-border">
+                <h3 class="box-title">Overtime Form</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div id="formOvertimeDetailsOuter">
+                            {{formOvertimeDetails.management_form}}
+                            {% for form in formOvertimeDetails.forms %} 
+                            {{ form.non_field_errors }}
+                            {{ form.errors}}
+                            <div id="formOvertimeDetailsInner"> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Date Rendered:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                            </div> 
+                                            {{form.date_rendered}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Day:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-calendar-check-o"></i>
+                                            </div> 
+                                            {{form.day}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Category:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-bookmark"></i>
+                                            </div> 
+                                            {{form.re_sp_ot}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Description:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-newspaper-o"></i>
+                                            </div> 
+                                            {{form.description}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Product:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-archive"></i>
+                                            </div> 
+                                            {{form.product}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Time In:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                            </div> 
+                                            {{form.timeIn}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Time Out:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-clock-o"></i>
+                                            </div> 
+                                            {{form.timeOut}}
+                                        </div> 
+                                    </div>                         
+                                </div> 
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Duration:</label> 
+                                        <div class="input-group date">
+                                            <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-arrows-h"></i>
+                                            </div> 
+                                            {{form.duration}}
+                                        </div> 
+                                    </div>                         
+                                </div>      
+                                <div class="col-md-12">
+                                    <div class="custom-horizonal-alignment">
+                                        <label>Can Delete:</label> 
+                                        <p>
+                                            <!-- Link: https://docs.djangoproject.com/en/2.2/topics/forms/formsets/ -->
+                                                        <!-- Accessing Can delete field in formset -->
+                                            {% if formEID.can_delete %}
+                                                {{ form.DELETE }}
+                                            {% endif %}
+                                        </p>                                        
+                                    </div>   
+                                </div>             
+                            </div>
+                           
+                            {% endfor %} 
+    
+                        </div> 
+                    </div> 
+                </div>
+                <div class="box-footer">
+                    <a href="{% url 'application:employee_side_manage_overtime_page' %}" class="btn btn-default"> <span class="fa fa-fw fa-ban"></span> Cancel</a>
+                    <button id="add_field" type="button" class="btn btn-success" data-toggle="tooltip" title="New Fields"><span class="fa fa-fw fa-plus"></span></button>
+                    <button id="del_field" type="button" class="btn btn-danger" data-toggle="tooltip" title="Remove Fields" style="display:none"><span class="fa fa-fw fa-minus"></span></button>
+                    <button type="submit" class="btn btn-info pull-right"><span class="fa fa-fw fa-send"></span> Submit</button>
+                </div>
+                <div id="empty_formOvertimeDetails" style="display: none;">
+                    <div class="formOvertimeDetailsInner">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Date Rendered:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.date_rendered}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Day:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-calendar-check-o"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.day}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Category:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-bookmark"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.re_sp_ot}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Description:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-newspaper-o"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.description}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Product:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-archive"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.product}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Time In:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.timeIn}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Time Out:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-clock-o"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.timeOut}}
+                                </div> 
+                            </div>                         
+                        </div> 
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Duration:</label> 
+                                <div class="input-group date">
+                                    <div class="input-group-addon">
+                                    <i class="fa fa-fw fa-arrows-h"></i>
+                                    </div> 
+                                    {{formOvertimeDetails.empty_form.duration}}
+                                </div> 
+                            </div>                         
+                        </div> 
+    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+
+
+
+
+{% block js %}
+
+
+{% endblock js %}
+
+<!-- jQuery 3 -->
+<script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+<!-- Select2 -->
+<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+<!-- Slimscroll -->
+<script src="{% static 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js' %}"></script>
+<!-- FastClick -->
+<script src="{% static 'bower_components/fastclick/lib/fastclick.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'dist/js/adminlte.min.js' %}"></script>
+<!-- bootstrap datepicker -->
+<script src="{% static 'bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
+<!-- bootstrap time picker -->
+<script src="{% static 'plugins/timepicker/bootstrap-timepicker.min.js' %}"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="{% static 'dist/js/demo.js' %}"></script>
+
+<script src="{% static 'js/employee_side_create_overtime.js' %}"></script>
+
+<!-- DataTables -->
+<script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script> 
+
+{% endblock main_content %}
