@@ -55,6 +55,15 @@ Employee Edit Overtime Form
     .select2-container{
         width: 100% !important;
     }
+    .custom-horizonal-alignment{
+        /* width: 100%;*/
+         display: flex;
+         flex-direction: row;
+         justify-content: right; 
+     }
+     .custom-horizonal-alignment > p{
+         padding-left: 5px;
+     }
 </style>
   
 {% endblock css %}
@@ -208,7 +217,7 @@ Employee Edit Overtime Form
                                         <p>
                                             <!-- Link: https://docs.djangoproject.com/en/2.2/topics/forms/formsets/ -->
                                                         <!-- Accessing Can delete field in formset -->
-                                            {% if formEID.can_delete %}
+                                            {% if formOvertimeDetails.can_delete %}
                                                 {{ form.DELETE }}
                                             {% endif %}
                                         </p>                                        
@@ -317,6 +326,18 @@ Employee Edit Overtime Form
                                 </div> 
                             </div>                         
                         </div> 
+                        <div class="col-md-12">
+                            <div class="custom-horizonal-alignment">
+                                <label>Can Delete:</label> 
+                                <p>
+                                    <!-- Link: https://docs.djangoproject.com/en/2.2/topics/forms/formsets/ -->
+                                                <!-- Accessing Can delete field in formset -->
+                                    {% if formOvertimeDetails.can_delete %}
+                                        {{ formOvertimeDetails.empty_form.DELETE }}
+                                    {% endif %}
+                                </p>                                        
+                            </div>   
+                        </div>             
     
                     </div>
                 </div>
@@ -352,7 +373,7 @@ Employee Edit Overtime Form
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
-<script src="{% static 'js/employee_side_create_overtime.js' %}"></script>
+<script src="{% static 'js/employee_side_edit_overtime.js' %}"></script>
 
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>

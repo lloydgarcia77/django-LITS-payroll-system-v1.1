@@ -11,7 +11,7 @@ $(document).ready(function () {
         "FRI",
         "SAT" 
     ]
-     $('.select2').select2();
+     $('#formOvertimeDetailsOuter .select2').select2();
     //  $('.frmDateRender').datepicker({ 
     //     autoclose: true,
     // }).datepicker("setDate",'now'); 
@@ -130,6 +130,8 @@ $(document).ready(function () {
             
             $(`#id_overtime-${form_idx}-day`).val(days_of_week[date.getDay()]);
         });
+        //select 2
+        $(`#id_overtime-${form_idx}-re_sp_ot`).select2();
         // time in 
         $(`#id_overtime-${form_idx}-timeIn`).timepicker({
             maxHours: 24,
