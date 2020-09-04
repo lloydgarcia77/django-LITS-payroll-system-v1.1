@@ -2,7 +2,7 @@
 {% load staticfiles %} 
 {% load humanize %} 
 {% block title %} 
-Manage Employee Leaves
+Manage Employee Overtime
 {% endblock title%} 
 
 
@@ -49,15 +49,13 @@ Manage Employee Leaves
 <!-- Google Font -->
 <link rel="stylesheet"
     href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
-
-<!-- Select2 -->
-<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+ 
 
 <link rel="stylesheet" href="{% static 'css/loading-btn.css' %}">
 <link rel="stylesheet" href="{% static 'css/loading.css' %}">
 
 {% endblock css %}
+
 
 {% block nav_dashboard %}
 <li class="treeview">
@@ -75,6 +73,7 @@ Manage Employee Leaves
 {% endblock nav_dashboard %}
 
 
+
 {% block nav_employees %}
 <li class="active treeview">
     <a href="#">
@@ -88,79 +87,17 @@ Manage Employee Leaves
         Employees</a></li>
         <li class=""><a href="{% url 'application:employee_payroll_manage' %}"><i class="fa fa-fw fa-credit-card"></i>
         Manage Payroll</a></li>
-        <li class="active"><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
+        <li class=""><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
         <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Iteneraries </a></li>
         <li><a href="{% url 'application:employee_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting"></i> Concerns</a></li>
-        <li><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
+        <li  class="active" ><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
     </ul>
 </li>
 {% endblock nav_employees %}
 
 {% block main_content %}
-<section class="content-header">
-    <h1>
-        Employee Leaves Management
-        <small>Manage employee leaves</small>
-    </h1>
-    <ol class="breadcrumb">
-        <li><a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> Home</a></li> 
-        <li class="active"><i class="fa fa-fw fa-car"></i>Leaves</li>
-    </ol>
-</section>
-<div class="content">
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="box">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Employee Leaves Table</h3>
-                </div>
-                <div class="box-body">
-                    <table id="tblLeaves" class="table table-bordered table-striped text-center">
-                        <thead>
-                            <tr>
-                                <th style="width: 5%">ID</th>
-                                <th>Employee</th>
-                                <th>Status</th>
-                                <th>No of days</th>
-                                <th>Inclusive Dates</th>
-                                <th>Classification</th>
-                                <th>Date Filed</th>
-                                <th style="width: 5%">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody> 
-                            {% for leave in leaves  %}
-                                <tr>
-                                    <td>{{ leave.id }}</td>
-                                    <td>{{ leave.employee_leave_fk }}</td>
-                                    <td> 
-                                        {% if leave.status == 'Disapproved' %}
-                                        <span class="label label-danger">{{ leave.status }}</span>
-                                        {% elif leave.status == 'Approved' %}
-                                        <span class="label label-success">{{ leave.status }}</span>
-                                        {% endif %} 
-                                    </td>
-                                    <td>{{ leave.no_days }}</td>
-                                    <td>{{ leave.inclusive_dates }}</td>
-                                    <td>{{ leave.classification_of_leave }}</td>
-                                    <td>{{ leave.date_filed }}</td>
-                                    <td> 
-                                        <div class="btn-group"> 
-                                            <a href="{% url 'application:employee_view_employee_leaves_page' leave.id %}" class="btn btn-warning" data-toggle="tooltip" title="View"><i class="fa fa-fw fa-eye"></i></a>
-                                            
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}                            
-                        </tbody>
-                    </table>
-                </div>
-                
-            </div>
-         
-        </div>
-    </div>    
-</div>
+
+
 
 {% block js %} 
 {% endblock js %}
@@ -177,10 +114,12 @@ Manage Employee Leaves
 <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
+<!-- Select2 -->
+<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
 
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
-<script src="{% static 'js/employee_manage_leaves.js' %}"></script>
+<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script> 
+<script src="{% static 'js/employee_manage_overtime.js' %}"></script>
   
 {% endblock main_content %}

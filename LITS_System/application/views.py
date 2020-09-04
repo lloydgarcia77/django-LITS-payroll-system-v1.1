@@ -2280,7 +2280,27 @@ def upload_attendance(request):
 
 @login_required
 def employee_overtime_management_page(request):
-    pass
+    template_name = "overtime/employee_manage_overtime_page.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)    
+    itenerary_list = Overtime.objects.all().order_by('-id').distinct()
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+    if user.is_active and user.is_staff and user.is_superuser:
+        
+        if request.method == 'GET':
+            pass
+        context = {
+        'user':user,
+        'employee': employee, 
+        'itenerary_list': itenerary_list,
+        'notifications': notifications,
+        'notifications_count': notifications_count,
+        } 
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+    
 
 @login_required
 def reports_page(request):
