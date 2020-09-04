@@ -129,8 +129,8 @@ Manage Employee Overtime
                                     <td>{{overtime.department|striptags}}</td> 
                                     <td class="text-center">
                                         <div class="btn-group">
-                                            <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip" title="Delete" data-url=""><i class="fa fa-fw fa-trash"></i></button>
-                                        <a href="" class="btn btn-warning" data-toggle="tooltip" title="View"><i class="fa fa-fw fa-eye"></i></a>
+                                            <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip" title="Delete" data-url="{% url 'application:employee_side_employee_delete_overtime' overtime.id %}"><i class="fa fa-fw fa-trash"></i></button>
+                                        <a href="{% url 'application:employee_side_employee_view_overtime_form' overtime.id %}" class="btn btn-warning" data-toggle="tooltip" title="View"><i class="fa fa-fw fa-eye"></i></a>
                                         <a href="{% url 'application:employee_side_employee_edit_overtime' overtime.id %}" type="button" class="btn btn-info" data-toggle="tooltip" title="Edit"><i class="fa fa-fw fa-pencil-square-o"></i></a>
                                         </div>
                                         

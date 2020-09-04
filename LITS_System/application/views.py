@@ -3242,7 +3242,17 @@ def side_employee_edit_overtime(request, id):
         if request.method == 'GET': 
             formOvertimeDetails = OvertimeDetailsFormset(request.GET or None, instance=overtime)
         elif request.method == 'POST':
-            pass
+            formOvertimeDetails = OvertimeDetailsFormset(request.POST or None, instance=overtime)
+            if formOvertimeDetails.is_valid():
+                formOvertimeDetails.save()
+
+                url = HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+                admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
+                for admin in admins:
+                    Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="Overtime form from {sender} has been updated!".format(sender=user),category=category_list[10],level=level_list[1])
+               
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+
 
         context = {
         'user': user,  
@@ -3258,8 +3268,63 @@ def side_employee_edit_overtime(request, id):
         raise Http404()
 
   
+@login_required
+def side_employee_delete_overtime(request, id):
+    data = dict()
+    template_name = "employee_side/employee_side_delete_overtime.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)
+    overtime = get_object_or_404(Overtime, id=id)
 
+    if request.is_ajax():
+        if user.is_active and user.is_staff and not user.is_superuser:
+            if request.method == 'GET': 
+                context = {
+                'user': user,  
+                'employee': employee,   
+                'overtime': overtime,          
+                } 
+                data['html_form'] = render_to_string(template_name, context, request)
+            elif request.method == 'POST':
+                overtime.delete()
+                data['form_is_valid'] = True 
+                url = HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+                admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
+                for admin in admins:
+                    Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="Overtime form from {sender} has been deleted!".format(sender=user),category=category_list[11],level=level_list[1])
+               
+            return JsonResponse(data)
+        else:
+            raise Http404()
+    else:
+        raise Http404()
 
+@login_required
+def side_employee_view_overtime_form(request, id):
+    template_name = "employee_side/employee_side_view_overtime.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)
+    overtime = get_object_or_404(Overtime, id=id)
+    overtime_details = OvertimeDetails.objects.all().filter(Q(overtime=overtime)).order_by('-id').distinct()
+    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+    notifications_count = notifications.count()
+
+    if user.is_active and user.is_staff and not user.is_superuser:
+        if request.method == 'GET':
+            pass
+        elif request.method == 'POST':
+            pass 
+        context = {
+            'user': user,  
+            'employee': employee,  
+            'overtime': overtime,
+            'overtime_details': overtime_details,
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+        } 
+        return render(request, template_name, context)
+    else:
+        raise Http404()
 
 @login_required
 def employee_side_maintainance_page(request):

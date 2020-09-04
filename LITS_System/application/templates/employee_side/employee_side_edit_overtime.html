@@ -120,6 +120,9 @@ Employee Edit Overtime Form
                         <div id="formOvertimeDetailsOuter">
                             {{formOvertimeDetails.management_form}}
                             {% for form in formOvertimeDetails.forms %} 
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
                             {{ form.non_field_errors }}
                             {{ form.errors}}
                             <div id="formOvertimeDetailsInner"> 

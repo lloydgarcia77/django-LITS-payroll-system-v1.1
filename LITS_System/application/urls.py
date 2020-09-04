@@ -76,6 +76,8 @@ urlpatterns = [
     path('employee/manage/overtime/', views.side_employee_overtime_management, name="employee_side_manage_overtime_page"),
     path('employee/manage/overtime/create/', views.side_employee_create_overtime, name="employee_side_create_overtime_page"),
     path('employee/manage/overtime/edit/<int:id>/', views.side_employee_edit_overtime, name="employee_side_employee_edit_overtime"),
+    path('employee/manage/overtime/delete/<int:id>/', views.side_employee_delete_overtime, name="employee_side_employee_delete_overtime"),    
+    path('employee/manage/overtime/view/<int:id>/', views.side_employee_view_overtime_form, name="employee_side_employee_view_overtime_form"),
     path('employee/maintainancepage/', views.employee_side_maintainance_page, name="employee_side_maintainance_page"),
     
 ]
