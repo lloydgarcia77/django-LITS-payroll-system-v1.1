@@ -2283,7 +2283,7 @@ def employee_overtime_management_page(request):
     template_name = "overtime/employee_manage_overtime_page.html"
     user = get_object_or_404(User, username=request.user.username)
     employee = get_object_or_404(PersonalInfo, fk_user=user)    
-    itenerary_list = Overtime.objects.all().order_by('-id').distinct()
+    overtime_list = Overtime.objects.all().order_by('-id').distinct()
     notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
     notifications_count = notifications.count()
     if user.is_active and user.is_staff and user.is_superuser:
@@ -2293,14 +2293,65 @@ def employee_overtime_management_page(request):
         context = {
         'user':user,
         'employee': employee, 
-        'itenerary_list': itenerary_list,
+        'overtime_list': overtime_list,
         'notifications': notifications,
         'notifications_count': notifications_count,
         } 
         return render(request, template_name, context)
     else:
         raise Http404()
+
+
+@login_required
+def employee_view_overtime(request, id):
+    template_name = "overtime/employee_view_overtime_page.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user) 
+    overtime = get_object_or_404(Overtime, id=id)
     
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+
+    employee_list = PersonalInfo.objects.all().order_by('-id').distinct()# for approval
+
+    overtime_list = Overtime.objects.all().filter(id=id).order_by('-id').distinct()
+    overtime_sum = OvertimeDetails.objects.all().filter(overtime__in=overtime_list).aggregate(Sum('duration')).get('duration__sum') 
+ 
+
+    if user.is_active and user.is_staff and user.is_superuser:
+        
+        if request.method == 'GET':
+            pass
+        elif request.method == 'POST':
+            _notedBy = request.POST['notedByList']
+            _checkedBy = request.POST['checkedByList']
+            _approvedBy = request.POST['approvedByList']
+
+            print(_notedBy)
+            print(_approvedBy)
+
+            new, existing = Overtime.objects.update_or_create(id=id, defaults={ 
+                'noted_by': _notedBy,
+                'checked_by': _checkedBy,
+                'approved_by': _approvedBy,
+
+            }) 
+            url = HttpResponseRedirect(reverse_lazy('application:employee_side_employee_view_overtime_form', kwargs={'id':overtime.id}))
+            Notifications.objects.create(sender=user,recipient=overtime.employee_overtime.fk_user,url=url.url,message="Your overtime form was updated by the administrator!",category=category_list[10],level=level_list[1])               
+            return HttpResponseRedirect(reverse_lazy('application:employee_overtime_management_page'))
+        context = {
+        'user':user,
+        'employee': employee, 
+        'employee_list': employee_list,
+        'overtime':overtime,
+        'overtime_list': overtime_list,
+        'notifications': notifications,
+        'notifications_count': notifications_count,
+        'overtime_sum':overtime_sum,
+        } 
+        return render(request, template_name, context)
+    else:
+        raise Http404()
 
 @login_required
 def reports_page(request):
@@ -3329,6 +3380,10 @@ def side_employee_view_overtime_form(request, id):
     notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
     notifications_count = notifications.count()
 
+    overtime_list = Overtime.objects.all().filter(id=id).order_by('-id').distinct()
+    overtime_sum = OvertimeDetails.objects.all().filter(overtime__in=overtime_list).aggregate(Sum('duration')).get('duration__sum') 
+ 
+
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
             pass
@@ -3341,6 +3396,7 @@ def side_employee_view_overtime_form(request, id):
             'overtime_details': overtime_details,
             'notifications': notifications,
             'notifications_count': notifications_count,
+            'overtime_sum':overtime_sum,
         } 
         return render(request, template_name, context)
     else:

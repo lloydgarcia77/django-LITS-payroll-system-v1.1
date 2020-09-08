@@ -158,6 +158,11 @@ Employee View Overtime Form
                                 <td class="text-center">{{id.duration}}</td>
                             </tr>
                         {% endfor %}
+
+                        <tr style="background-color: #ECF0F5;">
+                            <td colspan="6" class="text-right"><b>Total Hours:</b></td>
+                            <td class="text-center"><b>{{overtime_sum}}</b></td>
+                        </tr>
                             
                         <!--  -->
                         <tr>
@@ -180,7 +185,7 @@ Employee View Overtime Form
             </div>
             <div class="row no-print">
                 <div class="col-xs-12"> 
-                    <a href="{% url 'application:employee_side_manage_iteneraries_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 
+                    <a href="{% url 'application:employee_side_manage_overtime_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 
                     <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
                         <i class="fa fa-download"></i> Generate PDF
                     </button>

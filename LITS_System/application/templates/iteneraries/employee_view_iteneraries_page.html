@@ -50,10 +50,7 @@ View Employee Itenerary Form
 <link rel="stylesheet"
     href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
 
-
-<!-- Select2 -->
-<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
-
+ 
 <link rel="stylesheet" href="{% static 'css/loading-btn.css' %}">
 <link rel="stylesheet" href="{% static 'css/loading.css' %}">
 
@@ -179,7 +176,7 @@ View Employee Itenerary Form
                                     <!-- template tag string convertion -->
                                     <!-- https://docs.python.org/2/library/stdtypes.html#string-formatting-operations -->
                                  
-                                    <select name="notedByList" id="notedBy" class="form-control" style="width: 100%;">  
+                                    <select name="notedByList" id="notedBy" class="form-control select2" style="width: 200px;">  
                                         {% if itenerary.noted_by == None  %}
                                         <option selected="selected">None</option>
                                         {% endif %}
@@ -199,24 +196,24 @@ View Employee Itenerary Form
                         <tr>
                             <th>Checked By:</th>
                             <td colspan="3">  
-                                    <div class="input-group">
-                                        <div class="input-group-addon">
-                                            <i class="fa fa-fw fa-check-square-o"></i>
-                                        </div> 
-                                        <select name="checkedByList" id="checkedBy" class="form-control" style="width: 100%;">  
-                                            {% if itenerary.noted_by == None  %}
-                                            <option selected="selected">None</option>
-                                            {% endif %}
-                                                    
-                                            {% for employee in employee_list  %}  
-                                                {% if itenerary.checked_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                                <option selected="selected">{{employee}}</option>                                     
-                                                {% else %}
-                                                <option>{{employee}}</option> 
-                                                {% endif %} 
-                                            {% endfor %} 
-                                        </select>
-                                    </div>  
+                                <div class="input-group">
+                                    <div class="input-group-addon">
+                                        <i class="fa fa-fw fa-check-square-o"></i>
+                                    </div> 
+                                    <select name="checkedByList" id="checkedBy" class="form-control select2" style="width: 200px;">  
+                                        {% if itenerary.noted_by == None  %}
+                                        <option selected="selected">None</option>
+                                        {% endif %}
+                                                
+                                        {% for employee in employee_list  %}  
+                                            {% if itenerary.checked_by|stringformat:"s"  == employee|stringformat:"s"  %}
+                                            <option selected="selected">{{employee}}</option>                                     
+                                            {% else %}
+                                            <option>{{employee}}</option> 
+                                            {% endif %} 
+                                        {% endfor %} 
+                                    </select>
+                                </div>  
                             </td>
                         </tr>
 
@@ -227,7 +224,7 @@ View Employee Itenerary Form
                                     <div class="input-group-addon">
                                         <i class="fa fa-fw fa-thumbs-o-up"></i>
                                     </div> 
-                                    <select name="approvedByList" id="approvedBy" class="form-control" style="width: 100%;">  
+                                    <select name="approvedByList" id="approvedBy" class="form-control select2" style="width: 200px;">  
                                         {% if itenerary.noted_by == None  %}
                                         <option selected="selected">None</option>
                                         {% endif %}
@@ -278,9 +275,13 @@ View Employee Itenerary Form
 <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
+<!-- Select2 -->
+<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
 
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>  
-  
+<script>
+    $('.select2').select2();
+</script>
 {% endblock main_content %}

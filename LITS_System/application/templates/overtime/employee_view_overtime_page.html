@@ -1,22 +1,298 @@
-<!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
-    </head>
-    <body>
-        <h1>asdasds</h1>
-        <!--[if lt IE 7]>
-            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
-        
-        <script src="" async defer></script>
-    </body>
-</html>
+{% extends 'index.html' %} 
+{% load staticfiles %} 
+{% load humanize %} 
+{% block title %} 
+View Employee Overtime
+{% endblock title%} 
+
+
+
+{% block css %}
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<!-- Bootstrap 3.3.7 -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css' %}">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
+<!-- Ionicons -->
+<link rel="stylesheet" href="{% static 'bower_components/Ionicons/css/ionicons.min.css' %}">
+
+
+<!-- daterange picker -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.css' %}">
+<!-- bootstrap datepicker -->
+<link rel="stylesheet"
+    href="{% static 'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+<!-- iCheck for checkboxes and radio inputs -->
+<link rel="stylesheet" href="{% static 'plugins/iCheck/all.css' %}">
+<!-- Bootstrap Color Picker -->
+<link rel="stylesheet"
+    href="{% static 'bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css' %}">
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="{% static 'plugins/timepicker/bootstrap-timepicker.min.css' %}">
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+<!-- DataTables -->
+<link rel="stylesheet" href="{% static 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css' %}">
+<!-- Theme style -->
+<link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+<!-- AdminLTE Skins. Choose a skin from the css/skins
+       folder instead of downloading all of them to reduce the load. -->
+<link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">
+
+<!-- Google Font -->
+<link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+ 
+
+<link rel="stylesheet" href="{% static 'css/loading-btn.css' %}">
+<link rel="stylesheet" href="{% static 'css/loading.css' %}">
+
+{% endblock css %}
+
+{% block nav_dashboard %}
+<li class="treeview">
+    <a href="#">
+        <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+        <span class="pull-right-container">
+      <i class="fa fa-angle-left pull-right"></i>
+    </span>
+    </a>
+    <ul class="treeview-menu">
+        <li class=""><a href="{% url 'index' %}"><i class="fa fa-circle-o"></i> Dashboard v1</a></li>
+        <!-- <li><a href="index2.html"><i class="fa fa-circle-o"></i> Dashboard v2</a></li> -->
+    </ul>
+</li>
+{% endblock nav_dashboard %}
+
+
+{% block nav_employees %}
+<li class="active treeview">
+    <a href="#">
+        <i class="fa fa-fw fa-group"></i> <span>Employees</span>
+        <span class="pull-right-container">
+      <i class="fa fa-angle-left pull-right"></i>
+    </span>
+    </a>
+    <ul class="treeview-menu">
+        <li class=""><a href="{% url 'application:employee_list' %}"><i class="fa fa-fw fa-users"></i> List
+        Employees</a></li>
+        <li class=""><a href="{% url 'application:employee_payroll_manage' %}"><i class="fa fa-fw fa-credit-card"></i>
+        Manage Payroll</a></li>
+        <li class=""><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
+        <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Iteneraries </a></li>
+        <li><a href="{% url 'application:employee_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting"></i> Concerns</a></li>
+        <li  class="active" ><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
+    </ul>
+</li>
+{% endblock nav_employees %}
+
+
+{% block main_content %}
+
+<section class="content-header">
+    <h1>
+        Employee Overtime Management
+        <small>Manage employee Iteneraries</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> Home</a></li> 
+        <li > <a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime</a></li>
+        <li class="active"><i class="fa fa-fw fa-eye"></i>View Overtime</li>
+    </ol>
+</section>
+
+
+<div class="content">
+    <section class="invoice">
+        <div class="row">
+            <div class="col-xs-12">
+                <h2 class="page-header">
+                    <i class="fa fa-globe"></i> LBPASCUAL INFORMATION TECHNOLOGY SOLUTIONS.
+                    <small class="pull-right">Date Filed: {{overtime.date_filed}}</small>
+                </h2>
+            </div>
+            <!-- /.col --> 
+        </div>
+        <form  method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-xs-12">
+                    <p class="lead">Overtime Details</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr >
+                                <th >Name:</th>
+                                <td colspan="6">{{ overtime.employee_overtime }}</td>
+                            </tr>
+                            <tr>
+                                <th>Postion:</th>
+                                <td colspan="6">{{ overtime.employee_overtime.fk_user.company_to_user.designation }}</td>
+                            </tr>
+                            <tr>
+                                <th>Group/Department:</th>
+                                <td colspan="6">{{ overtime.employee_overtime.fk_user.company_to_user.department }}</td>
+                            </tr>
+    
+                            <tr>
+                                <th>Prepared By:</th>
+                                <td colspan="6">{{ overtime.employee_overtime }}</td>
+                            </tr>
+    
+    
+    
+                            <!--  -->
+                            <tr style="background-color: #ECF0F5;">
+                                <th class="text-center" style="width:20%">Date</th>
+                                <th class="text-center" style="width:10%">Day</th>
+                                <th class="text-center" style="width:10%">RE/SP OT</th>
+                                <th class="text-center" style="width:20%">Description</th>
+                                <th class="text-center" style="width:10%">Product</th>
+                                <th class="text-center" style="width:20%">Time-In & Time-Out</th>
+                                <th class="text-center" style="width:10%">Duration</th>
+                            </tr>
+    
+                            
+                            {% for id in overtime.overtime.all  %}
+                                <tr style="background-color: #ECF0F5;">
+                                    <td class="text-center">{{id.date_rendered}}</td>
+                                    <td class="text-center">{{id.day}}</td>
+                                    <td class="text-center">{{id.re_sp_ot}}</td>
+                                    <td class="text-center">{{id.description}}</td>
+                                    <td class="text-center">{{id.product}}</td>
+                                    <td class="text-center">{{id.timeIn}} - {{id.timeOut}}</td>
+                                    <td class="text-center">{{id.duration}}</td>
+                                </tr>
+                            {% endfor %}
+                            <tr style="background-color: #ECF0F5;">
+                                <td colspan="6" class="text-right"><b>Total Hours:</b></td>
+                                <td class="text-center"><b>{{overtime_sum}}</b></td>
+                            </tr>
+                                
+                            <!--  -->
+                            <tr>
+                                <th>Noted By:</th>
+                                <td colspan="6"> 
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                          <i class="fa fa-fw fa-sticky-note"></i>
+                                        </div> 
+                                        <!-- template tag string convertion -->
+                                        <!-- https://docs.python.org/2/library/stdtypes.html#string-formatting-operations --> 
+                                        <select name="notedByList" id="notedBy" class="form-control select2" style="width: 200px;"> 
+
+                                            {% if overtime.noted_by == None  %}
+                                            <option selected="selected">None</option>
+                                            {% endif %}
+                                                    
+                                            {% for employee in employee_list  %}  
+                                            <!-- stringformat converts to string from object -->
+                                                {% if overtime.noted_by|stringformat:"s"  == employee|stringformat:"s"  %}
+                                                <option selected="selected">{{employee}}</option>                
+                                                {% else %}
+                                                <option>{{employee}}</option> 
+                                                {% endif %} 
+                                            {% endfor %} 
+                                        </select>
+                                    </div> 
+                                </td>
+                            </tr>
+    
+                            <tr>
+                                <th>Checked By:</th>
+                                <td colspan="6"> 
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-check-square-o"></i>
+                                        </div> 
+                                        <select name="checkedByList" id="checkedBy" class="form-control select2" style="width: 200px;">  
+                                            {% if overtime.noted_by == None  %}
+                                            <option selected="selected">None</option>
+                                            {% endif %}
+                                                    
+                                            {% for employee in employee_list  %}  
+                                                {% if overtime.checked_by|stringformat:"s"  == employee|stringformat:"s"  %}
+                                                <option selected="selected">{{employee}}</option>                                     
+                                                {% else %}
+                                                <option>{{employee}}</option> 
+                                                {% endif %} 
+                                            {% endfor %} 
+                                        </select>
+                                    </div>  
+                                </td>
+                            </tr>
+    
+                            <tr>
+                                <th>Approved By:</th>
+                                <td colspan="6"> 
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-fw fa-thumbs-o-up"></i>
+                                        </div> 
+                                        <select name="approvedByList" id="approvedBy" class="form-control select2" style="width: 200px;">  
+                                            {% if overtime.noted_by == None  %}
+                                            <option selected="selected">None</option>
+                                            {% endif %}
+                                                    
+                                            {% for employee in employee_list  %}  
+                                                {% if overtime.approved_by|stringformat:"s"  == employee|stringformat:"s"  %}
+                                                <option selected="selected">{{employee}}</option>                                     
+                                                {% else %}
+                                                <option>{{employee}}</option> 
+                                                {% endif %} 
+                                            {% endfor %} 
+                                        </select>
+                                    </div>  
+                                </td>
+                            </tr>
+                            
+                        </table>
+                    </div>
+                </div>
+                <div class="row no-print">
+                    <div class="col-xs-12"> 
+                        <a href="{% url 'application:employee_overtime_management_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 
+                        <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
+                            <i class="fa fa-download"></i> Generate PDF
+                        </button>
+                        <button type="submit" class="btn btn-info pull-right" style="margin-right: 5px;"><span class="fa fa-fw fa-send"></span> Submit</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+</div>
+    
+{% block js %} 
+{% endblock js %}
+
+<!-- jQuery 3 -->
+<script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+<!-- Slimscroll -->
+<script src="{% static 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js' %}"></script>
+<!-- FastClick -->
+<script src="{% static 'bower_components/fastclick/lib/fastclick.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'dist/js/adminlte.min.js' %}"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="{% static 'dist/js/demo.js' %}"></script>
+<!-- Select2 -->
+<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+
+<!-- DataTables -->
+<script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script> 
+<script>
+    $('.select2').select2();
+</script>
+{% endblock main_content %}
+

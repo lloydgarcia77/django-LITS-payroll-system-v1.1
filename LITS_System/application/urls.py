@@ -44,6 +44,7 @@ urlpatterns = [
     path('employees/manage/admin/concerns/inbox/', views.employee_manage_inbox_concern, name="employee_manage_inbox_concerns_page"),
     path('employees/manage/admin/concerns/reply/<int:id>/', views.employee_reply_concern , name="employee_reply_concerns_page"),
     path('employees/manage/admin/overtime/', views.employee_overtime_management_page, name="employee_overtime_management_page"),
+    path('employees/manage/admin/overtime/view/<int:id>/', views.employee_view_overtime, name="employee_view_overtime_page"),
     path('employees/manage/admin/reports/', views.reports_page, name="employee_reports"),
     
     path('users/nofitications/manager/delete/<int:id>/', views.read_notifications, name="users_notifications_delete"),

@@ -189,10 +189,11 @@ Employee Attendance Cut-Off Page
                     <div class="box-footer clearfix">
                         <div class="btn-group pull-right">
                             <button type="button" class="btn bg-navy" onclick="location.reload()">Reset Default</button>
-                            <button id="btnApplyChanges" type="button" class="btn bg-navy">Apply Changes</button>
-                            <button id="" type="button" class="btn bg-navy">Itinerary Form</button>
-                            <button id="" type="button" class="btn bg-navy">Leaves Form</button> 
-                            <button id="" type="button" class="btn bg-navy">Overtime Form</button> 
+                            <button id="btnApplyChanges" type="button" class="btn bg-navy">Apply Changes</button> 
+                            <a href="{% url 'application:employee_manage_iteneraries_page' %}" class="btn bg-navy">Itinerary Form</a>
+                            <a href="{% url 'application:employee_manage_leaves_page' %}" class="btn bg-navy">Leaves Form</a>
+                            <a href="{% url 'application:employee_overtime_management_page' %}" class="btn bg-navy">Overtime Form</a>
+
                         </div>
                      
                     </div>
