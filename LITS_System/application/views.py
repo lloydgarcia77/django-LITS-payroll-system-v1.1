@@ -897,10 +897,11 @@ def employee_view_profile(request, key):
     
     personal_info = get_object_or_404(PersonalInfo, id=id)
     target_user_parent_user = get_object_or_404(User, profile_to_user=personal_info)#look up from child to parent model
-    company_info = get_object_or_404(CompanyInfo, fk_company_user=target_user_parent_user)
-    mobile_info = get_object_or_404(MobileNumberInfo, fk_mobile_user=target_user_parent_user)
-    telephone_info = get_object_or_404(TelephoneNumberInfo, fk_telephone_user=target_user_parent_user)
-    skills_info = get_object_or_404(SkillsInfo, fk_skills_user=target_user_parent_user)
+    
+    company_info = CompanyInfo.objects.filter(fk_company_user=target_user_parent_user)
+    mobile_info = MobileNumberInfo.objects.filter(fk_mobile_user=target_user_parent_user)
+    telephone_info = TelephoneNumberInfo.objects.filter(fk_telephone_user=target_user_parent_user)
+    skills_info = SkillsInfo.objects.filter(fk_skills_user=target_user_parent_user)
 
     last_time_logged = target_user_parent_user.last_login
     last_time_joined = target_user_parent_user.date_joined
@@ -910,8 +911,8 @@ def employee_view_profile(request, key):
     if user.is_active and user.is_staff and user.is_superuser:
         context = {
             'user': user,
-            # 'last_time_logged': last_time_logged,
-            # 'last_time_joined': last_time_joined,
+            'last_time_logged': last_time_logged,
+            'last_time_joined': last_time_joined,
             # 'piformset': piformset,
             # 'record': record,
             # 'profiles': profiles,
