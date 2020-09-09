@@ -890,6 +890,42 @@ def employee_list_page(request):
         raise Http404()
 
 @login_required
+def employee_view_profile(request, key):
+    template_name = "employees/employee_view_employee_profiles.html"
+    user = get_object_or_404(User, username=request.user.username)
+    id = decrypt_key(key)
+    
+    personal_info = get_object_or_404(PersonalInfo, id=id)
+    target_user_parent_user = get_object_or_404(User, profile_to_user=personal_info)#look up from child to parent model
+    company_info = get_object_or_404(CompanyInfo, fk_company_user=target_user_parent_user)
+    mobile_info = get_object_or_404(MobileNumberInfo, fk_mobile_user=target_user_parent_user)
+    telephone_info = get_object_or_404(TelephoneNumberInfo, fk_telephone_user=target_user_parent_user)
+    skills_info = get_object_or_404(SkillsInfo, fk_skills_user=target_user_parent_user)
+
+    last_time_logged = target_user_parent_user.last_login
+    last_time_joined = target_user_parent_user.date_joined
+
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+    if user.is_active and user.is_staff and user.is_superuser:
+        context = {
+            'user': user,
+            # 'last_time_logged': last_time_logged,
+            # 'last_time_joined': last_time_joined,
+            # 'piformset': piformset,
+            # 'record': record,
+            # 'profiles': profiles,
+            # 'company':company,
+            # 'company_details':company_details,
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+        }
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
+
+@login_required
 def delete_employee(request, id):
     data = dict()
     template_name = "employees/delete_employee.html"
@@ -2369,6 +2405,31 @@ def reports_page(request):
             'user':user, 
             'notifications': notifications,
             'notifications_count': notifications_count, 
+        }
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
+@login_required
+def admin_search_page(request):
+    template_name = "admin_search_page.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+
+    if user.is_active and user.is_staff and user.is_superuser: 
+        if request.method == 'GET':
+            search_term = request.GET.get('search_term')
+            if search_term.strip(): 
+                print(search_term)
+
+        elif request.method == 'POST':
+            pass
+        context = {
+            'user':user, 
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+            'search_term': search_term,
         }
         return render(request, template_name, context)
     else:

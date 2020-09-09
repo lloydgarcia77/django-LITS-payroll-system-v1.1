@@ -182,15 +182,16 @@ Employee List Page
 
                                 <td>{{ employee.fk_user.email}}</td>
                                 <td> 
-                                    <div class="btn-group-vertical">
-                                        <button type="button" class="btn btn-block btn-danger btn-delete" data-toggle="tooltip"
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip"
                                         title="Delete Employeee"  data-url="{% url 'application:delete_employee' employee.id %}">
                                             <span class="fa fa-fw fa-trash"></span>
                                             </button> 
-                                        <a href="{% url 'application:employee_attendance_view' employee.key_id %}" class="btn btn-block btn-warning" data-toggle="tooltip"
+                                        <a href="{% url 'application:employee_attendance_view' employee.key_id %}" class="btn btn-warning" data-toggle="tooltip"
                                         title="View Attendance">
                                             <span class="fa fa-fw fa-eye"></span>
                                             </a>
+                                        <a href="{% url 'application:employee_view_profile' employee.key_id %}" class="btn btn-primary" data-toggle="tooltip" title="View Profile"><span class="fa fa-fw fa-user"></span></a>
                                     </div>
                                 </td>
                             </tr>
