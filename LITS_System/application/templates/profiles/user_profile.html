@@ -240,8 +240,8 @@ Profile User Page
 
                     <p>
                         {% for i in user.skills_to_user.all %}
-                        <span class="label label-warning"><span>{{ i.skills }}</span> <a
-                                href="{% url 'application:delete_skill' i.id %}" class="deleteSkills"><i
+                        <span class="label label-warning">{{ i.skills }}
+                            <a href="{% url 'application:delete_skill' i.id %}" class="deleteSkills"><i
                                     class="fa fa-fw fa-close" style="color: white;" data-toggle="tooltip"
                                     title="Remove Skill"></i></a></span>
                         {% endfor %}

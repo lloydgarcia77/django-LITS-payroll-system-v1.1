@@ -51,6 +51,9 @@ View Profile User Page
 
 <!-- https://dzone.com/articles/css-position-relative-vs-position-absolute -->
 <style>
+    .list-group-item{
+        vertical-align: middle;
+    }
     .avatar-upload {
         position: relative;
         max-width: 205px;
@@ -136,6 +139,26 @@ View Profile User Page
 </li>
 {% endblock nav_dashboard %}    
 
+{% block nav_employees %}
+<li class="active treeview">
+    <a href="#">
+        <i class="fa fa-fw fa-group"></i> <span>Employees</span>
+        <span class="pull-right-container">
+            <i class="fa fa-angle-left pull-right"></i>
+        </span>
+    </a>
+    <ul class="treeview-menu">
+        <li class="active"><a href="{% url 'application:employee_list' %}"><i class="fa fa-fw fa-users"></i> List
+                Employees</a></li>
+        <li><a href="{% url 'application:employee_payroll_manage' %}"><i class="fa fa-fw fa-credit-card"></i> Manage Payroll</a></li>
+        <li><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
+        <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Iteneraries </a></li>
+        <li><a href="{% url 'application:employee_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting"></i> Concerns</a></li>
+        <li><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
+    </ul>
+</li>
+{% endblock nav_employees %}
+
 {% block main_content %}
 <section class="content-header">
     <h1>
@@ -144,8 +167,351 @@ View Profile User Page
     </h1>
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Profile</li>
+        <li><a href="{% url 'application:employee_list' %}"><i class="fa fa-fw fa-users"></i> Employee List</a></li>
+        <li class="active"><i class="fa fa-fw fa-user"></i>Employee Profile</li>
     </ol>
+</section>
+
+
+
+<section class="content">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="box box-primary">
+                <div class="box-body box-profile">
+                {% if personal_info.image %}
+                <img class="profile-user-img img-responsive img-circle" src="{{ personal_info.image.url }}" alt="User profile picture" style="height: 150px; width: 150px;">
+                {% else %}
+                <img class="profile-user-img img-responsive img-circle" src="{% static 'images/150x150.png' %}" alt="User profile picture">
+                {% endif %}
+                  
+    
+                  <h3 class="profile-username text-center">
+                    {{personal_info.first_name|title}} 
+                    {{personal_info.middle_name|title}}
+                    {{personal_info.last_name|title}}
+                </h3>
+    
+                  <p class="text-muted text-center">{{personal_info.fk_user.company_to_user.designation|title}} </p>
+    
+                  <ul class="list-group list-group-unbordered">
+                    <li class="list-group-item">
+                      <b>ID No</b> <a class="pull-right">1,322</a>
+                    </li>
+                    <li class="list-group-item">
+                      <b>Last Activity</b> <a class="pull-right">{{last_time_logged}}</a>
+                    </li>
+                    <li class="list-group-item">
+                      <b>Member Since</b> <a class="pull-right">{{last_time_joined}}</a>
+                    </li>
+                  </ul> 
+                </div>
+                <!-- /.box-body -->
+              </div>
+        
+            <!-- /.box -->
+
+            <!-- About Me Box -->
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">About Me</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <strong><i class="fa fa-book margin-r-5"></i> Education</strong>
+
+                    <p class="text-muted"> 
+                        {{personal_info.education}}
+                    </p>
+
+                    <hr>
+
+                    <strong><i class="fa fa-map-marker margin-r-5"></i> Location</strong>
+
+                    <p class="text-muted">{{personal_info.address}}</p>
+
+                    <hr>
+
+                    <strong><i class="fa fa-pencil margin-r-5"></i> Skills</strong>
+
+                    <p id="employee_skills">
+                        {% for i in skills_info %}
+                        <span class="label label-warning">{{ i.skills }}</span>
+                        {% endfor %}
+                    </p> 
+                    <hr>
+
+                    <strong><i class="fa fa-file-text-o margin-r-5"></i> Notes</strong>
+
+                    <p>{{personal_info.notes}}</p>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+        <div class="col-md-9">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="active">
+                        <a href="#personal_details" data-toggle="tab">Personal Details</a>
+                    </li>
+                    <li><a href="#company_details" data-toggle="tab">Company Details</a></li> 
+                </ul>
+                <div class="tab-content">
+                    <div class="active tab-pane" id="personal_details">
+                        <strong><i class="fa fa-fw fa-mobile-phone"></i>Mobile Number</strong> 
+                        <p class="text-muted">
+                            <ul id="mobileNoList">
+                                {% for i in mobile_info %}
+                                <li> {{ i.mobile_number }}   </li>
+                                {% endfor %} 
+                            </ul>
+                        </p>
+                        <hr> 
+                        {% if personal_info %}  
+                        <strong><i class="fa fa-fw fa-calendar-plus-o"></i> Date of birth</strong>
+                        <ul>
+                            <li>
+                                 <p class="text-muted">
+                                    {{personal_info.dob}}
+                                </p>
+                            </li>
+                        </ul> 
+                        <hr>
+                        <strong><i class="fa fa-fw fa-clock-o"></i> Age</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{personal_info.age}}
+                                </p>
+                            </li>
+                        </ul>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-intersex"></i> Gender</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{personal_info.gender}}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-hourglass-start"></i> Date Started</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{personal_info.date_started}}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-suitcase"></i> Experience</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{personal_info.experience}}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-ambulance"></i> Emergency Contact Person</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{personal_info.emer_cont_pers}}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-phone"></i> Emergency Contact Persont Mobile/Telephone
+                            Number</strong>
+                            <ul>
+                                <li>
+                                    <p class="text-muted">
+                                        {{personal_info.emer_cont_pers_cont_no}}
+                                    </p> 
+                                </li>
+                            </ul>
+                                                
+
+                        {% else %}
+                       
+                        <strong><i class="fa fa-fw fa-calendar-plus-o"></i> Date of birth</strong> 
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-clock-o"></i> Age</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-intersex"></i> Gender</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-hourglass-start"></i> Date Started</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-suitcase"></i> Experience</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-ambulance"></i> Emergency Contact Person</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-phone"></i> Emergency Contact Persont Mobile/Telephone
+                            Number</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>                  
+
+                        {% endif %}
+
+                    </div>
+                    <div class="tab-pane" id="company_details">
+                        <strong><i class="fa fa-fw fa-phone-square"></i>Telephone Number</strong>
+                      
+                        <p class="text-muted">
+                            <ul>
+                                {% for i in telephone_info %}
+                                <li> {{ i.telephone_number }}</li>
+                                {% endfor %}
+                            </ul>
+                        </p>
+                        <hr>
+                        {% if company_info %} 
+                       
+                        
+                        {% for company_detail in  company_info %}
+                            
+                        <strong><i class="fa fa-fw fa-industry"></i>Company TIN</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{ company_detail.company_tin }}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+
+                        <strong><i class="fa fa-fw fa-envelope"></i>Designation</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{ company_detail.designation }}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-object-group"></i>Department</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{ company_detail.department }}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-credit-card"></i>Personal TIN</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{ company_detail.personal_tin }}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-exchange"></i>SSS Number</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{ company_detail.sss_number }}
+                                </p>
+                            </li>
+                        </ul>
+                        
+                        <hr>
+                        <strong><i class="fa fa-fw fa-heartbeat"></i>Pagibig</strong>
+                        <ul>
+                            <li>
+                                <p class="text-muted">
+                                    {{ company_detail.pagibig }}
+                                </p>     
+                            </li>
+                        </ul>
+
+                        <hr>
+                        <strong><i class="fa fa-fw fa-medkit"></i>Philhealth</strong>
+                        <ul>
+                            <li>
+                               <p class="text-muted">
+                                    {{ company_detail.philhealth }}
+                                </p> 
+                            </li>
+                        </ul>
+                        
+                        <hr>
+
+                        {% endfor %}
+                        {% else %}
+                       
+                        <strong><i class="fa fa-fw fa-industry"></i>Company TIN</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+
+                        <strong><i class="fa fa-fw fa-envelope"></i>Designation</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-object-group"></i>Department</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-credit-card"></i>Personal TIN</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-exchange"></i>SSS Number</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-heartbeat"></i>Pagibig</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        <strong><i class="fa fa-fw fa-medkit"></i>Philhealth</strong>
+                        <p class="text-muted">
+                            Not Set.
+                        </p>
+                        <hr>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 
@@ -190,6 +556,32 @@ View Profile User Page
 
 <!-- Select2 -->
 <script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+
+
+<script>
+   // $('div span').each(function(){
+        //var $span = $(this);
+    
+        //var divId = $span.closest('div').attr('id');
+        //var spanId = $span.attr('id');
+        //var spanTxt = $span.text()
+    
+        // do something with the above
+    //});
+
+    let status = ["danger","success","info","warning","primary"];
+
+    function random_category(status){
+
+        return status[Math.floor(Math.random() * status.length)];
+    }
+ 
+    $("#employee_skills span").each(function(){
+        let item = $(this); 
+        item.removeClass('label label-warning');
+        item.addClass(`label label-${random_category(status)}`);  
+    });
+</script>
  
 
 
