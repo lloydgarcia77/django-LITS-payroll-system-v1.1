@@ -2421,8 +2421,37 @@ def admin_search_page(request):
     if user.is_active and user.is_staff and user.is_superuser: 
         if request.method == 'GET':
             search_term = request.GET.get('search_term')
-            if search_term.strip(): 
-                print(search_term)
+            if search_term.strip():
+                #when accessing child model from parent use related name!
+                user_filter = User.objects.filter(
+                    Q(email__icontains=search_term) | 
+                    #child personal info model User
+                    Q(profile_to_user__first_name__icontains=search_term) | 
+                    Q(profile_to_user__middle_name__icontains=search_term) | 
+                    Q(profile_to_user__last_name__icontains=search_term) | 
+                    Q(profile_to_user__dob__icontains=search_term) | 
+                    Q(profile_to_user__gender__icontains=search_term) |
+                    Q(profile_to_user__address__icontains=search_term) |
+                    #child company info model User
+                    Q(company_to_user__company_id__icontains=search_term) | 
+                    Q(company_to_user__designation__icontains=search_term) |
+                    Q(company_to_user__company_tin__icontains=search_term) |  
+                    Q(company_to_user__personal_tin__icontains=search_term) | 
+                    Q(company_to_user__sss_number__icontains=search_term) | 
+                    Q(company_to_user__pagibig__icontains=search_term) | 
+                    Q(company_to_user__philhealth__icontains=search_term) |
+                    #mobile child info model User
+                    Q(mobile_to_user__mobile_number__icontains=search_term) |
+                    #telephone child info model User
+                    Q(telephone_to_user__telephone_number__icontains=search_term) |
+                    #skill child info model User
+                    Q(skills_to_user__skills__icontains=search_term) 
+                ).order_by('-id').distinct().values_list('email', flat=True)
+                #personal_filter = PersonalInfo.objects.filter(Q(first_name__icontains=search_term)).order_by('-id').values_list('first_name','middle_name','last_name')[0][1]
+
+
+
+                print(user_filter)
 
         elif request.method == 'POST':
             pass
