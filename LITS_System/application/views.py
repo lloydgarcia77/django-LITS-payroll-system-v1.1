@@ -2449,9 +2449,10 @@ def admin_search_page(request):
                 ).order_by('-id').distinct().values_list('email', flat=True)
                 #personal_filter = PersonalInfo.objects.filter(Q(first_name__icontains=search_term)).order_by('-id').values_list('first_name','middle_name','last_name')[0][1]
 
-
+                cutoff_filter = CutOffPeriodInfo.objects.filter(Q(cut_off_period=search_term)).order_by('-id').distinct().values_list('cut_off_period', flat=True)
 
                 print(user_filter)
+                print(cutoff_filter)
 
         elif request.method == 'POST':
             pass
