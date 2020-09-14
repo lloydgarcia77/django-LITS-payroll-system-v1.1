@@ -1507,13 +1507,14 @@ def day_shift_payroll_computation_v1_1(data):
 
 @login_required
 def employee_create_payroll(request, key, id): 
-    template_name = "payroll/employee_create_payroll.html"
+    template_name = "payroll/employee_create_payroll.html" 
     user = get_object_or_404(User, username=request.user.username)
     cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
     pid = decrypt_key(key)
     employee = get_object_or_404(PersonalInfo, id=pid) 
-    company_details = get_object_or_404(User, username=employee.fk_user.username)
+    company_details = get_object_or_404(User, username=employee.fk_user.username) 
     employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
+    
     notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
     notifications_count = notifications.count()
 
@@ -1537,12 +1538,16 @@ def employee_create_payroll(request, key, id):
 
     #print(attendance,attendance.count())
     for data in attendance:
-        output = 'day: {day} | date: {date} | time-in: {timein} | time-out: {timeout} | late: {late} | undertime: {undertime} | overtime: {overtime} | itinerary: {itinerary} | leave: {leave} | category: {category} | holiday: {holiday}'.format(day=data.days_of_week, date=data.date, timein=data.time_in, timeout=data.time_out, late=data.late, undertime=data.undertime, overtime=data.overtime, itinerary=data.has_itenerary, leave=data.has_leave, category=data.overtime_category, holiday=data.holiday)
-        # print(output)
+        
+        # [on_true] if [expression] else [on_false] 
+        dTIn = data.time_in if data.time_in  else '0:00'
+        dTOut = data.time_out if data.time_out  else '0:00'
+        output = 'day: {day} | date: {date} | time-in: {timein} | time-out: {timeout} | late: {late} | undertime: {undertime} | overtime: {overtime} | itinerary: {itinerary} | leave: {leave} | category: {category} | holiday: {holiday}'.format(day=data.days_of_week, date=data.date, timein=dTIn, timeout=dTOut, late=data.late, undertime=data.undertime, overtime=data.overtime, itinerary=data.has_itenerary, leave=data.has_leave, category=data.overtime_category, holiday=data.holiday)
+        print(output)
         attendance_data = {
             "Day": data.days_of_week,
-            "TimeIn": data.time_in,
-            "TimeOut": data.time_out, 
+            "TimeIn": dTIn,
+            "TimeOut": dTOut, 
             "Late":data.late,
             "Undertime": data.undertime,
             "Overtime": data.overtime, 
@@ -2424,7 +2429,7 @@ def admin_search_page(request):
             if search_term.strip():
                 #when accessing child model from parent use related name!
                 user_filter = User.objects.filter(
-                    Q(email__icontains=search_term) | 
+                    Q(Q(email__icontains=search_term) | 
                     #child personal info model User
                     Q(profile_to_user__first_name__icontains=search_term) | 
                     Q(profile_to_user__middle_name__icontains=search_term) | 
@@ -2445,14 +2450,15 @@ def admin_search_page(request):
                     #telephone child info model User
                     Q(telephone_to_user__telephone_number__icontains=search_term) |
                     #skill child info model User
-                    Q(skills_to_user__skills__icontains=search_term) 
-                ).order_by('-id').distinct().values_list('email', flat=True)
+                    Q(skills_to_user__skills__icontains=search_term)) & Q(is_superuser=False)
+                ).order_by('-id').distinct()#.values_list('email', flat=True)
                 #personal_filter = PersonalInfo.objects.filter(Q(first_name__icontains=search_term)).order_by('-id').values_list('first_name','middle_name','last_name')[0][1]
 
-                cutoff_filter = CutOffPeriodInfo.objects.filter(Q(cut_off_period=search_term)).order_by('-id').distinct().values_list('cut_off_period', flat=True)
-
-                print(user_filter)
-                print(cutoff_filter)
+                all_cutoff_list = CutOffPeriodInfo.objects.all().order_by('id').distinct()
+                # Advance filter for every cut off there is multiple emp
+                cutoff_filter = CutOffPeriodInfo.objects.filter(Q(cut_off_period__icontains=search_term)).order_by('-id').distinct().values_list('cut_off_period', flat=True)
+                #with id to show attendance tavle
+ 
 
         elif request.method == 'POST':
             pass
@@ -2461,6 +2467,9 @@ def admin_search_page(request):
             'notifications': notifications,
             'notifications_count': notifications_count,
             'search_term': search_term,
+            'user_filter': user_filter,
+            'cutoff_filter':cutoff_filter,
+            'all_cutoff_list':all_cutoff_list,
         }
         return render(request, template_name, context)
     else:

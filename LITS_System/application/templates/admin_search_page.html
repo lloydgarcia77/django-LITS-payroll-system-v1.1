@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load staticfiles %}
+{% load humanize %}
 {% block title %}
 Search Results Page
 {% endblock title%}
@@ -71,6 +72,15 @@ Search Results Page
     hr{
         border-color: #D1D6DE;
     }
+    .result-list{
+        list-style: none; 
+        line-height: 5px;
+        padding-left: 3px;
+    }   
+    .result-list-inner{
+        list-style: none; 
+        padding-left: 10px;
+    }
 </style>
 {% endblock css %}
 
@@ -105,26 +115,112 @@ Search Results Page
                 </div> 
 
                 <div class="box-body">
-                    <div class="row">
-                        <div class="col-xs-12">
-                            <h3 class="search-result-title"><a href="">Bananas: Health Benefits, Risks & Nutrition Facts | Live Science</a></h3>
-                            <p class="search-result-content">Oct 18, 2018 - The banana is one of the most popular health foods on earth. Here are 11 proven ways that bananas can benefit your health.</p>
-                        <hr>
-                        </div>
-                        
-                        <div class="col-xs-12">
-                            <h3 class="search-result-title"><a href="">Bananas: Health Benefits, Risks & Nutrition Facts | Live Science</a></h3>
-                            <p class="search-result-content">Oct 18, 2018 - The banana is one of the most popular health foods on earth. Here are 11 proven ways that bananas can benefit your health.</p>
-                        </div>
-                        <div class="col-xs-12">
-                            <h3 class="search-result-title"><a href="">Bananas: Health Benefits, Risks & Nutrition Facts | Live Science</a></h3>
-                            <p class="search-result-content">Oct 18, 2018 - The banana is one of the most popular health foods on earth. Here are 11 proven ways that bananas can benefit your health.</p>
-                        </div>
+                    <div class="row"> 
+                    {% for user_detail in user_filter %}
+                    <div class="col-xs-12">
+                        <ul class="result-list">
+                            <li>
+                                <h3 class="search-result-title"><u><a href="{% url 'application:employee_view_profile' user_detail.profile_to_user.key_id %}">{{ user_detail.profile_to_user.last_name|safe }} {{ user_detail.profile_to_user.middle_name|safe }} {{ user_detail.profile_to_user.first_name|safe }} &horbar;Summary of Details:</a></u></h3>
+                                <ul class="result-list-inner">
+                                    <li>
+                                        <p class="search-result-content">
+                                            <span class="fa fa-fw fa-user"></span>
+                                            <a href="{% url 'application:employee_view_profile' user_detail.profile_to_user.key_id %}">Profile</a>   
+                                            <i class="fa fa-fw fa-caret-down"></i>
+                                        </p>
+                                    </li>
+                                    <li>
+                                        <p class="search-result-content">
+                                            <span class="fa fa-fw fa-calendar-plus-o"></span>
+                                            <a href="{% url 'application:employee_list' %}">
+                                                Attendance
+                                            </a>  
+                                            <i class="fa fa-fw fa-caret-down"></i>
+                                        </p>
+                                        <ul> 
+                                            {% for a in all_cutoff_list %}
+                                            <li>
+                                                <p>Cut-Off Period: <a href="{% url 'application:employee_attendance_cut_off_view' user_detail.profile_to_user.key_id a.id  %}">{{a.cut_off_period|safe}}</a></p>
+                                            </li>
+                                            {% endfor %}  
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <p class="search-result-content">
+                                            <span class="fa fa-fw fa-credit-card"></span>
+                                            <a href="{% url 'application:employee_payroll_manage' %}">Payroll</a> 
+                                            <i class="fa fa-fw fa-caret-down"></i>
+                                        </p>
+                                        <ul> 
+                                            {% for a in all_cutoff_list %}
+                                            <li>
+                                                <p>Cut-Off Period: <a href="{% url 'application:employee_create_payroll' user_detail.profile_to_user.key_id a.id  %}">{{a.cut_off_period|safe}}</a></p>
+                                            </li>
+                                            {% endfor %}  
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <p class="search-result-content">
+                                            <span class="fa fa-fw fa-car"></span>
+                                            <a href="{% url 'application:employee_manage_leaves_page' %}">Leaves</a>
+                                            
+                                            <i class="fa fa-fw fa-caret-down"></i>
+                                        </p>
+                                        <ul>
+                                             
+                                             {% for l in user_detail.profile_to_user.employee_leave_fk.all %} 
+                                             <li>
+                                                <p>Inclusive Dates: <a href="{% url 'application:employee_view_employee_leaves_page' l.id %}">{{l.inclusive_dates}}</a> ({{l.classification_of_leave}})</p>
+                                            </li>
+                                             {% endfor %} 
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <p class="search-result-content">
+                                            <span class="fa fa-fw fa-calendar-times-o"></span>
+                                            <a href="{% url 'application:employee_manage_iteneraries_page' %}">Itinerary</a> 
+                                            <i class="fa fa-fw fa-caret-down"></i>
+                                        </p>
+                                        <ul> 
+                                            {% for i in user_detail.profile_to_user.employee_itenerary_fk.all %}
+                                            <li>
+                                                <p>Date Field: <a href="{% url 'application:employee_view_iteneraries_page' i.id %}"> {{i.date_filed }}</a></p>
+                                            </li>
+                                            {% endfor %} 
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <p class="search-result-content">
+                                            <span class="fa fa-fw fa-clock-o"></span>
+                                            <a href="{% url 'application:employee_overtime_management_page' %}">Overtime</a>
+                                            
+                                            <i class="fa fa-fw fa-caret-down"></i>
+                                        </p>
+                                        <ul>
+                                            
+                                            {% for o in user_detail.profile_to_user.employee_overtime.all %}
+                                            <li>
+                                                <p>Date Filed: <a href="{% url 'application:employee_view_overtime_page' o.id %}">{{o.date_filed}}</a> &horbar; Department ({{o.department}})</p>
+                                            </li>
+                                            {% endfor %}
+                                                
+                                            
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>  
+                    </div>
+                    {% empty %}
+                    <div class="col-xs-12">
+                        <h1>No Results Found!</h1>
+                    </div>
+                    {% endfor %}  
                     </div>
                 </div>
 
                 <div class="box-footer">
-                    <p>Results found: "<b style="color: red">200</b>"</p>
+                    <p>Results found: "<b style="color: red">{{user_filter.count|intcomma}}</b>"</p>
                 </div>
 
             </div>
