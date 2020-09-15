@@ -1543,7 +1543,7 @@ def employee_create_payroll(request, key, id):
         dTIn = data.time_in if data.time_in  else '0:00'
         dTOut = data.time_out if data.time_out  else '0:00'
         output = 'day: {day} | date: {date} | time-in: {timein} | time-out: {timeout} | late: {late} | undertime: {undertime} | overtime: {overtime} | itinerary: {itinerary} | leave: {leave} | category: {category} | holiday: {holiday}'.format(day=data.days_of_week, date=data.date, timein=dTIn, timeout=dTOut, late=data.late, undertime=data.undertime, overtime=data.overtime, itinerary=data.has_itenerary, leave=data.has_leave, category=data.overtime_category, holiday=data.holiday)
-        print(output)
+        # print(output)
         attendance_data = {
             "Day": data.days_of_week,
             "TimeIn": dTIn,
@@ -2456,8 +2456,7 @@ def admin_search_page(request):
 
                 all_cutoff_list = CutOffPeriodInfo.objects.all().order_by('id').distinct()
                 # Advance filter for every cut off there is multiple emp
-                cutoff_filter = CutOffPeriodInfo.objects.filter(Q(cut_off_period__icontains=search_term)).order_by('-id').distinct().values_list('cut_off_period', flat=True)
-                #with id to show attendance tavle
+               
  
 
         elif request.method == 'POST':
@@ -2467,8 +2466,7 @@ def admin_search_page(request):
             'notifications': notifications,
             'notifications_count': notifications_count,
             'search_term': search_term,
-            'user_filter': user_filter,
-            'cutoff_filter':cutoff_filter,
+            'user_filter': user_filter, 
             'all_cutoff_list':all_cutoff_list,
         }
         return render(request, template_name, context)
