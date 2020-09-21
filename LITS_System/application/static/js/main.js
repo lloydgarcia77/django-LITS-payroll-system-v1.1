@@ -222,8 +222,7 @@ function getCookie(cname) {
         return false;
     });
 
-    // For Skills
-
+    // For Skills 
     const ShowNewSkillForm = function (e) {
         e.preventDefault();
         let url = $(this).attr("data-url");
@@ -234,9 +233,13 @@ function getCookie(cname) {
             dataType: 'json',
             beforeSend: () => {
                 $("#modal-default").modal("show");
+               
             },
             success: (data) => {
                 $("#modal-default .modal-content").html(data.html_form);
+                // $("#modal-default #id_skills").addClass("select2");
+                $("#modal-default #id_skills").select2();
+                $(".select2").css("width","100%"); 
             },
             complete: (data) => {
 

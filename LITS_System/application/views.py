@@ -893,8 +893,7 @@ def employee_list_page(request):
 def employee_view_profile(request, key):
     template_name = "employees/employee_view_employee_profiles.html"
     user = get_object_or_404(User, username=request.user.username)
-    id = decrypt_key(key)
-    
+    id = decrypt_key(key) 
     personal_info = get_object_or_404(PersonalInfo, id=id)
     target_user_parent_user = get_object_or_404(User, profile_to_user=personal_info)#look up from child to parent model
     
@@ -2509,23 +2508,24 @@ class PayrallAttendanceEmployeeIndexPage(LoginRequiredMixin, TemplateView):
         context = super(PayrallAttendanceEmployeeIndexPage,
                         self).get_context_data(*args, **kwargs)
         user = get_object_or_404(User, username=self.request.user.username)
-        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        #employee = get_object_or_404(PersonalInfo, fk_user=user)
+        employee = PersonalInfo.objects.filter(fk_user=user).order_by('-id') 
 
         if user.is_active and user.is_staff and not user.is_superuser: 
             notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
             notifications_count = notifications.count()
             cutoffperiods = CutOffPeriodInfo.objects.all().distinct().count()
-            total_leaves = EmployeeLeaves.objects.all().filter(Q(employee_leave_fk=employee)).distinct().count()  
-            total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved') & Q(employee_leave_fk=employee)).distinct().count()  
-            total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')& Q(employee_leave_fk=employee)).distinct().count()  
+            total_leaves = EmployeeLeaves.objects.all().filter(Q(employee_leave_fk__in=employee)).distinct().count()  
+            total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved') & Q(employee_leave_fk__in=employee)).distinct().count()  
+            total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')& Q(employee_leave_fk__in=employee)).distinct().count()  
 
-            total_concern =  Concerns.objects.all().filter(Q(sender=employee)).distinct().count() 
-            total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None) & Q(sender=employee)).distinct().count() 
+            total_concern =  Concerns.objects.all().filter(Q(sender__in=employee)).distinct().count() 
+            total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None) & Q(sender__in=employee)).distinct().count() 
             
-            total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(Q(~Q(checked_by=None) & ~Q(approved_by=None)) & Q(employee_itenerary_fk=employee)).distinct().count()  
-            total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(Q(checked_by=None) & Q(approved_by=None)) &  Q(employee_itenerary_fk=employee) ).distinct().count() 
+            total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(Q(~Q(checked_by=None) & ~Q(approved_by=None)) & Q(employee_itenerary_fk__in=employee)).distinct().count()  
+            total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(Q(checked_by=None) & Q(approved_by=None)) &  Q(employee_itenerary_fk__in=employee) ).distinct().count() 
 
-            emp_payrolls = EmployeePayroll.objects.all().filter(Q(employee_fk=employee))
+            emp_payrolls = EmployeePayroll.objects.all().filter(Q(employee_fk__in=employee))
             year_list = []
             yearly_employee_salary_list = []
             yearly_emplpyee_deduction_list = []
@@ -2743,25 +2743,27 @@ def side_employee_print_payroll_page(request, id):
 @login_required
 def side_employee_manage_leaves_page(request):
     template_name = "employee_side/employee_side_leaves_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    leaves = EmployeeLeaves.objects.all().filter(employee_leave_fk=employee).order_by('-id').distinct()
+    user = get_object_or_404(User, username=request.user.username) 
     notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
     notifications_count = notifications.count()
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
-            pass
+            try: 
+                #employee = get_object_or_404(PersonalInfo, fk_user=user)
+                employee = PersonalInfo.objects.get(fk_user=user)
+                leaves = EmployeeLeaves.objects.all().filter(employee_leave_fk=employee).order_by('-id').distinct()
+                context = {
+                    'user': user,  
+                    'employee': employee,
+                    'leaves': leaves,
+                    'notifications': notifications,
+                    'notifications_count': notifications_count,
+                }
 
-
-        context = {
-            'user': user,  
-            'employee': employee,
-            'leaves': leaves,
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-        }
-
-        return render(request, template_name, context)
+                return render(request, template_name, context)
+            except PersonalInfo.DoesNotExist:
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
+            
     else:
         raise Http404()
 
@@ -2772,32 +2774,34 @@ def side_employee_create_leave_form(request):
     employee = get_object_or_404(PersonalInfo, fk_user=user)
 
     if user.is_active and user.is_staff and not user.is_superuser:
-        if request.method == 'GET':
-            form = EmployeeLeavesForm(request.GET or None)
-        elif request.method == 'POST':
-            form = EmployeeLeavesForm(request.POST or None)
-            if form.is_valid():
-                instance = form.save(commit=False) 
-                instance.employee_leave_fk = employee
-                instance.department = user.company_to_user.department
-                instance.save()
-                #lookup from parent table
-                url = HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
-                admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
-                for admin in admins:
-                    Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="You have been received leave form from {sender}".format(sender=user),category=category_list[9],level=level_list[1])
-                
-                return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_leaves_page'))
-            else:
-                print("Form Error!")
-
-        context = {
-            'user': user,  
-            'employee': employee, 
-            'form': form,
-        }
-
-        return render(request, template_name, context)
+        try:
+            employee_company_details = CompanyInfo.objects.get(fk_company_user=user) 
+            if request.method == 'GET':
+                form = EmployeeLeavesForm(request.GET or None)
+            elif request.method == 'POST':
+                form = EmployeeLeavesForm(request.POST or None)
+                if form.is_valid():
+                    instance = form.save(commit=False) 
+                    instance.employee_leave_fk = employee
+                    instance.department = user.company_to_user.department
+                    instance.save()
+                    #lookup from parent table
+                    url = HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
+                    admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
+                    for admin in admins:
+                        Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="You have been received leave form from {sender}".format(sender=user),category=category_list[9],level=level_list[1])
+                    
+                    return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_leaves_page'))
+                else:
+                    print("Form Error!")
+            context = {
+                'user': user,  
+                'employee': employee, 
+                'form': form,
+            }
+            return render(request, template_name, context)
+        except CompanyInfo.DoesNotExist:
+            return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
     else:
         raise Http404()
 
@@ -2900,24 +2904,30 @@ def side_employee_view_leave_form(request, id):
 @login_required
 def side_employee_manage_inteneraries(request):
     template_name = "employee_side/employee_side_manage_iteneraries.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    itenerary_list = EmployeeItenerary.objects.all().filter(Q(employee_itenerary_fk=employee)).order_by('-id').distinct()
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
+    user = get_object_or_404(User, username=request.user.username) 
+    
 
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
-            pass 
-        context = {
-            'user': user,  
-            'employee': employee, 
-            'itenerary_list': itenerary_list,
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-        }
+            try: 
+                #employee = get_object_or_404(PersonalInfo, fk_user=user)
+                employee = PersonalInfo.objects.get(fk_user=user) 
+                itenerary_list = EmployeeItenerary.objects.all().filter(Q(employee_itenerary_fk=employee)).order_by('-id').distinct()
+                notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+                notifications_count = notifications.count()
 
-        return render(request, template_name, context)
+                context = {
+                    'user': user,  
+                    'employee': employee, 
+                    'itenerary_list': itenerary_list,
+                    'notifications': notifications,
+                    'notifications_count': notifications_count,
+                }
+
+                return render(request, template_name, context)
+            except PersonalInfo.DoesNotExist:
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+        
     else:
         raise Http404()
 
@@ -2927,6 +2937,8 @@ def side_employee_create_inteneraries(request):
     template_name = "employee_side/employee_side_create_itenerary.html"
     user = get_object_or_404(User, username=request.user.username)
     employee = get_object_or_404(PersonalInfo, fk_user=user)
+    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+    notifications_count = notifications.count()
 
     if user.is_active and user.is_staff and not user.is_superuser:
         EmployeeIteneraryDetailsFormset = inlineformset_factory(EmployeeItenerary, EmployeeIteneraryDetails, form=EmployeeIteneraryDetailsForm, extra=1, can_delete=False) 
@@ -2934,6 +2946,7 @@ def side_employee_create_inteneraries(request):
         if request.method == 'GET':
             formEID = EmployeeIteneraryDetailsFormset(request.GET or None)
             formIF = EmployeeIteneraryForm(request.GET or None)
+           
         
         elif request.method == 'POST':
             formEID = EmployeeIteneraryDetailsFormset(request.POST or None)
@@ -3079,25 +3092,29 @@ def side_employee_view_itenerary_form(request, id):
 def side_employee_manage_concerns(request):
     template_name = "employee_side/employee_side_manage_concerns.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-
-    concern_list = Concerns.objects.all().filter(Q(sender=employee)).order_by('-id').distinct()
+    
 
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
-            pass 
-        context = {
-            'user': user,  
-            'employee': employee, 
-            'concern_list': concern_list,
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-        }
+            try: 
+                #employee = get_object_or_404(PersonalInfo, fk_user=user)
+                employee = PersonalInfo.objects.get(fk_user=user)   
+                concern_list = Concerns.objects.all().filter(Q(sender=employee)).order_by('-id').distinct()
+                notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+                notifications_count = notifications.count() 
 
-        return render(request, template_name, context)
+                context = {
+                    'user': user,  
+                    'employee': employee, 
+                    'concern_list': concern_list,
+                    'notifications': notifications,
+                    'notifications_count': notifications_count,
+                }
+
+                return render(request, template_name, context)
+            except PersonalInfo.DoesNotExist:
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))   
+        
     else:
         raise Http404()
 
@@ -3321,26 +3338,29 @@ def side_employee_reply_concern(request, id):
 @login_required
 def side_employee_overtime_management(request):
     template_name = "employee_side/employee_side_overtime_management_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-
-    overtime_list = Overtime.objects.all().filter(Q(employee_overtime=employee)).order_by('-id').distinct()
+    user = get_object_or_404(User, username=request.user.username) 
 
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
-            pass 
-        context = {
-            'user': user,  
-            'employee': employee, 
-            'overtime_list': overtime_list,
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-        }
+            try: 
+                #employee = get_object_or_404(PersonalInfo, fk_user=user)
+                employee = PersonalInfo.objects.get(fk_user=user)  
+                overtime_list = Overtime.objects.all().filter(Q(employee_overtime=employee)).order_by('-id').distinct()
+                notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+                notifications_count = notifications.count()
 
-        return render(request, template_name, context)
+                context = {
+                    'user': user,  
+                    'employee': employee, 
+                    'overtime_list': overtime_list,
+                    'notifications': notifications,
+                    'notifications_count': notifications_count,
+                }
+
+                return render(request, template_name, context)
+            except PersonalInfo.DoesNotExist:
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
+        
     else:
         raise Http404()
 
@@ -3348,50 +3368,54 @@ def side_employee_overtime_management(request):
 def side_employee_create_overtime(request):
     template_name = "employee_side/employee_side_create_overtime.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    company = get_object_or_404(CompanyInfo, fk_company_user=user)
+    employee = get_object_or_404(PersonalInfo, fk_user=user) 
     notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
     notifications_count = notifications.count()
 
     if user.is_active and user.is_staff and not user.is_superuser:
         OvertimeDetailsFormset = inlineformset_factory(Overtime, OvertimeDetails, form=OvertimeDetailsForm, extra=1, can_delete=False)
-        if request.method == 'GET':
-            formOvertime = OvertimeForm(request.GET or None) 
-            formOvertimeDetails = OvertimeDetailsFormset(request.GET or None)
-        elif request.method == 'POST': 
-            formOvertime = OvertimeForm(request.POST or None) 
-            formOvertimeDetails = OvertimeDetailsFormset(request.POST or None)
-
-            if formOvertime.is_valid() and formOvertimeDetails.is_valid():
-
-                instanceformOvertime = formOvertime.save(commit=False)
-                instanceformOvertime.employee_overtime = employee
-                instanceformOvertime.department = company.department 
-                instanceformOvertime.save()
-
-                instanceformOvertimeDetails = formOvertimeDetails.save(commit=False)
-
-                for form in instanceformOvertimeDetails:
-                    form.overtime = instanceformOvertime
-                    form.save()
-                url = HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
-                admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
-                for admin in admins:
-                    Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="You have been received overtime form from {sender}".format(sender=user),category=category_list[9],level=level_list[1])
+        try:
+            employee_company_details = CompanyInfo.objects.get(fk_company_user=user) 
+            if request.method == 'GET':
+                formOvertime = OvertimeForm(request.GET or None) 
+                formOvertimeDetails = OvertimeDetailsFormset(request.GET or None)
+            elif request.method == 'POST': 
                 
-                return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+                formOvertime = OvertimeForm(request.POST or None) 
+                formOvertimeDetails = OvertimeDetailsFormset(request.POST or None)
 
+                if formOvertime.is_valid() and formOvertimeDetails.is_valid():
 
-        context = {
-            'user': user,  
-            'employee': employee,  
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-            #'formOvertime':formOvertime,
-            'formOvertimeDetails': formOvertimeDetails,
-        }
+                    instanceformOvertime = formOvertime.save(commit=False)
+                    instanceformOvertime.employee_overtime = employee
+                    instanceformOvertime.department = company.department 
+                    instanceformOvertime.save()
 
-        return render(request, template_name, context)
+                    instanceformOvertimeDetails = formOvertimeDetails.save(commit=False)
+
+                    for form in instanceformOvertimeDetails:
+                        form.overtime = instanceformOvertime
+                        form.save()
+                    url = HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+                    admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
+                    for admin in admins:
+                        Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="You have been received overtime form from {sender}".format(sender=user),category=category_list[9],level=level_list[1])
+                    
+                    return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+
+            context = {
+                'user': user,  
+                'employee': employee,  
+                'notifications': notifications,
+                'notifications_count': notifications_count,
+                #'formOvertime':formOvertime,
+                'formOvertimeDetails': formOvertimeDetails,
+            }
+
+            return render(request, template_name, context)
+        except CompanyInfo.DoesNotExist:
+            return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
+
     else:
         raise Http404()
 
@@ -3525,3 +3549,22 @@ def employee_side_maintainance_page(request):
     else:
         raise Http404()
 
+@login_required
+def employee_side_error_page(request):
+    template_name = "employee_side/employee_side_error_page.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+    if user.is_active and user.is_staff and not user.is_superuser: 
+        if request.method == 'GET': 
+            pass
+        elif request.method == 'POST':
+            pass
+        context = {
+            'user':user, 
+            'notifications': notifications,
+            'notifications_count': notifications_count, 
+        }
+        return render(request, template_name, context)
+    else:
+        raise Http404()

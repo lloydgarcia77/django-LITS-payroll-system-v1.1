@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ['*']
 
 #SESSIONS
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 300 # set just 10 seconds to test
+SESSION_COOKIE_AGE = 10 # set just 10 seconds to test
 SESSION_SAVE_EVERY_REQUEST = True
 
 
@@ -88,13 +88,33 @@ WSGI_APPLICATION = 'LITS_System.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'lits_general_system_db',
+        'USER': 'root',
+        'PASSWORD': 'r00t@passw0rd77',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
-
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'lits_system_db',
+#         'USER': 'root',
+#         'PASSWORD': 'r00t@passw0rd77',
+#         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+#         'PORT': '3306',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

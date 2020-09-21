@@ -116,9 +116,7 @@ Employee Profile Page
         background-repeat: no-repeat;
         background-position: center;
     }
-</style>
-<!-- Select2 -->
-<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+</style> 
 {% endblock css %}
 {% block nav_dashboard %}
 
@@ -231,7 +229,7 @@ Employee Profile Page
 
                     <hr>
 
-                    <strong><i class="fa fa-pencil margin-r-5"></i> Skills <a id="addSkills" href=""
+                    <strong><i class="fa fa-pencil margin-r-5"></i> Skills/Specialization<a id="addSkills" href=""
                             class="fa fa-fw fa-plus-circle" data-toggle="tooltip" title="Add Skills"
                             data-url="{% url 'application:add_skill' %}"></a></strong>
 
@@ -306,6 +304,7 @@ Employee Profile Page
 
                             </ul>
                         </p> 
+                        <hr>
                             
                         {% if profiles %}
                     
@@ -313,8 +312,7 @@ Employee Profile Page
                         {% for profile in profiles %}
                              
                      
-                        
-                        <hr> 
+                         
                         <strong><i class="fa fa-fw fa-calendar-plus-o"></i> Date of birth</strong>
                         <p class="text-muted">
                             {{profile.dob}}
@@ -544,10 +542,7 @@ Employee Profile Page
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
-<script src="{% static 'js/profile.js' %}"></script>
-
-<!-- Select2 -->
-<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+<script src="{% static 'js/profile.js' %}"></script> 
 
 <script>
     //Initialize Select2 Elements

@@ -152,51 +152,47 @@ Employee List Page
                         </thead>
                         <tbody>
                            
-                            {% for employee  in employees %}
-                            <tr>
-                                <td> 
-                                    {% for ec in  employees_company %}
-                                    {{ ec.company_to_user.company_id}}
-                                    {% endfor %} 
-                                </td>
-                                <td>
-
-                                    {% if employee.image %}
-                                    <img class="img-circle" src="{{ employee.image.url }}" alt=""
+                           {% for u in employees_company %}
+                               <tr>
+                               <td>{{ u.company_to_user.company_id }}</td>
+                               <td>
+                                {% if u.profile_to_user.image %}
+                                    <img class="img-circle" src="{{ u.profile_to_user.image.url }}" alt=""
                                         width="50" height="50">
                                     {% else %}
                                     <img class="img-circle" src=" {% static 'images\150x150.png' %}" alt="" width="50"
                                         height="50">
-                                    {% endif %}
-
-
-                                </td>
-                                <td>{{ employee.first_name}} {{ employee.middle_name}}
-                                    {{ employee.last_name}}</td>
-                                <td>
-                                    {% for ec in  employees_company %}
-                                    <span class="label label-primary">{{ ec.company_to_user.designation}}</span> 
-                                    {% endfor %} 
-                                    
-                                </td>
-
-                                <td>{{ employee.fk_user.email}}</td>
-                                <td> 
-                                    <div class="btn-group">
+                                {% endif %}
+                               </td>
+                               <td>
+                                {{ u.profile_to_user.first_name}} 
+                                {{ u.profile_to_user.middle_name}}
+                                {{ u.profile_to_user.last_name}}     
+                               </td>
+                               <td>  <span class="label label-primary">{{ u.company_to_user.designation}}</span> </td>
+                               <td>{{ u.email}}</td>
+                               <td>
+                               <div class="btn-group">
                                         <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip"
-                                        title="Delete Employeee"  data-url="{% url 'application:delete_employee' employee.id %}">
+                                        title="Delete Employeee"  data-url="{% url 'application:delete_employee' u.id %}">
                                             <span class="fa fa-fw fa-trash"></span>
                                             </button> 
-                                        <a href="{% url 'application:employee_attendance_view' employee.key_id %}" class="btn btn-warning" data-toggle="tooltip"
-                                        title="View Attendance">
-                                            <span class="fa fa-fw fa-eye"></span>
+                                        
+                                        
+                                        {% if u.profile_to_user.key_id %}
+                                            <a href="{% url 'application:employee_attendance_view' u.profile_to_user.key_id %}" class="btn btn-warning" data-toggle="tooltip" title="View Attendance">
+                                                <span class="fa fa-fw fa-eye"></span>
                                             </a>
-                                        <a href="{% url 'application:employee_view_profile' employee.key_id %}" class="btn btn-primary" data-toggle="tooltip" title="View Profile"><span class="fa fa-fw fa-user"></span></a>
+                                            <a href="{% url 'application:employee_view_profile' u.profile_to_user.key_id %}" class="btn btn-primary" data-toggle="tooltip" title="View Profile">
+                                            <span class="fa fa-fw fa-user"></span>
+                                            </a>
+                                        {% endif %}
+                                             
                                     </div>
-                                </td>
-                            </tr>
-                            {% endfor %} 
-
+                               </td>
+                               </tr>
+                           {% endfor %}
+                                
                         </tbody>
                         <tfoot>
                             

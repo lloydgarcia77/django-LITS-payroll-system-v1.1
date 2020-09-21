@@ -1,7 +1,11 @@
 from django.test import TestCase
 from datetime import datetime, date
 # Create your tests here.
-
+from cryptography.fernet import Fernet
+import base64
+import logging
+import traceback
+from django.conf import settings
 skill_list = [
     "Abstract Factory",
     "Accounting System",
@@ -660,7 +664,142 @@ skill_list = [
     "Websocket.js",
     "WinSCP",
 ]
+ENCRYPT_KEY = b'xlNVkz4loCnsQWGmKEMjj7De5fj0d_N0_yeKxGJxDSk='
+def encrypt_key(txt):
+    try:
+        # convert integer etc to string first
+        txt = str(txt)
+        # get key from settings
+        cipher_suite = Fernet(ENCRYPT_KEY)  # key should be byte
+        # #input should be byte, so convert the text to byte
+        encrypted_text = cipher_suite.encrypt(txt.encode('ascii'))
+        # encode to urlsafe base64 format
+        encrypted_text = base64.urlsafe_b64encode(
+            encrypted_text).decode("ascii")
 
+        return encrypted_text
+
+    except Exception as e:
+        # log if an error
+        logging.getLogger("error_logger").error(traceback.format_exc())
+        return None
+
+
+def decrypt_key(txt):
+    try:
+        # base64 decode
+        txt = base64.urlsafe_b64decode(txt)
+        cipher_suite = Fernet(ENCRYPT_KEY)
+        decoded_text = cipher_suite.decrypt(txt).decode("ascii")
+        return decoded_text
+    except Exception as e:
+        # log the error
+        logging.getLogger("error_logger").error(traceback.format_exc())
+        return None
+
+key = 'Z0FBQUFBQmZaRnJscnQ4Sk04RU9fd0ZSdk5XQzZJWGhnWHo2Y28tTmxpTVVvM3l5Uk1kbHVCN1J1VGo5OVRKRF9NTERyaWpfXzFmdEJOT2tHdjRYTlJTUUdOb1Y1eG9Qb0E9PQ==/'
+key2 = 'Z0FBQUFBQmZhQUpEUDdZZk9yMk1LUklCT0ZjcS1BT096ZVM0SU9LajAtQ3E3LXc0RmZ3R0VXZjZvUXFxb2o1TlFjWUVka3hRQXlUWnk0eWJXY1ZleXBUNlRsRDJpNDhsa3c9PQ==/'
+id = decrypt_key(key2)
+
+print(key,id)
+
+e_id = 4
+
+eid = encrypt_key(e_id)
+did = decrypt_key(eid)
+
+md = encrypt_key(7)
+lp = encrypt_key(5)
+rs = encrypt_key(4)
+ip = encrypt_key(3)
+print(md)
+print(lp)
+print(rs)
+print(ip)
+
+
+ 
+
+list_of_specialization = [
+'Actuarial/Statistics',
+'Advertising',
+'Agriculture',
+'Architect/Interior Design',
+'Arts/Creative Design',
+'Audit Taxation',
+'Aviation',
+'Banking/Financial',
+'Biotechnology',
+'Chemical Engineering',
+'Chemistry',
+'Civil Engineering/Construction',
+'Civil/Government Services',
+'Clerical/Administrative',
+'Corporate Finance/Investment',
+'Customer Service',
+'Digital Marketing',
+'Doctor/Diagnosis',
+'E-commerce',
+'Education',
+'Electrical Engineering',
+'Electronics Engineering',
+'Entertainment',
+'Environmental Engineering',
+'Executive Assistant',
+'Food Tech/Nutritionist',
+'Food/Beverage/Restaurant',
+'General Manager',
+'General Work',
+'General/Cost Accounting',
+'Geology/Geophysics',
+'Hotel/Tourism',
+'Human Resources',
+'Industrial Engineering',
+'IT - Hardware',
+'IT - Network/Sys/DB Admin',
+'IT - Software Engineering',
+'Journalist/Editors',
+'Law/Legal Services',
+'Logistics/Supply Chain',
+'Maintenance',
+'Management Trainee',
+'Manufacturing',
+'Marketing/Business Dev',
+'Mechanical/Automotive Engineering',
+'Merchandising',
+'Nurse/Medical Support',
+'Oil/Gas Engineering',
+'Other Engineering',
+'Others',
+'Personal Care',
+'Pharmacy',
+'Process Design Control',
+'Product Management',
+'Property/Real Estate',
+'Public Relations',
+'Publishing',
+'Purchasing/Material Mgmt',
+'Quality Assurance',
+'Quantity Surveying',
+'Retail Sales',
+'Sales - Corporate',
+'Sales - Eng/Tech/IT',
+'Sales - Financial Services',
+'Science Technology',
+'Secretarial',
+'Security/Armed Forces',
+'Social Services',
+'Tech Helpdesk Support',
+'Telesales/Telemarketing',
+'Top Management',
+'Training Dev.',
+]
+
+
+for i in list_of_specialization:
+    print("('{a}','{b}'),".format(a=i,b=i))
+
+# Create your views here.
 
 # for item in skill_list:
 #     print("('{value1}','{value2}'),".format(value1=item,value2=item))
@@ -750,7 +889,7 @@ Computing_Pay_for_Work_Done  = (
 # print('Date-time:', date_time_obj)
 # https://www.w3schools.com/python/python_datetime.asp
 
-date_time_str = "2020-06-12"
-date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
-print('Converted:', date_time_obj.strftime('%b %d %Y'))
+# date_time_str = "2020-06-12"
+# date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d')
+# print('Converted:', date_time_obj.strftime('%b %d %Y'))
 

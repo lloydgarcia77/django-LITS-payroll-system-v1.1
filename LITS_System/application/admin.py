@@ -29,7 +29,9 @@ class PersonalAdmin(ImportExportModelAdmin):
                     'emer_cont_pers',
                     'emer_cont_pers_cont_no',
                     )
-    list_editable = ('image',
+    list_editable = (
+                    'key_id',
+                     'image',
                      'suffix',
                      'first_name',
                      'middle_name',

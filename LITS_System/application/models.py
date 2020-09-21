@@ -120,10 +120,10 @@ class SkillsInfo(models.Model):
 
 class CompanyInfo(models.Model):
     fk_company_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='company_to_user')
-    company_id = models.CharField(max_length=50, blank=True, null=True)
-    company_tin = models.CharField(max_length=50, blank=True, null=True)
-    designation = models.CharField(max_length=50, blank=True, null=True)
-    department = models.CharField(max_length=50, blank=True, null=True)
+    company_id = models.CharField(max_length=50, default="Not Available")
+    company_tin = models.CharField(max_length=50, default="Not Available")
+    designation = models.CharField(max_length=50, default="Not Available")
+    department = models.CharField(max_length=50, default="Not Available")
     personal_tin = models.CharField(max_length=50, blank=True, null=True)
     sss_number = models.CharField(max_length=50, blank=True, null=True)
     pagibig = models.CharField(max_length=50, blank=True, null=True)

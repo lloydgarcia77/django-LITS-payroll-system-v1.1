@@ -187,7 +187,8 @@ Payroll System Employee Index Page
 
             </div>
             <div class="pull-left info">
-                <p>
+                <p class="user_name">
+                 
                     {% if not user.profile_to_user.first_name and not user.profile_to_user.middle_name and not user.profile_to_user.last_name %}
                     {{ request.user.username }}
                     {% else %}
