@@ -51,6 +51,7 @@ urlpatterns = [
     path('users/nofitications/manager/delete/<int:id>/', views.read_notifications, name="users_notifications_delete"),
     path('users/nofitications/manager/delete/all/', views.read_all_notifications, name="users_notifications_delete_all"),
     path('users/admin/',views.admin_search_page, name="users_admin_search_page"),
+    path('employees/admin/error/', views.employee_admin_error_page, name="employee_admin_error_page"),
     # path('users/maintainancepage/',views.maintainance_page, name="users_maintainance_page"),
 
 

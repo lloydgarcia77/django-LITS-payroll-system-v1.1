@@ -118,36 +118,41 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for employee in employees %}
+                            {% for u in employees_company %}
                             <tr>
                                 <td>
-                                    {% for ec in employees_company %} 
-                                    {{ ec.company_to_user.company_id}} 
-                                    {% endfor %}
+                                   {{ u.company_to_user.company_id }}
                                 </td>
                                 <td>
-
-                                    {% if employee.image %}
-                                    <img class="img-circle" src="{{ employee.image.url }}" alt="" width="50" height="50"> {% else %}
-                                    <img class="img-circle" src=" {% static 'images\150x150.png' %}" alt="" width="50" height="50"> {% endif %}
-
+                                    {% if u.profile_to_user.image %}
+                                    <img class="img-circle" src="{{ u.profile_to_user.image.url }}" alt=""
+                                        width="50" height="50">
+                                    {% else %}
+                                    <img class="img-circle" src=" {% static 'images\150x150.png' %}" alt="" width="50"
+                                        height="50">
+                                    {% endif %}
 
                                 </td>
-                                <td>{{ employee.first_name}} {{ employee.middle_name}} {{ employee.last_name}}</td>
+                                
                                 <td>
-                                    {% for ec in employees_company %}
-                                    <span class="label label-primary">{{ ec.company_to_user.designation}}</span> {% endfor %}
+                                {{ u.profile_to_user.first_name}} 
+                                {{ u.profile_to_user.middle_name}}
+                                {{ u.profile_to_user.last_name}} 
+                                </td>
+                                <td>
+                                    <span class="label label-primary">{{ u.company_to_user.designation}}</span>
                                 </td>
 
-                                <td>{{ employee.fk_user.email}}</td>
+                                <td>{{ u.email}}</td>
                                 <td>
                                     <div class="btn-group-vertical">
-                                        <button type="button" class="btn bg-maroon btn-payroll-settings" data-toggle="tooltip" title="Basic Salary Settings" data-url="{% url 'application:employee_payroll_settings' employee.key_id %}">
+                                    {% if u.profile_to_user.key_id %}
+                                        <button type="button" class="btn bg-maroon btn-payroll-settings" data-toggle="tooltip" title="Basic Salary Settings" data-url="{% url 'application:employee_payroll_settings' u.profile_to_user.key_id %}">
                                             <span class="fa fa-fw fa-money"></span>
                                             Payroll Settings
                                         </button>
-                                        {% if employee.employee_salary_fk.all %}  
-                                        <a href="{% url 'application:employee_create_payroll' employee.key_id cutoff.id %}" class="btn btn-block btn-primary" data-toggle="tooltip" title="Create Payroll">
+                                        {% if u.profile_to_user.employee_salary_fk.all %}  
+                                        <a href="{% url 'application:employee_create_payroll' u.profile_to_user.key_id cutoff.id %}" class="btn btn-block btn-primary" data-toggle="tooltip" title="Create Payroll">
                                             <span class="fa fa-fw fa-credit-card"></span> Manage Payroll
                                         </a> 
                                         {% else %}
@@ -156,6 +161,9 @@
                                             Create Payroll
                                         </button> 
                                         {% endif %}
+                                    {% else %}
+                                    <span class="label label-danger">INCOMPLETE PROFILE</span>
+                                    {% endif %}
                                     </div>
 
 

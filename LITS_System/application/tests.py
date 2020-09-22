@@ -691,17 +691,19 @@ def decrypt_key(txt):
         txt = base64.urlsafe_b64decode(txt)
         cipher_suite = Fernet(ENCRYPT_KEY)
         decoded_text = cipher_suite.decrypt(txt).decode("ascii")
+        print(txt)
+        print(cipher_suite)
+        print(decoded_text)
         return decoded_text
     except Exception as e:
-        # log the error
+        # log the error 
         logging.getLogger("error_logger").error(traceback.format_exc())
         return None
 
 key = 'Z0FBQUFBQmZaRnJscnQ4Sk04RU9fd0ZSdk5XQzZJWGhnWHo2Y28tTmxpTVVvM3l5Uk1kbHVCN1J1VGo5OVRKRF9NTERyaWpfXzFmdEJOT2tHdjRYTlJTUUdOb1Y1eG9Qb0E9PQ==/'
 key2 = 'Z0FBQUFBQmZhQUpEUDdZZk9yMk1LUklCT0ZjcS1BT096ZVM0SU9LajAtQ3E3LXc0RmZ3R0VXZjZvUXFxb2o1TlFjWUVka3hRQXlUWnk0eWJXY1ZleXBUNlRsRDJpNDhsa3c9PQ==/'
 id = decrypt_key(key2)
-
-print(key,id)
+ 
 
 e_id = 4
 
@@ -712,92 +714,94 @@ md = encrypt_key(7)
 lp = encrypt_key(5)
 rs = encrypt_key(4)
 ip = encrypt_key(3)
-print(md)
-print(lp)
-print(rs)
-print(ip)
+# print(md)
+# print(lp)
+# print(rs)
+# print(ip)
 
 
+e1 = decrypt_key('Z0FBQUFBQmZhWEFXX2dGQ2ZFcEpVb0NDaTNXNWl5Skc2Wi1pLTFUc2tFWUs4SDZTVzZtR21Id2dxdDN6dmFxdFVMd01GNl9hSXVlOG9BWHphNUN3VnZ1SEJZUmhVU1F3X1E9PQ==')
+print(e1)
  
 
 list_of_specialization = [
-'Actuarial/Statistics',
-'Advertising',
-'Agriculture',
-'Architect/Interior Design',
-'Arts/Creative Design',
-'Audit Taxation',
-'Aviation',
-'Banking/Financial',
-'Biotechnology',
-'Chemical Engineering',
-'Chemistry',
-'Civil Engineering/Construction',
-'Civil/Government Services',
-'Clerical/Administrative',
-'Corporate Finance/Investment',
-'Customer Service',
-'Digital Marketing',
-'Doctor/Diagnosis',
-'E-commerce',
-'Education',
-'Electrical Engineering',
-'Electronics Engineering',
-'Entertainment',
-'Environmental Engineering',
-'Executive Assistant',
-'Food Tech/Nutritionist',
-'Food/Beverage/Restaurant',
-'General Manager',
-'General Work',
-'General/Cost Accounting',
-'Geology/Geophysics',
-'Hotel/Tourism',
-'Human Resources',
-'Industrial Engineering',
-'IT - Hardware',
-'IT - Network/Sys/DB Admin',
-'IT - Software Engineering',
-'Journalist/Editors',
-'Law/Legal Services',
-'Logistics/Supply Chain',
-'Maintenance',
-'Management Trainee',
-'Manufacturing',
-'Marketing/Business Dev',
-'Mechanical/Automotive Engineering',
-'Merchandising',
-'Nurse/Medical Support',
-'Oil/Gas Engineering',
-'Other Engineering',
-'Others',
-'Personal Care',
-'Pharmacy',
-'Process Design Control',
-'Product Management',
-'Property/Real Estate',
-'Public Relations',
-'Publishing',
-'Purchasing/Material Mgmt',
-'Quality Assurance',
-'Quantity Surveying',
-'Retail Sales',
-'Sales - Corporate',
-'Sales - Eng/Tech/IT',
-'Sales - Financial Services',
-'Science Technology',
-'Secretarial',
-'Security/Armed Forces',
-'Social Services',
-'Tech Helpdesk Support',
-'Telesales/Telemarketing',
-'Top Management',
-'Training Dev.',
+    'Actuarial/Statistics',
+    'Advertising',
+    'Agriculture',
+    'Architect/Interior Design',
+    'Arts/Creative Design',
+    'Audit Taxation',
+    'Aviation',
+    'Banking/Financial',
+    'Biotechnology',
+    'Chemical Engineering',
+    'Chemistry',
+    'Civil Engineering/Construction',
+    'Civil/Government Services',
+    'Clerical/Administrative',
+    'Corporate Finance/Investment',
+    'Customer Service',
+    'Digital Marketing',
+    'Doctor/Diagnosis',
+    'E-commerce',
+    'Education',
+    'Electrical Engineering',
+    'Electronics Engineering',
+    'Entertainment',
+    'Environmental Engineering',
+    'Executive Assistant',
+    'Food Tech/Nutritionist',
+    'Food/Beverage/Restaurant',
+    'General Manager',
+    'General Work',
+    'General/Cost Accounting',
+    'Geology/Geophysics',
+    'Hotel/Tourism',
+    'Human Resources',
+    'Industrial Engineering',
+    'IT - Hardware',
+    'IT - Network/Sys/DB Admin',
+    'IT - Software Engineering',
+    'Journalist/Editors',
+    'Law/Legal Services',
+    'Logistics/Supply Chain',
+    'Maintenance',
+    'Management Trainee',
+    'Manufacturing',
+    'Marketing/Business Dev',
+    'Mechanical/Automotive Engineering',
+    'Merchandising',
+    'Nurse/Medical Support',
+    'Oil/Gas Engineering',
+    'Other Engineering',
+    'Others',
+    'Personal Care',
+    'Pharmacy',
+    'Process Design Control',
+    'Product Management',
+    'Property/Real Estate',
+    'Public Relations',
+    'Publishing',
+    'Purchasing/Material Mgmt',
+    'Quality Assurance',
+    'Quantity Surveying',
+    'Retail Sales',
+    'Sales - Corporate',
+    'Sales - Eng/Tech/IT',
+    'Sales - Financial Services',
+    'Science Technology',
+    'Secretarial',
+    'Security/Armed Forces',
+    'Social Services',
+    'Tech Helpdesk Support',
+    'Telesales/Telemarketing',
+    'Top Management',
+    'Training Dev.',
 ]
 
 
-for i in list_of_specialization:
-    print("('{a}','{b}'),".format(a=i,b=i))
+# for i in list_of_specialization:
+#     print("('{a}','{b}'),".format(a=i,b=i))
 
 # Create your views here.
 

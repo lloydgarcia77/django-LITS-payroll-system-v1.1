@@ -115,9 +115,13 @@ Profile User Page
         background-repeat: no-repeat;
         background-position: center;
     }
-</style>
-<!-- Select2 -->
-<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+    .user_name{
+        white-space: nowrap; 
+        width: 150px; 
+        overflow: hidden;
+        text-overflow: ellipsis;  
+    }
+</style> 
 {% endblock css %}
 
 {% block nav_dashboard %}
@@ -413,7 +417,12 @@ Profile User Page
                        
                         
                         {% for company_detail in  company_details %}
-                            
+                        
+                        <strong><i class="fa fa-fw fa-clock-o"></i>Biometrics ID</strong>
+                        <p class="text-muted">
+                            {{ company_detail.biometrics_id }}
+                        </p>
+                        <hr>
                         <strong><i class="fa fa-fw fa-industry"></i>Company TIN</strong>
                         <p class="text-muted">
                             {{ company_detail.company_tin }}
@@ -452,6 +461,12 @@ Profile User Page
 
                         {% endfor %}
                         {% else %}
+
+                         <strong><i class="fa fa-fw fa-clock-o"></i>Biometrics ID</strong>
+                        <p class="text-muted">
+                          Not Set.
+                        </p>
+                        <hr>
                        
                         <strong><i class="fa fa-fw fa-industry"></i>Company TIN</strong>
                         <p class="text-muted">
@@ -545,14 +560,6 @@ Profile User Page
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
 <script src="{% static 'js/profile.js' %}"></script>
-
-<!-- Select2 -->
-<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
-
-<script>
-    //Initialize Select2 Elements
-    $('.select2').select2()
-</script>
-
+  
 
 {% endblock main_content %}

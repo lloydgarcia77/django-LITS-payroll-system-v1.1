@@ -1,5 +1,4 @@
-$(document).ready(function () { 
-  
+$(document).ready(function () {  
     let table = $('#tblCutOff').DataTable({
         'columnDefs': [ {
             //'targets': [1,2], /* column index */
@@ -72,18 +71,16 @@ $(document).ready(function () {
 
                         table.row.add([
                             id,`<span class="label label-warning">${cut_off}</span>`,date_created,`
-                            <div class="btn-group-vertical">
-                            <button type="button" class="btn btn-block btn-danger btn-delete" data-toggle="tooltip"
+                            <div class="btn-group">
+                            <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip"
                             title="Delete Attendance"  data-url="${url}">
                                 <span class="fa fa-fw fa-trash"></span>
-                                Delete</button>
-                            <a href="${attendance_file_path}" class="btn btn-block btn-info" data-toggle="tooltip"
+                                </button>
+                            <a href="${attendance_file_path}" class="btn btn-info" data-toggle="tooltip"
                             title="Download Attendance" download>
                                 <span class="fa fa-fw fa-download"></span>
-                                Download</a>
+                                </a>
                             </div>
-
-
                             `
                             ]).draw(false);
                             

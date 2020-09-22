@@ -120,6 +120,7 @@ class SkillsInfo(models.Model):
 
 class CompanyInfo(models.Model):
     fk_company_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='company_to_user')
+    biometrics_id = models.CharField(max_length=20, unique=True)
     company_id = models.CharField(max_length=50, default="Not Available")
     company_tin = models.CharField(max_length=50, default="Not Available")
     designation = models.CharField(max_length=50, default="Not Available")
@@ -127,7 +128,7 @@ class CompanyInfo(models.Model):
     personal_tin = models.CharField(max_length=50, blank=True, null=True)
     sss_number = models.CharField(max_length=50, blank=True, null=True)
     pagibig = models.CharField(max_length=50, blank=True, null=True)
-    philhealth = models.CharField(max_length=50, blank=True, null=True)
+    philhealth = models.CharField(max_length=50, blank=True, null=True) 
 
     def __str__(self):
         return str(self.company_id)
@@ -361,7 +362,7 @@ RE_SP = (
 )
 class Overtime(models.Model):
     employee_overtime  = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_overtime")
-    department = models.CharField(max_length=100, null=True, blank = True)
+    department = models.CharField(max_length=100, null=False, blank = False)
     date_filed = models.DateField(auto_now_add=True) 
     noted_by = models.CharField(max_length=100, null=True, blank = True)
     checked_by =models.CharField(max_length=100, null=True, blank = True)

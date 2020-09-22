@@ -221,7 +221,7 @@ function getCookie(cname) {
 
         return false;
     });
-
+    //alert("asd");
     // For Skills 
     const ShowNewSkillForm = function (e) {
         e.preventDefault();

@@ -2,7 +2,7 @@
 {% load staticfiles %} 
 {% load humanize %} 
 {% block title %} 
-Manage Employee Iteneraries
+Manage Employee Itineraries
 {% endblock title%} 
 
 
@@ -86,7 +86,7 @@ Manage Employee Iteneraries
         <li class=""><a href="{% url 'application:employee_payroll_manage' %}"><i class="fa fa-fw fa-credit-card"></i>
         Manage Payroll</a></li>
         <li class=""><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
-        <li class="active"><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Iteneraries </a></li>
+        <li class="active"><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Itineraries </a></li>
         <li><a href="{% url 'application:employee_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting"></i> Concerns</a></li>
         <li><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
     </ul>
@@ -97,12 +97,12 @@ Manage Employee Iteneraries
 
 <section class="content-header">
     <h1>
-        Employee Itenerary Management
-        <small>Manage employee Iteneraries</small>
+        Employee Itinerary Management
+        <small>Manage employee Itineraries</small>
     </h1>
     <ol class="breadcrumb">
         <li><a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> Home</a></li> 
-        <li class="active"><i class="fa fa-fw fa-calendar-times-o"></i>Iteneraries</li>
+        <li class="active"><i class="fa fa-fw fa-calendar-times-o"></i>Itineraries</li>
     </ol>
 </section>
 
@@ -111,7 +111,7 @@ Manage Employee Iteneraries
         <div class="col-xs-12">
             <div class="box">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Employee Iteneraries Table</h3>
+                    <h3 class="box-title">Employee Itineraries Table</h3>
                 </div>
                 <div class="box-body">
                     <table id="tblIteneraries" class="table table-bordered table-striped">

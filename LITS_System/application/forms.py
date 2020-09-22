@@ -285,6 +285,13 @@ class CompanyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CompanyForm, self).__init__(*args, **kwargs)
 
+
+        self.fields['biometrics_id'].widget.attrs = {
+            'type': 'text',
+            'class': 'form-control',
+            'placeholder': 'Biometrics ID',
+            'required': 'required',
+        }
         self.fields['company_id'].widget.attrs = {
             'type': 'text',
             'class': 'form-control',

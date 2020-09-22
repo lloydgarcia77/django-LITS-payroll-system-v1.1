@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% load humanize %} 
 {% block title %}
-Employee Edit Itenerary Form
+Employee Edit Itinerary Form
 {% endblock title%}
 
 
@@ -90,7 +90,7 @@ Employee Edit Itenerary Form
 {% endblock nav_dashboard %} 
 
 {% block nav_iteneraries %}
-<li class="active"><a href="{% url 'application:employee_side_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o text-yellow"></i> <span>Iteneraries</span> </a></li>
+<li class="active"><a href="{% url 'application:employee_side_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o text-yellow"></i> <span>Itineraries</span> </a></li>
 {% endblock nav_iteneraries %}
 
 {% block main_content %}
@@ -98,13 +98,13 @@ Employee Edit Itenerary Form
 
 <section class="content-header">
     <h1>
-        Employee Edit Itenerary
+        Employee Edit Itinerary
         <small>Manage details</small>
     </h1>
     <ol class="breadcrumb">
         <li><a href="{% url 'employee_index' %}"><i class="fa fa-dashboard"></i> Home</a></li> 
-        <li class=""><a href="{% url 'application:employee_side_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar"></i> Manage Iteneries</a></li> 
-        <li class="active"><i class="fa fa-fw fa-pencil-square-o"></i> Edit Itenerary</li> 
+        <li class=""><a href="{% url 'application:employee_side_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar"></i> Manage Itineries</a></li> 
+        <li class="active"><i class="fa fa-fw fa-pencil-square-o"></i> Edit Itinerary</li> 
     </ol>
 </section>
 
@@ -113,7 +113,7 @@ Employee Edit Itenerary Form
         {% csrf_token %}
         <div class="box box-default">
             <div class="box-header with-border">
-                <h3 class="box-title">Itenerary Form</h3>
+                <h3 class="box-title">Itinerary Form</h3>
                 <div class="box-tools pull-right">
                     <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
                     <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>

@@ -99,10 +99,10 @@ class SkillsAdmin(ImportExportModelAdmin):
 admin.site.register(SkillsInfo, SkillsAdmin)
 
 class CompanyAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'fk_company_user', 'company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth')
-    list_editable = ('company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth')
+    list_display = ('id', 'fk_company_user','biometrics_id', 'company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth')
+    list_editable = ('biometrics_id','company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth')
     list_per_page = 10
-    search_fields = ('company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth')
+    search_fields = ('biometrics_id','company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth')
     list_filter = ('designation',)
 
 admin.site.register(CompanyInfo, CompanyAdmin)

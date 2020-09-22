@@ -128,8 +128,8 @@ Payroll System Employee Index Page
                                 {{user.profile_to_user.first_name|title}} {{user.profile_to_user.middle_name|title}}
                                 {{user.profile_to_user.last_name|title}}
                                 {% endif %}
-                                - Web Developer
-                                <small>Member since {{last_time_joined|date:'M d, Y'}}</small>
+                                - {{user.company_to_user.designation}}
+                                <small>Member since: {{user.profile_to_user.date_started|date:'M d, Y'}}</small>
                             </p>
 
 
@@ -256,7 +256,7 @@ Payroll System Employee Index Page
 
             
             {% block nav_iteneraries %}
-            <li><a href="{% url 'application:employee_side_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o text-yellow"></i> <span>Iteneraries</span> </a></li>
+            <li><a href="{% url 'application:employee_side_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o text-yellow"></i> <span>Itineraries</span> </a></li>
             {% endblock nav_iteneraries %}
 
             
@@ -393,7 +393,7 @@ Payroll System Employee Index Page
                     <div class="inner">
                         <h3>{{total_unapproved_iteneraries|safe}}</h3>
 
-                        <p>Unapproved Iteneraries</p>
+                        <p>Unapproved Itineraries</p>
                     </div>
                     <div class="icon">
                         <i class="fa fa-fw fa-file-code-o"></i>
@@ -408,7 +408,7 @@ Payroll System Employee Index Page
                     <div class="inner">
                         <h3>{{total_approved_iteneraries|safe}}</h3>
 
-                        <p>Approved Iteneraries</p>
+                        <p>Approved Itineraries</p>
                     </div>
                     <div class="icon">
                         <i class="fa fa-fw fa-check-square-o"></i>

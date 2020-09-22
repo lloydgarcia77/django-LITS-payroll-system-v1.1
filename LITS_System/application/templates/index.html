@@ -127,8 +127,8 @@ Payroll System Index Page
                 {% else %}
                 {{user.profile_to_user.first_name|title}} {{user.profile_to_user.middle_name|title}} {{user.profile_to_user.last_name|title}}  
                 {% endif %}
-                - Web Developer
-                <small>Member since {{last_time_joined|date:'M d, Y'}}</small>
+                - {{user.company_to_user.designation}}
+                <small>Member since: {{user.profile_to_user.date_started|date:'M d, Y'}}</small>
               </p> 
                       
                 
@@ -266,7 +266,7 @@ Payroll System Index Page
             <li><a href="{% url 'application:employee_list' %}"><i class="fa fa-fw fa-users"></i> List Employees</a></li> 
             <li><a href="{% url 'application:employee_payroll_manage' %}"><i class="fa fa-fw fa-credit-card"></i> Manage Payroll</a></li>
             <li><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
-            <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Iteneraries </a></li>
+            <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Itineraries </a></li>
             <li><a href="{% url 'application:employee_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting"></i> Concerns</a></li>
             <li><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
           </ul>
@@ -276,7 +276,7 @@ Payroll System Index Page
 
 
         <li class="header">LABELS</li>
-        <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-circle-o text-red"></i> <span>Important</span></a></li>
+        <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-fw fa-gear text-red"></i> <span>Settings</span></a></li>
         <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-circle-o text-yellow"></i> <span>Warning</span></a></li>
         <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-circle-o text-aqua"></i> <span>Information</span></a></li>
       </ul>
@@ -436,7 +436,7 @@ Payroll System Index Page
             <div class="inner">
               <h3>{{total_iteneraries|intcomma}}</h3>
 
-              <p>Iteneraries</p>
+              <p>Itineraries</p>
             </div>
             <div class="icon">
               <i class="fa fa-fw fa-file-word-o"></i>
@@ -451,7 +451,7 @@ Payroll System Index Page
             <div class="inner">
               <h3>{{total_unapproved_iteneraries|intcomma}}<sup style="font-size: 20px"></sup></h3>
 
-              <p>Unapproved Iteneraries</p>
+              <p>Unapproved Itineraries</p>
             </div>
             <div class="icon">
               <i class="fa fa-fw fa-file-code-o"></i>
@@ -542,7 +542,7 @@ Payroll System Index Page
                   <input type="text" class="knob" data-readonly="true" value="{{total_approved_iteneraries|safe}}" data-width="60" data-height="60"
                          data-fgColor="#39CCCC">
 
-                  <div class="knob-label">Approved Iteneraries</div>
+                  <div class="knob-label">Approved Itineraries</div>
                 </div>
                 <!-- ./col -->
                 <div class="col-xs-4 text-center">
