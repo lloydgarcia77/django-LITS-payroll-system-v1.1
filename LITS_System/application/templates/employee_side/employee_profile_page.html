@@ -116,6 +116,18 @@ Employee Profile Page
         background-repeat: no-repeat;
         background-position: center;
     }
+    .user_name{
+        white-space: nowrap; 
+        width: 150px; 
+        overflow: hidden;
+        text-overflow: ellipsis;  
+    }
+    .user_name2{
+        white-space: nowrap; 
+        width: 280px; 
+        overflow: hidden;
+        text-overflow: ellipsis;  
+    }
 </style> 
 {% endblock css %}
 {% block nav_dashboard %}
@@ -174,7 +186,7 @@ Employee Profile Page
                      -->
 
                     <h3 class="profile-username text-center">
-                        <p>{{user.profile_to_user.first_name|title}} {{user.profile_to_user.middle_name|title}}
+                        <p class="user_name2">{{user.profile_to_user.first_name|title}} {{user.profile_to_user.middle_name|title}}
                             {{user.profile_to_user.last_name|title}}</p>
                     </h3>
 

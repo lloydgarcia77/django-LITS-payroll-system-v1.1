@@ -129,6 +129,8 @@ class CompanyInfo(models.Model):
     sss_number = models.CharField(max_length=50, blank=True, null=True)
     pagibig = models.CharField(max_length=50, blank=True, null=True)
     philhealth = models.CharField(max_length=50, blank=True, null=True) 
+    vacation_leave_credits = models.IntegerField(default=7, blank=True)
+    sick_leave_credits = models.IntegerField(default=7, blank=True)
 
     def __str__(self):
         return str(self.company_id)
@@ -274,9 +276,12 @@ class EmployeeLeaves(models.Model):
     inclusive_dates = models.CharField(max_length=100)
     reasons = models.CharField(max_length=250)
     classification_of_leave = models.CharField(max_length=100, choices=classification_of_leave_list, default=classification_of_leave_list[0][0])
-    leave_credits = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    less_this_application = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    balance_as_of_this_date = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    leave_credits = models.IntegerField(default=0)
+    less_this_application = models.IntegerField(default=0)
+    balance_as_of_this_date = models.IntegerField(default=0)
+    # leave_credits = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # less_this_application = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # balance_as_of_this_date = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     #prepared_by = same as the name
     #https://medium.com/@inem.patrick/django-database-integrity-foreignkey-on-delete-option-db7d160762e4
     # noted_by = models.ForeignKey(PersonalInfo, on_delete=models.DO_NOTHING, related_name="nb_personal_fk", null=True, blank=True)

@@ -109,17 +109,20 @@ class PersonalForm(forms.ModelForm):
         self.fields['first_name'].widget.attrs = {
             'type': 'text',
             'class': 'form-control',
-            'placeholder': 'First name',
+            'placeholder': 'First name', 
+            'maxlength': '10',
         }
         self.fields['middle_name'].widget.attrs = {
             'type': 'text',
             'class': 'form-control',
             'placeholder': 'Middle Name',
+            'maxlength': '10',
         }
         self.fields['last_name'].widget.attrs = {
             'type': 'text',
             'class': 'form-control',
             'placeholder': 'Last name',
+            'maxlength': '10',
         }
         self.fields['age'].widget.attrs = {
             'class': 'form-control',
@@ -342,6 +345,14 @@ class CompanyForm(forms.ModelForm):
             'type': 'text',
             'class': 'form-control',
             'placeholder': 'Philhealth',
+        }
+        self.fields['vacation_leave_credits'].widget.attrs = {
+            'class': 'form-control',  
+            'readonly':'readonly',
+        }
+        self.fields['sick_leave_credits'].widget.attrs = {
+            'class': 'form-control',  
+            'readonly':'readonly',
         }
 
 class TelephoneNumberForm(forms.ModelForm):
@@ -695,9 +706,9 @@ class EmployeeSalaryForm(forms.ModelForm):
 
 class EmployeeLeavesForm(forms.ModelForm):
     default_val = Decimal('0.00')
-    leave_credits = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    less_this_application = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    balance_as_of_this_date = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    # leave_credits = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    # less_this_application = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    # balance_as_of_this_date = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
 
     class Meta():
             model = EmployeeLeaves
@@ -736,12 +747,15 @@ class EmployeeLeavesForm(forms.ModelForm):
         }
         self.fields['leave_credits'].widget.attrs = {
             'class': 'form-control',  
+            'readonly':'readonly',
         }
         self.fields['less_this_application'].widget.attrs = {
             'class': 'form-control',  
+            'readonly':'readonly',
         }
         self.fields['balance_as_of_this_date'].widget.attrs = {
             'class': 'form-control',  
+            'readonly':'readonly',
         }
         # self.fields['noted_by'].widget.attrs = {
         #     'class': 'form-control',  

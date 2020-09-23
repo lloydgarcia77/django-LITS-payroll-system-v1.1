@@ -2720,7 +2720,7 @@ def side_employee_view_payroll_page(request, id):
     template_name = "employee_side/employee_side_view_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username)
     # employee = get_object_or_404(PersonalInfo, fk_user=user)
-    
+    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
     notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
     notifications_count = notifications.count()
  
@@ -2728,10 +2728,12 @@ def side_employee_view_payroll_page(request, id):
 
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
+          
             try:  
-                cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-                employee = PersonalInfo.objects.get(fk_user=user) 
-                employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee) 
+                 
+                employee = PersonalInfo.objects.get(fk_user=user) # handle error doesnotexist
+                #employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee) 
+                employee_salary = EmployeeSalary.objects.get(employee_salary_fk=employee) # handle error doesnotexist
 
                 attendance_list = AttendanceInfo.objects.filter(Q(cut_off_period=cutoff) & Q(employee_profile=employee)).order_by("-id")
                 try:
@@ -2755,8 +2757,9 @@ def side_employee_view_payroll_page(request, id):
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
-            except CutOffPeriodInfo.DoesNotExist:
+            except EmployeeSalary.DoesNotExist: 
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_payroll_page'))
+            
 
         
     else:
@@ -2855,6 +2858,7 @@ def side_employee_create_leave_form(request):
                 'user': user,  
                 'employee': employee, 
                 'form': form,
+                'employee_company_details':employee_company_details,
             }
             return render(request, template_name, context)
         except CompanyInfo.DoesNotExist:

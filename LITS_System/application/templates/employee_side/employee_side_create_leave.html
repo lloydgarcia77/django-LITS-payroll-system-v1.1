@@ -120,9 +120,26 @@ Employee File New Leave Form
             </div>
         </div>
         <div class="box-body">
-            <div class="row"> 
+            <div class="row">
+                 <div class="col-md-6">
+                    <div class="form-group has-warning">
+                        <label class="control-label" for="inputVLC"><i class="fa fa-fw fa-car"></i> Actual Vacation Leave Credits:</label>
+                        <input type="text" class="form-control" id="inputVLC" value="{{employee_company_details.vacation_leave_credits}}" readonly>
+                        <span class="help-block">Inclusive for vacation & emergency leaves.</span>
+                    </div> 
+                </div>
+                <div class="col-md-6">
+                      <div class="form-group has-success">
+                        <label class="control-label" for="inputSLC"><i class="fa fa-fw fa-stethoscope"></i> Actual Sick Leave Credits:</label>
+                        <input type="text" class="form-control" id="inputSLC" value="{{employee_company_details.sick_leave_credits}}" readonly>
+                        <span class="help-block">Medical certification is required</span>
+                    </div> 
+                </div>
+            </div>
+            <hr style="border-top: 1px solid #EBF0F5;">
+            <div class="row">  
                 <div class="col-md-6"> 
-       
+                   
                     <div class="form-group">
                         <label for="{{ form.classification_of_leave.id_for_label}}">Classification of leave:</label>  
                         {{ form.classification_of_leave}}
@@ -169,7 +186,7 @@ Employee File New Leave Form
         </div> 
         <div class="box-footer">
             <a href="{% url 'application:employee_side_manage_leaves_page' %}" class="btn btn-default"> <span class="fa fa-fw fa-ban"></span> Cancel</a>
-            <button type="submit" class="btn btn-info pull-right"><span class="fa fa-fw fa-send"></span> Submit</button>
+            <button type="submit" class="btn btn-info pull-right" disabled><span class="fa fa-fw fa-send"></span> Submit</button>
           </div>
     </div> 
     </form>
@@ -201,32 +218,11 @@ Employee File New Leave Form
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
+<script src="{% static 'js/employee_side_create_leaves.js' %}"></script>
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
  
-<script>
-    $(function () {
-
-    //Initialize Select2 Elements
-    $('#classificationOfLeave').select2();
-    //Date range picker http://www.daterangepicker.com/
-    //https://stackoverflow.com/questions/36600687/moment-js-two-dates-difference-in-number-of-days/36600770
-    $('#reservation, #inclusiveDates').daterangepicker();
-
-    $('#reservation, #inclusiveDates').on('apply.daterangepicker', function(ev, picker) {
-        let _startDate = picker.startDate.format('YYYY-MM-DD');
-        let _endDate = picker.endDate.format('YYYY-MM-DD');
-        let mStartDate = moment(_startDate, 'YYYY-MM-DD');
-        let mEndDate = moment(_endDate, 'YYYY-MM-DD');
-        let _noDays = mEndDate.diff(mStartDate, 'days');
-        $("#noOfDays").val(_noDays); 
-        console.log(picker.startDate.format('YYYY-MM-DD'));  
-        console.log(picker.endDate.format('YYYY-MM-DD'));
-    });
-
-    });
-    
-</script>
+ 
  
 {% endblock main_content %}
