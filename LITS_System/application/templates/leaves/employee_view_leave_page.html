@@ -88,7 +88,7 @@ View Employee Leave Form
         <li class=""><a href="{% url 'application:employee_payroll_manage' %}"><i class="fa fa-fw fa-credit-card"></i>
         Manage Payroll</a></li>
         <li class="active"><a href="{% url 'application:employee_manage_leaves_page' %}"><i class="fa fa-fw fa-car"></i> Leaves </a></li>
-        <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Iteneraries </a></li>
+        <li><a href="{% url 'application:employee_manage_iteneraries_page' %}"><i class="fa fa-fw fa-calendar-times-o"></i> Itineraries </a></li>
         <li><a href="{% url 'application:employee_manage_concerns_page' %}"><i class="fa fa-fw fa-commenting"></i> Concerns</a></li>
         <li><a href="{% url 'application:employee_overtime_management_page' %}"><i class="fa fa-fw fa-clock-o"></i>Overtime Time</a></li>
     </ul>
@@ -177,8 +177,7 @@ View Employee Leave Form
                                 </div>
                                 <input type="text" class="form-control" id="preparedBy" value="{{ leave.employee_leave_fk }}" readonly> 
                             </div> 
-                        </div>
-
+                        </div> 
                         <div class="form-group">
                             <label for="notedBy">Noted By:</label>  
                             <div class="input-group">

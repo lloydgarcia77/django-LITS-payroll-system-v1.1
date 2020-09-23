@@ -260,6 +260,7 @@ classification_of_leave_list = (
 )
 
 leave_status = (
+    ('Pending','Pending'),
     ('Disapproved','Disapproved'),
     ('Approved','Approved'),
 )

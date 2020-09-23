@@ -85,5 +85,6 @@ urlpatterns = [
     path('employee/manage/overtime/view/<int:id>/', views.side_employee_view_overtime_form, name="employee_side_employee_view_overtime_form"),
     path('employee/maintainancepage/', views.employee_side_maintainance_page, name="employee_side_maintainance_page"),
     path('employee/error/', views.employee_side_error_page, name="employee_side_error_page"),
+    path('employee/error/payroll/', views.employee_side_error_payroll_page, name="employee_side_error_payroll_page"),
     
 ]

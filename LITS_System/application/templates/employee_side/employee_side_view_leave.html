@@ -123,7 +123,9 @@ Employee View Leave Form
                         <tr>
                             <th>Status:</th>
                             <td>
-                                {% if leave.status == 'Disapproved' %}
+                                {% if leave.status == 'Pending' %} 
+                                <span class="label label-warning">{{ leave.status }}</span>
+                                {% elif leave.status == 'Disapproved' %}
                                 <span class="label label-danger">{{ leave.status }}</span>
                                 {% elif leave.status == 'Approved' %}
                                 <span class="label label-success">{{ leave.status }}</span>

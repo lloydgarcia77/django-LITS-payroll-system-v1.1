@@ -551,8 +551,12 @@ def new_profile(request):
                 instance = form.save(commit=False)
                 print('---------------------------------------------->',instance.id)
                 instance.fk_user = current_user
+                #issue is cannot retrieve id to encrypt before saving 
+                #instance.key_id = encrypt_key(instance.id)
+                instance.save() 
                 instance.key_id = encrypt_key(instance.id)
                 instance.save() 
+                print('==============================================>',instance.id)
                 Notifications.objects.create(sender=current_user,recipient=current_user,message="You have been created your new profile!",category=category_list[4],level=level_list[1])
                 
                 data['form_is_valid'] = True
@@ -1896,6 +1900,7 @@ def employee_view_employee_leaves(request, id):
     employee_list = PersonalInfo.objects.all().order_by('-id').distinct()
 
     status_list = [
+        'Pending',
         'Disapproved',
         'Approved',
     ]
@@ -2715,7 +2720,7 @@ def side_employee_view_payroll_page(request, id):
     template_name = "employee_side/employee_side_view_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username)
     # employee = get_object_or_404(PersonalInfo, fk_user=user)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+    
     notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
     notifications_count = notifications.count()
  
@@ -2724,6 +2729,7 @@ def side_employee_view_payroll_page(request, id):
     if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
             try:  
+                cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
                 employee = PersonalInfo.objects.get(fk_user=user) 
                 employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee) 
 
@@ -2749,6 +2755,8 @@ def side_employee_view_payroll_page(request, id):
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
+            except CutOffPeriodInfo.DoesNotExist:
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_payroll_page'))
 
         
     else:
@@ -3601,6 +3609,26 @@ def employee_side_maintainance_page(request):
 @login_required
 def employee_side_error_page(request):
     template_name = "employee_side/employee_side_error_page.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+    if user.is_active and user.is_staff and not user.is_superuser: 
+        if request.method == 'GET': 
+            pass
+        elif request.method == 'POST':
+            pass
+        context = {
+            'user':user, 
+            'notifications': notifications,
+            'notifications_count': notifications_count, 
+        }
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
+@login_required
+def employee_side_error_payroll_page(request):
+    template_name = "employee_side/employee_side_error_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username) 
     notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
     notifications_count = notifications.count()

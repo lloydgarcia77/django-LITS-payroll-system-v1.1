@@ -126,8 +126,9 @@ Employee Manage Leaves
                             {% for leave in leaves  %}
                                 <tr>
                                     <td>{{ leave.id }}</td>
-                                    <td> 
-                                        {% if leave.status == 'Disapproved' %}
+                                    <td> {% if leave.status == 'Pending' %} 
+                                        <span class="label label-warning">{{ leave.status }}</span>
+                                        {% elif leave.status == 'Disapproved' %}
                                         <span class="label label-danger">{{ leave.status }}</span>
                                         {% elif leave.status == 'Approved' %}
                                         <span class="label label-success">{{ leave.status }}</span>
