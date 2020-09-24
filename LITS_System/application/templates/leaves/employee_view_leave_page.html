@@ -121,6 +121,45 @@ View Employee Leave Form
                 </div>
             </div>
             <div class="box-body">
+            <div class="callout callout-warning">
+                <h4>Special Note!</h4>
+                <p>Leave credits will be deducted upon your approval, Any leave files that will exceed the credit limit will be classified as <b>leave without pay</b>.</p>
+            </div>
+            <div class="row">
+                 <div class="col-md-6">
+                 
+                
+                     
+                    <div class="form-group 
+                     {% if is_vl %}
+                     has-error
+                     {% else %}
+                     has-warning
+                     {% endif %}
+                    "> 
+                        <label class="control-label" for="inputVLC"><i class="fa fa-fw fa-car"></i> Actual Vacation Leave Credits:</label>
+                        {% if company_employee.vacation_leave_credits < 0 %}
+                        <input type="text" class="form-control" id="inputVLC" value="0" readonly>
+                        {% else %}
+                        <input type="text" class="form-control" id="inputVLC" value="{{company_employee.vacation_leave_credits}}" readonly>
+                        {% endif %} 
+                        <span class="help-block">Inclusive for vacation & emergency leaves.</span>
+                    </div> 
+                </div>
+                <div class="col-md-6">
+                      <div class="form-group 
+                        {% if is_sl %}
+                        has-error
+                        {% else %}
+                        has-success
+                        {% endif %} 
+                        ">
+                        <label class="control-label" for="inputSLC"><i class="fa fa-fw fa-stethoscope"></i> Actual Sick Leave Credits:</label>
+                        <input type="text" class="form-control" id="inputSLC" value="{{company_employee.sick_leave_credits}}" readonly>
+                        <span class="help-block">Medical certification is required</span>
+                    </div> 
+                </div>
+            </div>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -294,7 +333,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-credit-card"></i>
                                 </div>
-                                <input name="_leaveCredits" type="number" class="form-control" id="leaveCredits" value="{{ leave.leave_credits }}"> 
+                                <input name="_leaveCredits" type="number" class="form-control" id="leaveCredits" value="{{ leave.leave_credits }}" readonly> 
                             </div> 
                         </div>
 
@@ -304,7 +343,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-credit-card"></i>
                                 </div>
-                                <input name="_lessThisApplication" type="number" class="form-control" id="lessThisApplication" value="{{ leave.less_this_application }}"> 
+                                <input name="_lessThisApplication" type="number" class="form-control" id="lessThisApplication" value="{{ leave.less_this_application }}" readonly> 
                             </div> 
                         </div>
 
@@ -314,7 +353,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-credit-card"></i>
                                 </div>
-                                <input name="_balanceAsOfThisDate" type="number" class="form-control" id="balanceAsOfThisDate" value="{{ leave.balance_as_of_this_date }}"> 
+                                <input name="_balanceAsOfThisDate" type="number" class="form-control" id="balanceAsOfThisDate" value="{{ leave.balance_as_of_this_date }}" readonly> 
                             </div> 
                         </div>
         

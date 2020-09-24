@@ -3,8 +3,7 @@ $(document).ready(function () {
     $('#classificationOfLeave').select2();
     //Date range picker http://www.daterangepicker.com/
     //https://stackoverflow.com/questions/36600687/moment-js-two-dates-difference-in-number-of-days/36600770
-    $('#reservation, #inclusiveDates').daterangepicker();
-
+    $('#reservation, #inclusiveDates').daterangepicker(); 
     $('#reservation, #inclusiveDates').on('apply.daterangepicker', function(ev, picker) {
         let _startDate = picker.startDate.format('YYYY-MM-DD');
         let _endDate = picker.endDate.format('YYYY-MM-DD');
@@ -14,12 +13,16 @@ $(document).ready(function () {
         $("#noOfDays").val(_noDays); 
         // console.log(picker.startDate.format('YYYY-MM-DD'));  
         // console.log(picker.endDate.format('YYYY-MM-DD'));
-        let val = $("#inputVLC").val();
-        $("#id_leave_credits").val(val);
-        $('#id_less_this_application').val(_noDays);
-        let balance = parseInt(val) - parseInt(_noDays);
-        $("#id_balance_as_of_this_date").val(balance);
-
+        // let val = $("#inputVLC").val();
+        // $("#id_leave_credits").val(val);
+        // $('#id_less_this_application').val(_noDays);
+        // let balance = parseInt(val) - parseInt(_noDays);
+        // $("#id_balance_as_of_this_date").val(balance);
+        // Enable the submit button
+        // $("#btn-submit").prop("disabled",false); 
+        $("#btn-submit").removeAttr('disabled');
+        
+        console.log($("#btn-submit"));
     }); 
     $("#classificationOfLeave").change(function(e){
         e.preventDefault();

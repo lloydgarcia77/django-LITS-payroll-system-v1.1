@@ -253,7 +253,7 @@ class EmployeeSalary(models.Model):
 
  
 classification_of_leave_list = (
-    ('Others', 'Others'),
+    ('Bereavement Leave', 'Bereavement Leave'),
     ('Vacation Leave', 'Vacation Leave'),
     ('Maternity Leave', 'Maternity Leave'),
     ('Sick Leave', 'Sick Leave'),
@@ -276,9 +276,11 @@ class EmployeeLeaves(models.Model):
     inclusive_dates = models.CharField(max_length=100)
     reasons = models.CharField(max_length=250)
     classification_of_leave = models.CharField(max_length=100, choices=classification_of_leave_list, default=classification_of_leave_list[0][0])
-    leave_credits = models.IntegerField(default=0)
-    less_this_application = models.IntegerField(default=0)
-    balance_as_of_this_date = models.IntegerField(default=0)
+    has_payment = models.BooleanField(default=False)
+    leave_credits = models.IntegerField(default=0, blank=True)
+    less_this_application = models.IntegerField(default=0, blank=True)
+    balance_as_of_this_date = models.IntegerField(default=0, blank=True)
+    remarks = models.CharField(max_length=100, blank=True)
     # leave_credits = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     # less_this_application = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     # balance_as_of_this_date = models.DecimalField(default=0, max_digits=12, decimal_places=2)

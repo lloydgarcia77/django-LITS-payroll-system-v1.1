@@ -151,7 +151,7 @@ def read_attendance_file(attendance_file, request, form, data):
             # print(str(int(days_of_week)),'-', days_of_month, end=" | ")
          
             #checking if db has multiple names might duplicate the attendance record for other matching names
-        starting_row = 5
+        starting_row = 3 # verify
         for row in range(3, att_log_report.nrows):
                 starting_row += 2    
                 starting_col = 2
@@ -164,7 +164,7 @@ def read_attendance_file(attendance_file, request, form, data):
                         hours = att_log_report.cell_value(starting_row,col)
                         id = att_log_report.cell_value(starting_row-1,2)
                         name = att_log_report.cell_value(starting_row-1,10)   
-                        # print('--------------------->ID: ',id ,"Name: ",name)
+                        # print('Row:',starting_row,'ID: ',id ,"Name: ",name)
                         timeIn = hours[:5]
                         timeOut = hours[-5:]    
                         t_diff = None
@@ -194,8 +194,9 @@ def read_attendance_file(attendance_file, request, form, data):
                             days_of_month = schedule_information.cell_value(3, starting_col)    
                             if date != "": 
                                 # for id
-                                company_info = CompanyInfo.objects.all()
+                                company_info = CompanyInfo.objects.all() 
                                 for company in company_info: 
+                                   
                                     if not company.biometrics_id == "0":
                                         if company.biometrics_id == id:
                                             company_user_profile = get_object_or_404(PersonalInfo, fk_user=company.fk_company_user)
@@ -1907,9 +1908,18 @@ def employee_view_employee_leaves(request, id):
 
  
     if user.is_active and user.is_staff and user.is_superuser: 
-        if request.method == 'GET': 
-            pass
-        elif request.method == 'POST':
+        employee_sender = get_object_or_404(EmployeeLeaves, id=id)  
+        eid = employee_sender.employee_leave_fk.fk_user.company_to_user.id
+        company_employee = CompanyInfo.objects.get(id=eid)
+        if request.method == 'GET':    
+            is_vl = True if employee_sender.classification_of_leave == "Vacation Leave" else False
+            is_sl = True if employee_sender.classification_of_leave == "Sick Leave" else False 
+        elif request.method == 'POST': 
+            vl_credits = company_employee.vacation_leave_credits
+            sl_credits = company_employee.sick_leave_credits
+            # company_employee.vacation_leave_credits = 7
+            # company_employee.save()
+
             _leaveCredits = request.POST.get('_leaveCredits', "0")
             _lessThisApplication = request.POST.get('_lessThisApplication', "0")
             _balanceAsOfThisDate = request.POST.get('_balanceAsOfThisDate', "0")
@@ -1917,8 +1927,43 @@ def employee_view_employee_leaves(request, id):
             _notedBy = request.POST['notedByList']
             _checkedBy = request.POST['checkedByList']
             _approvedBy = request.POST['approvedByList']
- 
 
+            #updated
+            _leaveCredits = 0
+            _lessThisApplication = 0
+            _balanceAsOfThisDate = 0 
+
+            if _status.casefold() == 'Approved'.casefold():
+                if employee_sender.status.casefold() != 'Approved'.casefold(): 
+                    if employee_sender.classification_of_leave == "Vacation Leave":
+                        no_days = employee_sender.no_days
+                        balance = vl_credits - no_days
+                        company_employee.vacation_leave_credits = balance
+                        company_employee.save()
+                        _leaveCredits = vl_credits
+                        _lessThisApplication = no_days
+                        _balanceAsOfThisDate = balance 
+                    elif employee_sender.classification_of_leave == "Sick Leave":
+                        no_days = employee_sender.no_days
+                        balance = sl_credits - no_days
+                        company_employee.sick_leave_credits = balance
+                        company_employee.save()
+                        _leaveCredits = vl_credits
+                        _lessThisApplication = no_days
+                        _balanceAsOfThisDate = balance  
+            elif _status.casefold() == 'Disapproved'.casefold() or _status.casefold() == 'Pending'.casefold():
+                if employee_sender.status.casefold() != 'Disapproved'.casefold(): 
+                    if employee_sender.classification_of_leave == "Vacation Leave":
+                        no_days = employee_sender.no_days
+                        balance = vl_credits + no_days
+                        company_employee.vacation_leave_credits = balance
+                        company_employee.save() 
+                    elif employee_sender.classification_of_leave == "Sick Leave":
+                        no_days = employee_sender.no_days
+                        balance = sl_credits + no_days
+                        company_employee.sick_leave_credits = balance
+                        company_employee.save()  
+                 
             new, existing = EmployeeLeaves.objects.update_or_create(id=id, defaults={
                 'status': _status,
                 'leave_credits': _leaveCredits,
@@ -1934,6 +1979,9 @@ def employee_view_employee_leaves(request, id):
             return HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
         context = {
             'user':user,
+            'company_employee':company_employee,
+            'is_vl':is_vl,
+            'is_sl':is_sl,
             'employee': employee,
             'leave': leave, 
             'employee_list': employee_list,
@@ -2876,30 +2924,36 @@ def side_employee_edit_leave_form(request, id):
     notifications_count = notifications.count()
 
     if user.is_active and user.is_staff and not user.is_superuser:
-        if request.method == 'GET':
-            form = EmployeeLeavesForm(request.GET or None, instance=leave)
-        elif request.method == 'POST':
-            form = EmployeeLeavesForm(request.POST or None, instance=leave)
-            if form.is_valid():
-                instance = form.save(commit=False)  
-                instance.save()
-                url = HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
-                admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
-                for admin in admins:
-                    Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="Leave form from {sender} has been updated".format(sender=user),category=category_list[10],level=level_list[1])
-                
-                return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_leaves_page'))
-            else:
-                print("Form Error!")
-        context = {
-            'user': user,  
-            'employee': employee, 
-            'form': form,
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-        }
+        try:
+            employee_company_details = CompanyInfo.objects.get(fk_company_user=user)
+            if request.method == 'GET':
+                form = EmployeeLeavesForm(request.GET or None, instance=leave)
+            elif request.method == 'POST':
+                form = EmployeeLeavesForm(request.POST or None, instance=leave)
+                if form.is_valid():
+                    instance = form.save(commit=False)  
+                    instance.save()
+                    url = HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
+                    admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
+                    for admin in admins:
+                        Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="Leave form from {sender} has been updated".format(sender=user),category=category_list[10],level=level_list[1])
+                    
+                    return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_leaves_page'))
+                else:
+                    print("Form Error!")
+            context = {
+                'user': user,  
+                'employee': employee, 
+                'form': form,
+                'notifications': notifications,
+                'employee_company_details':employee_company_details,
+                'notifications_count': notifications_count,
+            }
 
-        return render(request, template_name, context)
+            return render(request, template_name, context)
+        except CompanyInfo.DoesNotExist:
+            return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
+        
     else:
         raise Http404()
 

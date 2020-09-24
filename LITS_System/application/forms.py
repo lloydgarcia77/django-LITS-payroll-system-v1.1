@@ -757,6 +757,10 @@ class EmployeeLeavesForm(forms.ModelForm):
             'class': 'form-control',  
             'readonly':'readonly',
         }
+        self.fields['remarks'].widget.attrs = {
+            'class': 'form-control',  
+            'readonly':'readonly',
+        } 
         # self.fields['noted_by'].widget.attrs = {
         #     'class': 'form-control',  
         # }

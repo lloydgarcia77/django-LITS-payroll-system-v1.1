@@ -120,14 +120,29 @@ Employee Edit Leave Form
             </div>
         </div>
         <div class="box-body">
-            <div class="row"> 
-                <div class="col-md-6"> 
-       
-                    <div class="form-group">
-                        <label for="{{ form.classification_of_leave.id_for_label}}">Classification of leave:</label>  
-                        {{ form.classification_of_leave}}
-                    </div>
+            <div class="callout callout-info">
+                <h4>Special Note!</h4>
 
+                <p>Leave credits will be deducted upon HR approval any leave files that will exceed the credit limit will be classified as <b>leave without pay</b>.</p>
+            </div>
+            <div class="row">
+                 <div class="col-md-6">
+                    <div class="form-group has-warning">
+                        <label class="control-label" for="inputVLC"><i class="fa fa-fw fa-car"></i> Actual Vacation Leave Credits:</label>
+                        <input type="text" class="form-control" id="inputVLC" value="{{employee_company_details.vacation_leave_credits}}" readonly>
+                        <span class="help-block">Inclusive for vacation & emergency leaves.</span>
+                    </div> 
+                </div>
+                <div class="col-md-6">
+                      <div class="form-group has-success">
+                        <label class="control-label" for="inputSLC"><i class="fa fa-fw fa-stethoscope"></i> Actual Sick Leave Credits:</label>
+                        <input type="text" class="form-control" id="inputSLC" value="{{employee_company_details.sick_leave_credits}}" readonly>
+                        <span class="help-block">Medical certification is required</span>
+                    </div> 
+                </div>
+            </div>
+            <div class="row"> 
+                <div class="col-md-6">  
                     <div class="form-group">
                         <label for="{{ form.inclusive_dates.id_for_label}}">Inclusive Dates:</label>
         
@@ -138,32 +153,21 @@ Employee Edit Leave Form
                         {{ form.inclusive_dates}} 
                         </div>
                         <!-- /.input group -->
-                    </div>
-
+                    </div> 
                     <div class="form-group">
                         <label for="{{form.no_days.id_for_label}}">No. of Days:</label>
                         {{ form.no_days}}
-                    </div>  
-                    <div class="form-group">
-                        <label for="{{form.reasons.id_for_label}}">Reasons:</label>
-                        {{ form.reasons}}
-                    </div>  
-
+                    </div>   
                 </div> 
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="{{form.leave_credits.id_for_label}}">Leave Credits:</label>
-                        {{ form.leave_credits}}
-                    </div> 
-                    <div class="form-group">
-                        <label for="{{form.less_this_application.id_for_label}}">Less: This Application:</label>
-                        {{ form.less_this_application}}
-                    </div> 
-                    <div class="form-group">
-                        <label for="{{form.balance_as_of_this_date.id_for_label}}">Balance as of this Date:</label>
-                        {{ form.balance_as_of_this_date}}
-                    </div> 
-
+                        <label for="{{ form.classification_of_leave.id_for_label}}">Classification of leave:</label>  
+                        {{ form.classification_of_leave}}
+                    </div>
+                   <div class="form-group">
+                        <label for="{{form.reasons.id_for_label}}">Reasons:</label>
+                        {{ form.reasons}}
+                    </div>  
                 </div>
             </div> 
         </div> 
@@ -201,32 +205,12 @@ Employee Edit Leave Form
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
+<!-- Same functionallity -->
+<script src="{% static 'js/employee_side_create_leaves.js' %}"></script>
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
  
-<script>
-    $(function () {
-
-    //Initialize Select2 Elements
-    $('#classificationOfLeave').select2();
-    //Date range picker http://www.daterangepicker.com/
-    //https://stackoverflow.com/questions/36600687/moment-js-two-dates-difference-in-number-of-days/36600770
-    $('#reservation, #inclusiveDates').daterangepicker();
-
-    $('#reservation, #inclusiveDates').on('apply.daterangepicker', function(ev, picker) {
-        let _startDate = picker.startDate.format('YYYY-MM-DD');
-        let _endDate = picker.endDate.format('YYYY-MM-DD');
-        let mStartDate = moment(_startDate, 'YYYY-MM-DD');
-        let mEndDate = moment(_endDate, 'YYYY-MM-DD');
-        let _noDays = mEndDate.diff(mStartDate, 'days');
-        $("#noOfDays").val(_noDays); 
-        console.log(picker.startDate.format('YYYY-MM-DD'));  
-        console.log(picker.endDate.format('YYYY-MM-DD'));
-    });
-
-    });
-    
-</script>
+ 
  
 {% endblock main_content %}
