@@ -1866,8 +1866,7 @@ def employee_delete_payroll(request, key, id):
 @login_required
 def employee_manage_leaves(request):
     template_name = "leaves/employee_leaves_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-     
+    user = get_object_or_404(User, username=request.user.username) 
     notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
     notifications_count = notifications.count()
     leaves = EmployeeLeaves.objects.all().filter().order_by('-id').distinct()
@@ -1933,42 +1932,58 @@ def employee_view_employee_leaves(request, id):
             _lessThisApplication = 0
             _balanceAsOfThisDate = 0 
 
-            if _status.casefold() == 'Approved'.casefold():
+            _remarks = ""
+            _has_payment = False
+
+            if _status.casefold() == 'Approved'.casefold(): 
                 if employee_sender.status.casefold() != 'Approved'.casefold(): 
-                    if employee_sender.classification_of_leave == "Vacation Leave":
-                        no_days = employee_sender.no_days
-                        balance = vl_credits - no_days
-                        company_employee.vacation_leave_credits = balance
-                        company_employee.save()
-                        _leaveCredits = vl_credits
-                        _lessThisApplication = no_days
-                        _balanceAsOfThisDate = balance 
-                    elif employee_sender.classification_of_leave == "Sick Leave":
-                        no_days = employee_sender.no_days
-                        balance = sl_credits - no_days
-                        company_employee.sick_leave_credits = balance
-                        company_employee.save()
-                        _leaveCredits = vl_credits
-                        _lessThisApplication = no_days
-                        _balanceAsOfThisDate = balance  
-            elif _status.casefold() == 'Disapproved'.casefold() or _status.casefold() == 'Pending'.casefold():
+                    if employee_sender.classification_of_leave == "Vacation Leave" or employee_sender.classification_of_leave == "Bereavement Leave":
+                        if vl_credits > 0:
+                            no_days = employee_sender.no_days
+                            balance = vl_credits - no_days
+                            company_employee.vacation_leave_credits = balance
+                            company_employee.save()
+                            _leaveCredits = vl_credits
+                            _lessThisApplication = no_days
+                            _balanceAsOfThisDate = balance 
+                            _has_payment = True 
+                            if balance < 0:
+                                _remarks = balance
+                    elif employee_sender.classification_of_leave == "Sick Leave": 
+                        if sl_credits > 0:
+                            no_days = employee_sender.no_days
+                            balance = sl_credits - no_days
+                            company_employee.sick_leave_credits = balance
+                            company_employee.save()
+                            _leaveCredits = vl_credits
+                            _lessThisApplication = no_days
+                            _balanceAsOfThisDate = balance 
+                            _has_payment = True 
+                            # add sentence!
+                            if balance < 0:
+                                _remarks = balance
+            elif _status.casefold() == 'Disapproved'.casefold():  
                 if employee_sender.status.casefold() != 'Disapproved'.casefold(): 
-                    if employee_sender.classification_of_leave == "Vacation Leave":
-                        no_days = employee_sender.no_days
-                        balance = vl_credits + no_days
-                        company_employee.vacation_leave_credits = balance
-                        company_employee.save() 
+                    if employee_sender.classification_of_leave == "Vacation Leave" or employee_sender.classification_of_leave == "Bereavement Leave":
+                        if vl_credits < 7:
+                            no_days = employee_sender.no_days
+                            balance = vl_credits + no_days
+                            company_employee.vacation_leave_credits = balance
+                            company_employee.save() 
                     elif employee_sender.classification_of_leave == "Sick Leave":
-                        no_days = employee_sender.no_days
-                        balance = sl_credits + no_days
-                        company_employee.sick_leave_credits = balance
-                        company_employee.save()  
+                        if sl_credits < 7:
+                            no_days = employee_sender.no_days
+                            balance = sl_credits + no_days
+                            company_employee.sick_leave_credits = balance
+                            company_employee.save()  
                  
             new, existing = EmployeeLeaves.objects.update_or_create(id=id, defaults={
                 'status': _status,
+                'has_payment': _has_payment,
+                'remarks':_remarks,
                 'leave_credits': _leaveCredits,
                 'less_this_application': _lessThisApplication,
-                'balance_as_of_this_date': _balanceAsOfThisDate,
+                'balance_as_of_this_date': _balanceAsOfThisDate, 
                 'noted_by': _notedBy,
                 'checked_by': _checkedBy,
                 'approved_by': _approvedBy,
@@ -2892,6 +2907,8 @@ def side_employee_create_leave_form(request):
                     instance = form.save(commit=False) 
                     instance.employee_leave_fk = employee
                     instance.department = user.company_to_user.department
+                    if 'attachments' in request.FILES:
+                        instance.attachments = request.FILES['attachments']
                     instance.save()
                     #lookup from parent table
                     url = HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
@@ -2927,11 +2944,30 @@ def side_employee_edit_leave_form(request, id):
         try:
             employee_company_details = CompanyInfo.objects.get(fk_company_user=user)
             if request.method == 'GET':
-                form = EmployeeLeavesForm(request.GET or None, instance=leave)
+                form = EmployeeLeavesForm(request.GET or None, instance=leave) 
             elif request.method == 'POST':
                 form = EmployeeLeavesForm(request.POST or None, instance=leave)
                 if form.is_valid():
+                    
                     instance = form.save(commit=False)  
+                    if 'attachments' in request.FILES:
+                        instance.attachments = request.FILES['attachments']
+                    
+                    # deleting the file and the filefield
+                    is_to_delete = request.POST.get('is_to_delete', "off")
+                    if is_to_delete == 'on': 
+                        # leave.attachments.url to use as a template to download the file
+                        absolute_path = leave.attachments.path
+                        #file existense verification 
+                        if os.path.exists(absolute_path):
+                            # delete also the file and the record on the file field
+                            instance.attachments.delete(save=True)
+                            if os.path.isfile(absolute_path):
+                                # delete the file from the directory 
+                                os.remove(absolute_path)                            
+                        else:
+                            print('File Not Found!')
+
                     instance.save()
                     url = HttpResponseRedirect(reverse_lazy('application:employee_manage_leaves_page'))
                     admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
@@ -2944,6 +2980,7 @@ def side_employee_edit_leave_form(request, id):
             context = {
                 'user': user,  
                 'employee': employee, 
+                'leave':leave,
                 'form': form,
                 'notifications': notifications,
                 'employee_company_details':employee_company_details,

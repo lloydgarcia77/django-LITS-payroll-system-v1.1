@@ -124,6 +124,7 @@ Manage Employee Leaves
                                 <th>No of days</th>
                                 <th>Inclusive Dates</th>
                                 <th>Classification</th>
+                                <th>Is Paid</th>
                                 <th>Date Filed</th>
                                 <th style="width: 5%">Action</th>
                             </tr>
@@ -146,6 +147,16 @@ Manage Employee Leaves
                                     <td>{{ leave.no_days }}</td>
                                     <td>{{ leave.inclusive_dates }}</td>
                                     <td>{{ leave.classification_of_leave }}</td>
+                                    <td>
+                                    
+                                    {% if leave.has_payment %}    
+                                    <span class="label label-success">With Payment</span>
+                                    {% else %}
+                                    <span class="label label-danger">Without payment</span> 
+                                    {% endif %}
+                                        
+                                    
+                                    </td>
                                     <td>{{ leave.date_filed }}</td>
                                     <td> 
                                         <div class="btn-group"> 

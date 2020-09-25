@@ -93,7 +93,7 @@ Employee File New Leave Form
 </section>
 
 <section class="content">
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {% if form.errors %}
         <div class="callout callout-danger">
@@ -171,6 +171,17 @@ Employee File New Leave Form
                         <label for="{{form.reasons.id_for_label}}">Reasons:</label>
                         {{ form.reasons}}
                     </div>  
+                    <div class="form-group">
+                        <div class="callout callout-warning">
+                            <h4>Note! (Optional)</h4> 
+                            <p>If you are filing sick leave for three or more consecutive days, please attach medical certificate or else it will be classified as without pay.</p>
+                            <hr style="border-top: 1px solid #EBF0F5;">
+                            <label for="{{form.attachments.id_for_label}}">Attachments (Image / Portable Document File):</label>
+                            {{ form.attachments}}
+                        </div>
+                        
+                    </div>  
+
 
                 </div>
             </div> 

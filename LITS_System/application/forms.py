@@ -709,7 +709,7 @@ class EmployeeLeavesForm(forms.ModelForm):
     # leave_credits = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     # less_this_application = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     # balance_as_of_this_date = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-
+    attachments = forms.FileField(widget=forms.FileInput, required=False, label="Attachments") 
     class Meta():
             model = EmployeeLeaves
             exclude = ("employee_leave_fk","date_filed","department","status","noted_by","checked_by","approved_by",)

@@ -356,7 +356,38 @@ View Employee Leave Form
                                 <input name="_balanceAsOfThisDate" type="number" class="form-control" id="balanceAsOfThisDate" value="{{ leave.balance_as_of_this_date }}" readonly> 
                             </div> 
                         </div>
-        
+                        <div class="form-group">
+                            <label>Payment Status:</label>  
+                            <div class="input-group"> 
+                            {% if leave.has_payment %}
+                                <span class="label label-success">With Payment</span>
+                            {% else %}
+                                <span class="label label-danger">Without Payment</span>
+                            {% endif %} 
+                            </div> 
+                        </div>
+                        <div class="form-group">
+                            <label for="balanceAsOfThisDate">Remarks:</label>  
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                  <i class="fa fa-fw fa-sticky-note-o"></i>
+                                </div>
+                                <input  type="text" class="form-control" value="{{ leave.remarks }}" readonly> 
+                            </div> 
+                        </div>
+
+                        <div class="form-group">
+                         {% if leave.attachments %}
+                            <div class="callout callout-warning">
+                                <h4>Note!</h4> 
+                                <p>If the employee files a sick leave for three consecutive days you can expect to receive a medical certificate. If not, then you can classified it as leave without a pay.</p>                          
+                                <hr style="border-top: 1px solid #EBF0F5;">
+                                <label>Attachment Download:</label><br> 
+                                <span class="badge bg-red">{{ leave.filename}}</span> 
+                                <a href="{{ leave.attachments.url}}" class="pull-right" data-toggle="tooltip" title="Download" download><i class="fa fa-fw fa-cloud-download"></i></a> 
+                            </div> 
+                         {% endif %}  
+                        </div> 
                     </div>
                 </div>
             </div>

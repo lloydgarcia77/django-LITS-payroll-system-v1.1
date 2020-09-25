@@ -156,8 +156,8 @@ admin.site.register(EmployeeSalary, EmployeeSalaryAdmin)
 #  list_filter = ()
 
 class EmployeeLeavesAdmin(ImportExportModelAdmin):
-    list_display = ('id','employee_leave_fk','date_filed', 'department','status','no_days','inclusive_dates','reasons','classification_of_leave','leave_credits','less_this_application','balance_as_of_this_date','noted_by','checked_by','approved_by','has_payment','remarks')
-    list_editable = ('employee_leave_fk', 'department','status','no_days','inclusive_dates','reasons','classification_of_leave','leave_credits','less_this_application','balance_as_of_this_date','noted_by','checked_by','approved_by','has_payment','remarks')
+    list_display = ('id','employee_leave_fk','date_filed', 'department','status','no_days','inclusive_dates','reasons','classification_of_leave','leave_credits','less_this_application','balance_as_of_this_date','noted_by','checked_by','approved_by','has_payment','remarks','attachments')
+    list_editable = ('employee_leave_fk', 'department','status','no_days','inclusive_dates','reasons','classification_of_leave','leave_credits','less_this_application','balance_as_of_this_date','noted_by','checked_by','approved_by','has_payment','remarks','attachments')
     list_per_page = 10
     search_fields = ('id','employee_leave_fk','date_filed', 'department','classification_of_leave','noted_by','checked_by','approved_by', )
     list_filter = ('date_filed', 'department','classification_of_leave',)

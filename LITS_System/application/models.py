@@ -35,6 +35,36 @@ def file_validator(value):
             print('FILE is VALID')
             return value
 
+def file_validator2(value):
+
+    file_size = value.size
+    valid_file_extension = ['.jpg', '.png', '.jpeg', '.pdf', '.doc', '.docx']
+
+    file_extension = os.path.splitext(value.name)[1]
+
+    print("File Name: ", value.name)
+    print("File Extension: ", file_extension)
+
+    file_size_kb = file_size * 0.001
+    file_size_mb = file_size_kb * 0.0001
+
+    print("File Size: ", file_size, " Bytes")
+    print("File Size: ", file_size_kb, " KB")
+    print("File Size: ", file_size_mb, " MB")
+
+    if not file_extension in valid_file_extension:
+        print("Invalid file! Valid files only: ('.jpg', '.png', '.jpeg', 'pdf', 'doc', 'docx')")
+        raise ValidationError("Invalid file! Valid files only: ('.jpg', '.png', '.jpeg', 'pdf', 'doc', 'docx')")
+
+    else:
+        if file_size_mb > 5: # 5MB
+            print("File too large! The maximum file size can be upload is 5 MB")
+            raise ValidationError("The maximum file size can be upload is 5 MB")
+        else:
+            print('FILE is VALID')
+            return value
+
+
 def file_validator_image(value):
 
     file_size = value.size
@@ -280,6 +310,7 @@ class EmployeeLeaves(models.Model):
     leave_credits = models.IntegerField(default=0, blank=True)
     less_this_application = models.IntegerField(default=0, blank=True)
     balance_as_of_this_date = models.IntegerField(default=0, blank=True)
+    attachments = models.FileField(upload_to='documents/%Y/%m/%d', blank=True, validators=[file_validator2], verbose_name="Attachments",null=True)
     remarks = models.CharField(max_length=100, blank=True)
     # leave_credits = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     # less_this_application = models.DecimalField(default=0, max_digits=12, decimal_places=2)
@@ -293,6 +324,8 @@ class EmployeeLeaves(models.Model):
     checked_by =models.CharField(max_length=100, null=True, blank = True)
     approved_by = models.CharField(max_length=100, null=True, blank = True)
 
+    def filename(self):
+        return os.path.basename(self.attachments.name)
     def __str__(self):
         return str(self.employee_leave_fk)
 
