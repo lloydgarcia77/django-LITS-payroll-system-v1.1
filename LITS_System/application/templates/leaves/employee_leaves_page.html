@@ -126,7 +126,7 @@ Manage Employee Leaves
                                 <th>Classification</th>
                                 <th>Is Paid</th>
                                 <th>Date Filed</th>
-                                <th style="width: 5%">Action</th>
+                                <th style="width: 10%">Action</th>
                             </tr>
                         </thead>
                         <tbody> 
@@ -160,7 +160,8 @@ Manage Employee Leaves
                                     <td>{{ leave.date_filed }}</td>
                                     <td> 
                                         <div class="btn-group"> 
-                                            <a href="{% url 'application:employee_view_employee_leaves_page' leave.id %}" class="btn btn-warning" data-toggle="tooltip" title="View"><i class="fa fa-fw fa-eye"></i></a>
+                                        <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip" title="Delete" data-url="{% url 'application:employee_delete_leave_form' leave.id %}"><i class="fa fa-fw fa-trash"></i></button>
+                                        <a href="{% url 'application:employee_view_employee_leaves_page' leave.id %}" class="btn btn-warning" data-toggle="tooltip" title="View"><i class="fa fa-fw fa-eye"></i></a>
                                             
                                         </div>
                                     </td>

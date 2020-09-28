@@ -1948,7 +1948,8 @@ def employee_view_employee_leaves(request, id):
                             _balanceAsOfThisDate = balance 
                             _has_payment = True 
                             if balance < 0:
-                                _remarks = balance
+                                balance = balance * -1 
+                                _remarks = 'The {balance} are days not classified as leave with PAYMENT'.format(balance=balance)
                     elif employee_sender.classification_of_leave == "Sick Leave": 
                         if sl_credits > 0:
                             no_days = employee_sender.no_days
@@ -1961,7 +1962,8 @@ def employee_view_employee_leaves(request, id):
                             _has_payment = True 
                             # add sentence!
                             if balance < 0:
-                                _remarks = balance
+                                balance = balance * -1
+                                _remarks = 'The {balance} are days not classified as leave with PAYMENT'.format(balance=balance)
             elif _status.casefold() == 'Disapproved'.casefold():  
                 if employee_sender.status.casefold() != 'Disapproved'.casefold(): 
                     if employee_sender.classification_of_leave == "Vacation Leave" or employee_sender.classification_of_leave == "Bereavement Leave":
@@ -2005,6 +2007,53 @@ def employee_view_employee_leaves(request, id):
             'notifications_count': notifications_count,
         }
         return render(request, template_name, context)
+    else:
+        raise Http404()
+
+@login_required
+def employee_delete_leave_form(request, id):
+    data = dict()
+    template_name = "leaves/employee_delete_leave.html"
+    user = get_object_or_404(User, username=request.user.username)
+    employee = get_object_or_404(PersonalInfo, fk_user=user)
+    leave = get_object_or_404(EmployeeLeaves, id=id) 
+    if request.is_ajax():
+        if user.is_active and user.is_staff and user.is_superuser:
+            if request.method == 'GET':
+                
+                context = {
+                'user': user,  
+                'employee': employee,   
+                'leave': leave,          
+                } 
+                data['html_form'] = render_to_string(template_name, context, request)
+            elif request.method == 'POST':
+                eid = leave.employee_leave_fk.fk_user.company_to_user.id
+                company_employee = CompanyInfo.objects.get(id=eid)
+                vl_credits = company_employee.vacation_leave_credits
+                sl_credits = company_employee.sick_leave_credits
+                if leave.classification_of_leave == "Vacation Leave" or leave.classification_of_leave == "Bereavement Leave":
+                    if vl_credits < 7:
+                        no_days = leave.no_days
+                        balance = vl_credits + no_days
+                        company_employee.vacation_leave_credits = balance
+                        company_employee.save() 
+                elif leave.classification_of_leave == "Sick Leave":
+                    if sl_credits < 7:
+                        no_days = leave.no_days
+                        balance = sl_credits + no_days
+                        company_employee.sick_leave_credits = balance
+                        company_employee.save()  
+
+
+                leave.delete()
+                data['form_is_valid'] = True 
+                url = HttpResponseRedirect(reverse_lazy('application:employee_side_manage_leaves_page'))  
+                Notifications.objects.create(sender=user,recipient=leave.employee_leave_fk.fk_user,url=url.url,message="Leave form from {sender} has been deleted!".format(sender=user),category=category_list[11],level=level_list[1])
+                
+            return JsonResponse(data)
+        else:
+            raise Http404()
     else:
         raise Http404()
 
@@ -2945,6 +2994,8 @@ def side_employee_edit_leave_form(request, id):
             employee_company_details = CompanyInfo.objects.get(fk_company_user=user)
             if request.method == 'GET':
                 form = EmployeeLeavesForm(request.GET or None, instance=leave) 
+                if leave.status == 'Approved':
+                    return HttpResponseRedirect(reverse_lazy('application:employee_side_leave_error_page')) 
             elif request.method == 'POST':
                 form = EmployeeLeavesForm(request.POST or None, instance=leave)
                 if form.is_valid():
@@ -2993,6 +3044,28 @@ def side_employee_edit_leave_form(request, id):
         
     else:
         raise Http404()
+
+# Use to redirect the user if the leave form was approved
+@login_required
+def employee_side_leave_error_page(request):
+    template_name = "employee_side/employee_side_leave_error_page.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+    if user.is_active and user.is_staff and not user.is_superuser: 
+        if request.method == 'GET': 
+            pass
+        elif request.method == 'POST':
+            pass
+        context = {
+            'user':user, 
+            'notifications': notifications,
+            'notifications_count': notifications_count, 
+        }
+        return render(request, template_name, context)
+    else:
+        raise Http404()
+
 
 @login_required
 def side_employee_delete_leave_form(request, id):

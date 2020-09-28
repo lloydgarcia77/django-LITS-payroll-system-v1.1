@@ -139,10 +139,12 @@ Employee Manage Leaves
                                     <td>{{ leave.classification_of_leave }}</td>
                                     <td>{{ leave.date_filed }}</td>
                                     <td> 
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-danger btn-delete" data-toggle="tooltip" title="Delete" data-url="{% url 'application:employee_side_delete_leave_form' leave.id %}"><i class="fa fa-fw fa-trash"></i></button>
+                                        <div class="btn-group"> 
+                                           
                                             <a href="{% url 'application:employee_side_view_leave_form' leave.id %}" class="btn btn-warning" data-toggle="tooltip" title="View"><i class="fa fa-fw fa-eye"></i></a>
-                                            <a href="{% url 'application:employee_side_edit_leave_form' leave.id %}" type="button" class="btn btn-info" data-toggle="tooltip" title="Edit"><i class="fa fa-fw fa-pencil-square-o"></i></a>
+                                            {% if not leave.status == 'Approved'  %}
+                                            <a href="{% url 'application:employee_side_edit_leave_form' leave.id %}" type="button" class="btn btn-info" data-toggle="tooltip" title="Edit"><i class="fa fa-fw fa-pencil-square-o"></i></a>    
+                                            {% endif %} 
                                         </div>
                                     </td>
                                 </tr>

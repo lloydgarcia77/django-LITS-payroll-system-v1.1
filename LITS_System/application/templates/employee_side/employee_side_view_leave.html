@@ -155,8 +155,7 @@ Employee View Leave Form
                             <td>
                                 {{ leave.reasons }}
                             </td>
-                        </tr>
-                       
+                        </tr> 
                     </table>
                 </div>
             </div>
@@ -216,6 +215,18 @@ Employee View Leave Form
                     </table>
                 </div>
             </div> 
+            <div class="col-xs-12"> 
+            {% if leave.attachments %}
+            <div class="callout callout-warning">
+                <h4>Note!</h4> 
+                <p>If the employee files a sick leave for three consecutive days you can expect to receive a medical certificate. If not, then you can classified it as leave without a pay.</p>                          
+                <hr style="border-top: 1px solid #EBF0F5;">
+                <label>Attachment Download:</label><br> 
+                <span class="badge bg-red">{{ leave.filename}}</span> 
+                <a href="{{ leave.attachments.url}}" class="pull-right" data-toggle="tooltip" title="Download" download><i class="fa fa-fw fa-cloud-download"></i></a> 
+            </div> 
+            {% endif %}  
+            </div>
             <div class="row no-print">
                 <div class="col-xs-12"> 
                     <a href="{% url 'application:employee_side_manage_leaves_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 

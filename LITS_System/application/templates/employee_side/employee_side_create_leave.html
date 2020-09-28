@@ -129,7 +129,14 @@ Employee File New Leave Form
                  <div class="col-md-6">
                     <div class="form-group has-warning">
                         <label class="control-label" for="inputVLC"><i class="fa fa-fw fa-car"></i> Actual Vacation Leave Credits:</label>
-                        <input type="text" class="form-control" id="inputVLC" value="{{employee_company_details.vacation_leave_credits}}" readonly>
+                        <input type="text" class="form-control" id="inputVLC" 
+                        {% if employee_company_details.vacation_leave_credits > 0  %}
+                        value="{{employee_company_details.vacation_leave_credits}}" 
+                        {% else %}
+                        value="0"
+                        {% endif %}
+                        readonly>                        
+                            
                         <span class="help-block">Inclusive for vacation & emergency leaves.</span>
                     </div> 
                 </div>
