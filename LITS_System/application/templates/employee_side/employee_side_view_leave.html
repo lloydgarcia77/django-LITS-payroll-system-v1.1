@@ -133,6 +133,16 @@ Employee View Leave Form
                             </td>
                         </tr>
                         <tr>
+                            <th>Is Paid:</th>
+                            <td>
+                                {% if leave.has_payment %}
+                                <span class="label label-success">With Payment</span>
+                                {% else %}
+                                    <span class="label label-danger">Without Payment</span>
+                                {% endif %} 
+                            </td>
+                        </tr>
+                        <tr>
                             <th>Inclusive Dates:</th>
                             <td>
                                 {{ leave.inclusive_dates }}
@@ -265,6 +275,7 @@ Employee View Leave Form
 <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
+
 
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>

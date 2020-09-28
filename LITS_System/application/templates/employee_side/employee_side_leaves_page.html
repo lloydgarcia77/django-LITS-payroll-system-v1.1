@@ -118,6 +118,7 @@ Employee Manage Leaves
                                 <th>No of days</th>
                                 <th>Inclusive Dates</th>
                                 <th>Classification</th>
+                                <th>Is Paid</th>
                                 <th>Date Filed</th>
                                 <th style="width: 15%">Action</th>
                             </tr>
@@ -137,7 +138,15 @@ Employee Manage Leaves
                                     <td>{{ leave.no_days }}</td>
                                     <td>{{ leave.inclusive_dates }}</td>
                                     <td>{{ leave.classification_of_leave }}</td>
+                                    <td> 
+                                        {% if leave.has_payment %}    
+                                        <span class="label label-success">With Payment</span>
+                                        {% else %}
+                                        <span class="label label-danger">Without payment</span> 
+                                        {% endif %} 
+                                    </td>
                                     <td>{{ leave.date_filed }}</td>
+
                                     <td> 
                                         <div class="btn-group"> 
                                            
@@ -175,7 +184,7 @@ Employee Manage Leaves
 <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
-
+ 
 <!-- DataTables -->
 <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
