@@ -119,9 +119,7 @@ View Profile User Page
         background-repeat: no-repeat;
         background-position: center;
     }
-</style>
-<!-- Select2 -->
-<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+</style> 
 {% endblock css %}
 
 {% block nav_dashboard %}
@@ -464,8 +462,24 @@ View Profile User Page
                                 </p> 
                             </li>
                         </ul>
-                         
-
+                        <hr>
+                        <strong><i class="fa fa-fw fa-check-circle-o"></i>Preffered Working Hours</strong> 
+                        <ul>
+                            <li>
+                                <select data-url="{% url 'application:employee_set_preferred_working_hours' company_detail.id %}" name="prefferedWorkingHoursList" id="prefferedWorkingHours" class="form-control select2" style="width: 200px;">    
+                                    {% for preffered_working_hours in preffered_working_hours_list %}
+                                        
+                                        {% if preffered_working_hours|stringformat:"s" == company_detail.preffered_working_hours|stringformat:"s" %}
+                                        <option selected="selected" value="{{preffered_working_hours}}">{{preffered_working_hours}}</option>
+                                        {% else %}
+                                        <option value="{{preffered_working_hours}}">{{preffered_working_hours}}</option>
+                                        {% endif %}                                           
+                                        
+                                    {% endfor %} 
+                                </select>    
+                            </li>
+                        </ul>
+                      
                         {% endfor %}
                         {% else %}
                        
@@ -504,6 +518,15 @@ View Profile User Page
                         <p class="text-muted">
                             Not Set.
                         </p> 
+                        <hr>
+                        <strong><i class="fa fa-fw fa-check-circle-o"></i>Preffered Working Hours</strong>
+                        <ul>
+                            <li>
+                               <p class="text-muted">
+                                    Not Set.
+                                </p> 
+                            </li>
+                        </ul>
                         {% endif %}
                     </div>
                 </div>
@@ -550,10 +573,7 @@ View Profile User Page
 <!-- AdminLTE for demo purposes -->
 <script src="{% static 'dist/js/demo.js' %}"></script>
 
-<script src="{% static 'js/profile.js' %}"></script>
-
-<!-- Select2 -->
-<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+<script src="{% static 'js/profile.js' %}"></script> 
 
 
 <script>

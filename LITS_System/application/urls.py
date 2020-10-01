@@ -19,6 +19,7 @@ urlpatterns = [
     path('attendance/cutoff/', views.cut_off_page, name="cut_off_page"),    
     path('employees/employee/list/', views.employee_list_page, name="employee_list"),
     path('employees/view/employee/profile/<str:key>/', views.employee_view_profile, name="employee_view_profile"),
+    path('employees/view/employee/profile/set/preferredtimetowork/<int:id>/', views.set_employee_preferred_working_hours, name="employee_set_preferred_working_hours"),
     path('employees/employee/list/payroll/settings/<str:key>/', views.employee_payroll_base_salary_settings, name="employee_payroll_settings"),
     path('employees/employee/delete/<int:id>/', views.delete_employee, name="delete_employee"),
     path('attendance/cutoff/upload/', views.upload_attendance, name="upload_attendance"),

@@ -719,6 +719,7 @@ ip = encrypt_key(3)
 # print(rs)
 # print(ip)
 
+print('->',encrypt_key(5))
 
 e1 = decrypt_key('Z0FBQUFBQmZhWEFXX2dGQ2ZFcEpVb0NDaTNXNWl5Skc2Wi1pLTFUc2tFWUs4SDZTVzZtR21Id2dxdDN6dmFxdFVMd01GNl9hSXVlOG9BWHphNUN3VnZ1SEJZUmhVU1F3X1E9PQ==')
 print(e1)
@@ -799,6 +800,10 @@ list_of_specialization = [
     'Training Dev.',
 ]
 
+val = "9:00am-6:00pm"
+
+print(val[:4])
+print(val[7:11])
 
 # for i in list_of_specialization:
 #     print("('{a}','{b}'),".format(a=i,b=i))

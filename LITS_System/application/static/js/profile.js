@@ -1,5 +1,3 @@
-
-
 function getCookie(cname) {
     var name = cname + "=";
     var decodedCookie = decodeURIComponent(document.cookie);
@@ -15,6 +13,32 @@ function getCookie(cname) {
     }
     return "";
 }
+$(".select2").select2(); 
+$("#prefferedWorkingHours").on('change',function(e){
+    e.preventDefault();
+    let value = this.value;
+    const urlAttr = $(this).attr("data-url");
+    let data = {
+        'value': value,
+    }
+    data = JSON.stringify(data);
+
+    $.ajax({
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        type: 'POST',
+        url: urlAttr,
+        data: data,
+        dataType: 'json',
+        success: (data) => {
+            // let object = JSON.parse(data.context);
+            console.log(data.context['value']);
+        }
+    });
+
+    return false;
+});
+
+
 function readURL(input) {
     if (input.files && input.files[0]) {
         let reader = new FileReader();

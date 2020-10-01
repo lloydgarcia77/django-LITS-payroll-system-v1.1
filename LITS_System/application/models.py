@@ -148,6 +148,12 @@ class SkillsInfo(models.Model):
     def __str__(self):
         return str(self.skills)
 
+preffered_working_hours_list  = (
+    ('8:00am-5:00pm','8:00am-5:00pm'),
+    ('8:30am-5:30pm','8:30am-5:30pm'),
+    ('9:00am-6:00pm','9:00am-6:00pm'),
+)
+
 class CompanyInfo(models.Model):
     fk_company_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='company_to_user')
     biometrics_id = models.CharField(max_length=20, unique=True)
@@ -161,7 +167,7 @@ class CompanyInfo(models.Model):
     philhealth = models.CharField(max_length=50, blank=True, null=True) 
     vacation_leave_credits = models.IntegerField(default=7, blank=True)
     sick_leave_credits = models.IntegerField(default=7, blank=True)
-
+    preffered_working_hours = models.CharField(max_length=100, choices=preffered_working_hours_list, default=preffered_working_hours_list[0][0])
     def __str__(self):
         return str(self.company_id)
 
@@ -233,7 +239,6 @@ class AttendanceInfo(models.Model):
 
     def __str__(self):
         return str(self.cut_off_period)
-
 
 class EmployeePayroll(models.Model): 
     employee_fk = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_payroll_fk", null=True)

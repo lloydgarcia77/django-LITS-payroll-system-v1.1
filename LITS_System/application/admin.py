@@ -99,8 +99,8 @@ class SkillsAdmin(ImportExportModelAdmin):
 admin.site.register(SkillsInfo, SkillsAdmin)
 
 class CompanyAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'fk_company_user','biometrics_id', 'company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth', 'vacation_leave_credits', 'sick_leave_credits')
-    list_editable = ('biometrics_id','company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth', 'vacation_leave_credits', 'sick_leave_credits')
+    list_display = ('id', 'fk_company_user','biometrics_id', 'company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth', 'vacation_leave_credits', 'sick_leave_credits','preffered_working_hours')
+    list_editable = ('biometrics_id','company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth', 'vacation_leave_credits', 'sick_leave_credits','preffered_working_hours')
     list_per_page = 10
     search_fields = ('biometrics_id','company_id', 'company_tin', 'designation','department', 'personal_tin', 'sss_number', 'pagibig', 'philhealth', 'vacation_leave_credits', 'sick_leave_credits')
     list_filter = ('designation',)

@@ -77,6 +77,12 @@ level_list =[
         'error'
         ]
 
+preffered_working_hours_list = [
+    '8:00am-5:00pm',
+    '8:30am-5:30pm',
+    '9:00am-6:00pm',
+]
+
 def read_notifications(request,id):
     data = dict()
     current_user = get_object_or_404(User, username=request.user.username)
@@ -167,42 +173,22 @@ def read_attendance_file(attendance_file, request, form, data):
                         # print('Row:',starting_row,'ID: ',id ,"Name: ",name)
                         timeIn = hours[:5]
                         timeOut = hours[-5:]    
-                        t_diff = None
-                        under_time = None
-                        overtime_hours = 0
-                        if timeIn and timeOut:
-                            d_time_in = datetime.datetime.strptime(timeIn, '%H:%M')
-                            d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
-                            grace_period =  datetime.datetime.strptime('8:45', '%H:%M')
-                            out_time = datetime.datetime.strptime('18:00', '%H:%M')
-                            min_overtime = datetime.datetime.strptime('19:00', '%H:%M')
-                            if d_time_in > grace_period:
-                                # convert time diff to minutes 1 min = 60 secs
-                                t_diff =  int((d_time_in - grace_period).total_seconds() / 60.0)
-                            if d_time_out < out_time:
-                                under_time = int((out_time - d_time_out).total_seconds() / 60.0)
-                            #for ot computation
-                            if d_time_out > min_overtime:
-                                overtime_minutes = int((d_time_out - out_time).total_seconds() / 60.0)
-                                overtime_hours = round(float(overtime_minutes/60),2)
-
-                                #print('-------------------->yes',overtime_minutes,overtime_hours)
-                            #ot here
+                        
+                        
                         #columns
-                        if starting_col < schedule_information.ncols:    
-                            
+                        if starting_col < schedule_information.ncols:   
                             days_of_month = schedule_information.cell_value(3, starting_col)    
                             if date != "": 
                                 # for id
                                 company_info = CompanyInfo.objects.all() 
-                                for company in company_info: 
-                                   
+                                for company in company_info:  
                                     if not company.biometrics_id == "0":
                                         if company.biometrics_id == id:
                                             company_user_profile = get_object_or_404(PersonalInfo, fk_user=company.fk_company_user)
+                                            t_diff, under_time, overtime_hours = calculate_hours(timeIn, timeOut, company)
                                             #print(company.biometrics_id,'-',company.fk_company_user,'=',company_user_profile)
-                                            attendance = AttendanceInfo(employee_profile=company_user_profile, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
-                                            attendance.save()
+                                            # attendance = AttendanceInfo(employee_profile=company_user_profile, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
+                                            # attendance.save()
                                     
 
                                 # 
@@ -275,6 +261,37 @@ def read_attendance_file(attendance_file, request, form, data):
         data['form_is_valid'] = False
         messages.error(request, 'Record Already Exists')
    
+
+def calculate_hours(timeIn, timeOut, company):
+    t_diff = None
+    under_time = None
+    overtime_hours = 0
+ 
+    working_hours_in = company.preffered_working_hours[:4]
+    working_hours_out = company.preffered_working_hours[7:11]
+    # print(company,company.fk_company_user,'-',company.preffered_working_hours)
+    # if timeIn and timeOut:
+    #     d_time_in = datetime.datetime.strptime(timeIn, '%H:%M')
+    #     d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
+    #     grace_period =  datetime.datetime.strptime('8:45', '%H:%M')#will not be used
+
+    #     out_time = datetime.datetime.strptime('18:00', '%H:%M')
+    #     min_overtime = datetime.datetime.strptime('19:00', '%H:%M')
+    #     if d_time_in > grace_period:
+    #         # convert time diff to minutes 1 min = 60 secs
+    #         t_diff =  int((d_time_in - grace_period).total_seconds() / 60.0)
+    #     if d_time_out < out_time:
+    #         under_time = int((out_time - d_time_out).total_seconds() / 60.0)
+    #     #for ot computation
+    #     if d_time_out > min_overtime:
+    #         overtime_minutes = int((d_time_out - out_time).total_seconds() / 60.0)
+    #         overtime_hours = round(float(overtime_minutes/60),2)
+
+    #         #print('-------------------->yes',overtime_minutes,overtime_hours)
+    #     #ot here
+    
+    return t_diff, under_time, overtime_hours
+    
 
 def encrypt_key(txt):
     try:
@@ -930,6 +947,7 @@ def employee_view_profile(request, key):
     if user.is_active and user.is_staff and user.is_superuser:
         context = {
             'user': user,
+            'preffered_working_hours_list':preffered_working_hours_list,
             'last_time_logged': last_time_logged,
             'last_time_joined': last_time_joined,
             'personal_info':personal_info, 
@@ -944,6 +962,40 @@ def employee_view_profile(request, key):
     else:
         raise Http404()
 
+@login_required
+def set_employee_preferred_working_hours(request, id):
+    data = dict()
+    user = get_object_or_404(User, username=request.user.username)
+    company = get_object_or_404(CompanyInfo, id=id)
+    if request.is_ajax():
+        # https://www.educative.io/edpresso/what-is-the-difference-between-jsonloads-and-jsondumps
+        '''
+        json objects are surrounded by curly braces { }. They are written in key and value pairs.
+
+        json.loads() takes in a string and returns a json object.
+
+        json.dumps() takes in a json object and returns a string.
+
+        As you can see, json.dumps() and json.loads() are opposite of one another.
+        '''
+        if request.method == 'GET':
+            pass 
+        elif request.method == 'POST':
+            data_from_js = json.loads(request.body)
+            print(json.dumps(data_from_js, indent=4, sort_keys=True))
+
+            value = data_from_js['value']
+            print(value,company)
+
+            new, existing = CompanyInfo.objects.update_or_create(id=id, defaults={
+                'preffered_working_hours': value,
+            })
+
+        data['context'] = data_from_js
+
+        return JsonResponse(data)
+    else:
+        raise Http404()
 
 @login_required
 def delete_employee(request, id):
