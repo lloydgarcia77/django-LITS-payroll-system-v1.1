@@ -118,7 +118,7 @@ Employee Attendance Cut-Off Page
                 {% else %}
                 <div class="box"> 
                     <div class="box-header with-border">
-                        <h3 class="box-title">Employee Attendance Cut-Off Period Table <strong>({{ cutoff.cut_off_period }})</strong></h3>
+                        <h3 class="box-title">Employee Attendance Cut-Off Period Table <strong>({{ cutoff.cut_off_period }})</strong> <span class="label label-success">Working hours: ({{employee.fk_user.company_to_user.preffered_working_hours}})</span></h3>
                     </div>
                     <div class="box-body"> 
                         <div class="callout callout-warning">

@@ -111,7 +111,7 @@ Employee Attendance Cut-Off Manual Setting Page
                 {% include 'partials/_messages.html' %}
                 <div class="box">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Employee Attendance Cut-Off Period Table <strong>({{ cutoff.cut_off_period }})</strong></h3>
+                        <h3 class="box-title">Employee Attendance Cut-Off Period Table <strong>({{ cutoff.cut_off_period }})</strong> <span class="label label-success">Working hours: ({{employee.fk_user.company_to_user.preffered_working_hours}})</span></h3>
                     </div>
                     <div class="box-body">
                         <div class="callout callout-warning">
@@ -229,7 +229,11 @@ Employee Attendance Cut-Off Manual Setting Page
 {% block js %} 
 
 {% endblock js %}
-
+<!-- django render to external js -->
+<!-- https://ourcodeworld.com/articles/read/555/how-to-format-datetime-objects-in-the-view-and-template-in-django -->
+<!-- https://docs.djangoproject.com/en/3.1/ref/templates/builtins/ -->
+<!-- https://adamj.eu/tech/2020/02/18/safely-including-data-for-javascript-in-a-django-template/ -->
+{{preferred_working_hours_data|json_script:"preferred_working_hours_data_render" }}  
 <!-- jQuery 3 -->
 <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
 <!-- Bootstrap 3.3.7 -->

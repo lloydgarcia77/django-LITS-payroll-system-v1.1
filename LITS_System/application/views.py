@@ -187,8 +187,8 @@ def read_attendance_file(attendance_file, request, form, data):
                                             company_user_profile = get_object_or_404(PersonalInfo, fk_user=company.fk_company_user)
                                             t_diff, under_time, overtime_hours = calculate_hours(timeIn, timeOut, company)
                                             #print(company.biometrics_id,'-',company.fk_company_user,'=',company_user_profile)
-                                            # attendance = AttendanceInfo(employee_profile=company_user_profile, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
-                                            # attendance.save()
+                                            attendance = AttendanceInfo(employee_profile=company_user_profile, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
+                                            attendance.save()
                                     
 
                                 # 
@@ -267,28 +267,37 @@ def calculate_hours(timeIn, timeOut, company):
     under_time = None
     overtime_hours = 0
  
-    working_hours_in = company.preffered_working_hours[:4]
-    working_hours_out = company.preffered_working_hours[7:11]
-    # print(company,company.fk_company_user,'-',company.preffered_working_hours)
-    # if timeIn and timeOut:
-    #     d_time_in = datetime.datetime.strptime(timeIn, '%H:%M')
-    #     d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
-    #     grace_period =  datetime.datetime.strptime('8:45', '%H:%M')#will not be used
+    working_hours_in = company.preffered_working_hours[:6]
+    working_hours_out = company.preffered_working_hours[7:13]
 
-    #     out_time = datetime.datetime.strptime('18:00', '%H:%M')
-    #     min_overtime = datetime.datetime.strptime('19:00', '%H:%M')
-    #     if d_time_in > grace_period:
-    #         # convert time diff to minutes 1 min = 60 secs
-    #         t_diff =  int((d_time_in - grace_period).total_seconds() / 60.0)
-    #     if d_time_out < out_time:
-    #         under_time = int((out_time - d_time_out).total_seconds() / 60.0)
-    #     #for ot computation
-    #     if d_time_out > min_overtime:
-    #         overtime_minutes = int((d_time_out - out_time).total_seconds() / 60.0)
-    #         overtime_hours = round(float(overtime_minutes/60),2)
+    if timeIn and timeOut:
+        # https://strftime.org/
+        # watch out for time formats
+        # 24 hours format from biometrics
+        d_time_in = datetime.datetime.strptime(timeIn, '%H:%M')
+        d_time_out = datetime.datetime.strptime(timeOut, '%H:%M')
 
-    #         #print('-------------------->yes',overtime_minutes,overtime_hours)
-    #     #ot here
+
+        # 12 hours format from preferred time to work convert in the 24 hrs correct format
+        d_working_hours_in = datetime.datetime.strptime(working_hours_in, '%I:%M%p')
+        d_working_hours_out = datetime.datetime.strptime(working_hours_out, '%I:%M%p')
+
+        hour = 1
+        hours_added = datetime.timedelta(hours = hour) 
+        #min_overtime = datetime.datetime.strptime(d_working_hours_out, '%H:%M') 
+        min_overtime = d_working_hours_out + hours_added  
+        if d_time_in > d_working_hours_in:
+            # convert time diff to minutes 1 min = 60 secs
+            t_diff =  int((d_time_in - d_working_hours_in).total_seconds() / 60.0)
+        if d_time_out < d_working_hours_out:
+            under_time = int((d_time_out - d_working_hours_out).total_seconds() / 60.0)
+        
+        #for ot computation
+        if d_time_out > min_overtime:
+            overtime_minutes = int((d_time_out - d_working_hours_out).total_seconds() / 60.0)
+            overtime_hours = round(float(overtime_minutes/60),2)
+            # print('[Name: ',company.fk_company_user,'] [Out: ',d_time_out,'] [W.O',d_working_hours_out,'] [O.T:',  min_overtime,'] [O.T Min: ', overtime_minutes,'] [O.T Hours: [',overtime_hours,']')
+         
     
     return t_diff, under_time, overtime_hours
     
@@ -906,7 +915,8 @@ def delete_attendance(request, id):
 def employee_list_page(request):
     template_name = "employees/employee_list.html"
     user = get_object_or_404(User, username=request.user.username)
-    employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).exclude(username='lloyd.garcia').distinct()
+    # employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).exclude(username='lloyd.garcia').distinct()
+    employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).distinct()
     employees = PersonalInfo.objects.all().filter(fk_user__in=employees_company).exclude(Q(key_id='') | Q(first_name='') | Q(middle_name='') | Q(last_name='last_name'))
     notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
     notifications_count = notifications.count()
@@ -1153,28 +1163,45 @@ def employee_attendance_manual_configuration(request, pk, id):
     notifications_count = notifications.count()
     today = date.today()
     year_today = today.strftime("%Y") 
-    AttendanceInlineFormset = inlineformset_factory(CutOffPeriodInfo, AttendanceInfo, form=AttendanceFormManual, extra=16, can_delete=False)
-    
-    if user.is_active and user.is_staff and user.is_superuser:
-        if request.method == 'GET':
-            formset = AttendanceInlineFormset(request.GET or None, instance=cutoff, queryset=AttendanceInfo.objects.filter(employee_profile=employee).order_by("id"))
-        
-        elif request.method == 'POST':
-            formset = AttendanceInlineFormset(request.POST or None, instance=cutoff, queryset=AttendanceInfo.objects.filter(employee_profile=employee).order_by("id"))
-            if formset.is_valid():
-                myform = formset.save(commit=False)
-                for mf in myform:
-                    mf.employee_profile = employee
-                    mf.cut_off_period = cutoff
-                    mf.save()
-                url = HttpResponseRedirect(reverse_lazy('application:employee_side_cutoff_page', kwargs={'id':cutoff.id}))
-                Notifications.objects.create(sender=user,recipient=employee.fk_user,url=url.url,message="Your attendance for cut-off {cutoffperiod} was manually created!".format(cutoffperiod=cutoff.cut_off_period),category=category_list[2],level=level_list[1])
-                return HttpResponseRedirect(reverse_lazy('application:employee_attendance_view', kwargs={'pk':employee.key_id}))
-             
-            else:
-                messages.error(request, "Form Error")
-        
-        context = {
+    AttendanceInlineFormset = inlineformset_factory(CutOffPeriodInfo, AttendanceInfo, form=AttendanceFormManual, extra=16, can_delete=False) 
+     
+    # working_hours_in = company.preffered_working_hours[:6]
+    # working_hours_out = company.preffered_working_hours[7:13]
+    if user.is_active and user.is_staff and user.is_superuser: 
+        try:  
+            company = CompanyInfo.objects.get(fk_company_user=employee.fk_user) 
+            working_hours_in = company.preffered_working_hours[:6]
+            working_hours_out = company.preffered_working_hours[7:13]
+            # parsing of time from 12 hrs to 24 hrs format
+            working_hours_in = datetime.datetime.strptime(working_hours_in, '%I:%M%p')
+            working_hours_out = datetime.datetime.strptime(working_hours_out, '%I:%M%p')
+            # formating of time
+            working_hours_in = datetime.datetime.strftime(working_hours_in, '%I:%M')
+            working_hours_out = datetime.datetime.strftime(working_hours_out, '%I:%M')
+
+            preferred_working_hours_data = {
+                'preferred_time_in': working_hours_in,
+                'preferred_time_out': working_hours_out,
+            }
+
+            if request.method == 'GET':
+                formset = AttendanceInlineFormset(request.GET or None, instance=cutoff, queryset=AttendanceInfo.objects.filter(employee_profile=employee).order_by("id"))        
+            elif request.method == 'POST':
+                formset = AttendanceInlineFormset(request.POST or None, instance=cutoff, queryset=AttendanceInfo.objects.filter(employee_profile=employee).order_by("id"))
+                if formset.is_valid():
+                    myform = formset.save(commit=False)
+                    for mf in myform:
+                        mf.employee_profile = employee
+                        mf.cut_off_period = cutoff
+                        mf.save()
+                    url = HttpResponseRedirect(reverse_lazy('application:employee_side_cutoff_page', kwargs={'id':cutoff.id}))
+                    Notifications.objects.create(sender=user,recipient=employee.fk_user,url=url.url,message="Your attendance for cut-off {cutoffperiod} was manually created!".format(cutoffperiod=cutoff.cut_off_period),category=category_list[2],level=level_list[1])
+                    return HttpResponseRedirect(reverse_lazy('application:employee_attendance_view', kwargs={'pk':employee.key_id}))
+                
+                else:
+                    messages.error(request, "Form Error")
+            
+            context = {
             'formset':formset,
             'employee':employee,
             'user':user,  
@@ -1182,8 +1209,12 @@ def employee_attendance_manual_configuration(request, pk, id):
             'notifications': notifications,
             'notifications_count': notifications_count,
             'year_today':year_today,
-        }
-        return render(request, template_name, context)
+            'preferred_working_hours_data':preferred_working_hours_data,
+            }
+            return render(request, template_name, context) 
+        except CompanyInfo.DoesNotExist:
+            return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+        
     else:
         raise Http404()
 
@@ -1574,7 +1605,7 @@ def day_shift_payroll_computation_v1_1(data):
         #print('~',PAYROLL_INFO)
         return PAYROLL_INFO
         
- 
+
 
 @login_required
 def employee_create_payroll(request, key, id): 

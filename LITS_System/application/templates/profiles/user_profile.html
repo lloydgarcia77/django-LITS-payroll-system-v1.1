@@ -464,7 +464,13 @@ Profile User Page
                         <p class="text-muted">
                             {{ company_detail.philhealth }}
                         </p> 
-
+                        <hr>
+                        <strong><i class="fa fa-fw fa-check-circle-o"></i>Preffered Working Hours</strong> 
+                        <ul>
+                            <li>
+                                {{ company_detail.preffered_working_hours }} 
+                            </li>
+                        </ul>
                         {% endfor %}
                         {% else %}
 
@@ -510,6 +516,12 @@ Profile User Page
                             Not Set.
                         </p>
                         <hr>
+                        <strong><i class="fa fa-fw fa-check-circle-o"></i>Preffered Working Hours</strong> 
+                        <ul>
+                            <li>
+                                Not Set.
+                            </li>
+                        </ul>
                         {% endif %}
                     </div>
                     <!-- /.tab-pane -->

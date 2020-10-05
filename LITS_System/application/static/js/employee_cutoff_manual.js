@@ -1,5 +1,9 @@
 $(document).ready(function () {
-    //https://bootstrap-datepicker.readthedocs.io/en/latest/
+    //https://bootstrap-datepicker.readthedocs.io/en/latest/ 
+    const value = JSON.parse(document.getElementById('preferred_working_hours_data_render').textContent);
+    console.log(value['preferred_time_in']);
+    console.log(value['preferred_time_out']); 
+   
     let days_of_week = [
         "SUN",
         "MON",
