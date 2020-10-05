@@ -1169,15 +1169,20 @@ def employee_attendance_manual_configuration(request, pk, id):
     # working_hours_out = company.preffered_working_hours[7:13]
     if user.is_active and user.is_staff and user.is_superuser: 
         try:  
+            # https://ourcodeworld.com/articles/read/555/how-to-format-datetime-objects-in-the-view-and-template-in-django
+            # https://ourcodeworld.com/articles/read/555/how-to-format-datetime-objects-in-the-view-and-template-in-django
+            # https://adamj.eu/tech/2020/02/18/safely-including-data-for-javascript-in-a-django-template/
+            # https://docs.djangoproject.com/en/3.1/ref/templates/builtins/ 
             company = CompanyInfo.objects.get(fk_company_user=employee.fk_user) 
+            # 12 hrs format by defaut
             working_hours_in = company.preffered_working_hours[:6]
             working_hours_out = company.preffered_working_hours[7:13]
-            # parsing of time from 12 hrs to 24 hrs format
+            # parsing of time from 12 hrs to 24 hrs format I = (12hrs format)
             working_hours_in = datetime.datetime.strptime(working_hours_in, '%I:%M%p')
             working_hours_out = datetime.datetime.strptime(working_hours_out, '%I:%M%p')
-            # formating of time
-            working_hours_in = datetime.datetime.strftime(working_hours_in, '%I:%M')
-            working_hours_out = datetime.datetime.strftime(working_hours_out, '%I:%M')
+            # formating of time H = (24hrs format)
+            working_hours_in = datetime.datetime.strftime(working_hours_in, '%H:%M')
+            working_hours_out = datetime.datetime.strftime(working_hours_out, '%H:%M')
 
             preferred_working_hours_data = {
                 'preferred_time_in': working_hours_in,
