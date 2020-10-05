@@ -1,9 +1,12 @@
 $(document).ready(function () {
+    alert("asd");
     //https://bootstrap-datepicker.readthedocs.io/en/latest/ 
     const value = JSON.parse(document.getElementById('preferred_working_hours_data_render').textContent);
-    console.log(value['preferred_time_in']);
-    console.log(value['preferred_time_out']); 
+    // console.log(value['preferred_time_in']);
+    // console.log(value['preferred_time_out']); 
    
+    const preferred_time_in = value['preferred_time_in'];
+    const preferred_time_out = value['preferred_time_out'];
     let days_of_week = [
         "SUN",
         "MON",
@@ -50,15 +53,17 @@ $(document).ready(function () {
             $(`#id_cut_off_period_fk-${index}-undertime`).val("");
             $(`#id_cut_off_period_fk-${index}-overtime`).val("0.00");
         }else{
-            const starting_time = "08:30";
-            const ending_time = "18:00";
-            const grace_period = "08:45"
+            const starting_time = preferred_time_in;
+            const ending_time = preferred_time_out;
+            // not using
+            // const grace_period = "08:45"
     
             let starting_time_hour = parseInt(starting_time.split(":")[0], 10);
             let starting_time_min = parseInt(starting_time.split(":")[1], 10);  
             
-            let grace_period_hour = parseInt(grace_period.split(":")[0], 10);
-            let grace_period_min = parseInt(grace_period.split(":")[1], 10);
+            
+            // let grace_period_hour = parseInt(grace_period.split(":")[0], 10);
+            // let grace_period_min = parseInt(grace_period.split(":")[1], 10);
     
             let ending_time_hour = parseInt(ending_time.split(":")[0], 10);
             let ending_time_min = parseInt(ending_time.split(":")[1], 10);
@@ -85,10 +90,10 @@ $(document).ready(function () {
             const st = new Date();
             st.setHours(starting_time_hour,starting_time_min,0,0);
     
-            const gp = new Date();
-            gp.setHours(grace_period_hour, grace_period_min, 0, 0);
+            // const gp = new Date();
+            // gp.setHours(grace_period_hour, grace_period_min, 0, 0);
     
-            if(ti.getTime() > gp.getTime()){ 
+            if(ti.getTime() > st.getTime()){ 
                 let milliseconds = ti.getTime() - st.getTime();
                 let seconds = milliseconds / 1000.0;
                 let minutes = seconds / 60.0; 
@@ -105,7 +110,7 @@ $(document).ready(function () {
 
             //Minimum Overtime
             const min_ot = new Date();
-            min_ot.setHours(19,0,0,0);  
+            min_ot.setHours(ending_time_hour+1,0,0,0);  
           
             if(to.getTime() < et.getTime()){
                 let milliseconds = et.getTime() - to.getTime();
