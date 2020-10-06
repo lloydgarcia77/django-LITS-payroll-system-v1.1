@@ -31,10 +31,10 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-#SESSIONS
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 10 # set just 10 seconds to test
-SESSION_SAVE_EVERY_REQUEST = True
+# SESSIONS Conflicting on password reset
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# SESSION_COOKIE_AGE = 10 # set just 10 seconds to test
+# SESSION_SAVE_EVERY_REQUEST = True
 
 
 # Application definition
@@ -187,8 +187,10 @@ LOGOUT_REDIRECT_URL = 'login'
 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'lloydgarcia77@gmail.com'
-EMAIL_HOST_PASSWORD = 'LloydQueen77'
+EMAIL_HOST_USER = 'webby8818@gmail.com'
+EMAIL_HOST_PASSWORD = 'Jh7*Mb4$Hj6#'
+# EMAIL_HOST_USER = 'lloydgarcia77@gmail.com'
+# EMAIL_HOST_PASSWORD = 'LloydQueen77'
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_FROM = EMAIL_HOST_USER

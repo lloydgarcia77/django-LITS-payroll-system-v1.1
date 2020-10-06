@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    alert("asd");
+     
     //https://bootstrap-datepicker.readthedocs.io/en/latest/ 
     const value = JSON.parse(document.getElementById('preferred_working_hours_data_render').textContent);
     // console.log(value['preferred_time_in']);
