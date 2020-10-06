@@ -95,6 +95,23 @@ WSGI_APPLICATION = 'LITS_System.wsgi.application'
 #     }
 # }
 
+# for pthon anywhere 
+# https://docs.djangoproject.com/en/3.1/ref/databases/#mysql-sql-mode
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'lits$lits_general_system_db',
+#         # username when creating access from python anywhere
+#         'USER': 'lits',
+#         'PASSWORD': 'r00t@passw0rd77',
+#         'HOST': 'lits.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#         'OPTIONS': {
+#            'init_command': 'SET default_storage_engine=INNODB',
+#            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         },
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
