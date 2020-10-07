@@ -1,0 +1,56 @@
+# Importing MySQL to PythonAnywhere
+
+From MySQL Workbench
+
+Go to Server tab -> Data-Export -> Select the database -> Export to self contained.
+
+Use the .sql extension
+Upload the database backup to your files using the Files tab on the dashboard
+Open a database console in the Databases tab on the console and type:
+
+use yourusername$yourdatabasename; source yourbackupname.sql;
+mysql --user=lits -p --host=lits.mysql.pythonanywhere-services.com 'lits$lits_general_system_db' < lits_db.sql;
+
+Then to view your newly imported tables
+
+show tables;
+
+Then execute sql as normal
+
+select * from yourtablename;
+
+# Issues will encounter
+
+ERROR 1044 (42000): Access denied for user 'lits'@'%' to database 'lits_general_system_db'
+
+# Solution
+
+Go to file tab and locate your lits_db.sql file
+Open the file and edit:
+Add lits$ must be the same of dbname from dump to mysql pythonanywhere database
+
+# Before: 
+
+CREATE DATABASE  IF NOT EXISTS `lits_general_system_db` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `lits_general_system_db`;
+-- MySQL dump 10.13  Distrib 5.7.23, for Win64 (x86_64)
+--
+-- Host: localhost    Database: lits_general_system_db
+
+# After:
+CREATE DATABASE  IF NOT EXISTS `lits$lits_general_system_db` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `lits$lits_general_system_db`;
+-- MySQL dump 10.13  Distrib 5.7.23, for Win64 (x86_64)
+--
+-- Host: localhost    Database: lits_general_system_db
+
+
+# Add PRIVILEGES
+
+GRANT ALL PRIVILEGES ON lits_general_system_db.* TO 'lits'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+# Accessing form bash
+
+mysql -h lits.mysql.pythonanywhere-services.com -P 3306 -u lits -p
+
