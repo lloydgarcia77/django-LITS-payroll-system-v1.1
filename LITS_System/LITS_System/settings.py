@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,8 +24,8 @@ MEDIA_DIR = os.path.join(BASE_DIR, 'application/media')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'w9ot!i5$o$cez$@qb%1v3wro==i%t=wats$uffl3+&_*f!$84v'
+# SECURITY WARNING: keep the secret key used in production secret! 
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -112,12 +114,13 @@ WSGI_APPLICATION = 'LITS_System.wsgi.application'
 #         },
 #     }
 # }
+PASSWORD = os.getenv('PASSWORD')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lits_general_system_db',
         'USER': 'root',
-        'PASSWORD': 'r00t@passw0rd77',
+        'PASSWORD': PASSWORD,
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -202,16 +205,27 @@ LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
-EMAIL_HOST = 'smtp.gmail.com'
+# -------Using Gmail
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'webby8818@gmail.com'
+# EMAIL_HOST_PASSWORD = 'Jh7*Mb4$Hj6#'
+# # EMAIL_HOST_USER = 'lloydgarcia77@gmail.com'
+# # EMAIL_HOST_PASSWORD = 'LloydQueen77'
+# EMAIL_USE_TLS = True
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_FROM = EMAIL_HOST_USER
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# --------Send Grid
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY') 
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+DEFAULT_FROM_EMAIL = 'lloydgarcia77@gmail.com'
+EMAIL_FROM = 'lloydgarcia77@gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'webby8818@gmail.com'
-EMAIL_HOST_PASSWORD = 'Jh7*Mb4$Hj6#'
-# EMAIL_HOST_USER = 'lloydgarcia77@gmail.com'
-# EMAIL_HOST_PASSWORD = 'LloydQueen77'
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_FROM = EMAIL_HOST_USER
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # from cryptography.fernet import Fernet
 # Fernet.generate_key()
