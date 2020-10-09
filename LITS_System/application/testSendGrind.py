@@ -3,8 +3,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from dotenv import load_dotenv
 load_dotenv()
-
-# SENDGRID_API_KEY = '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'
+ 
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 message = Mail(
     from_email='lloydgarcia77@gmail.com',
