@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 <form id="frmNewProfile" class="new-profile-form" method="POST" enctype="multipart/form-data" data-url="{% url 'application:new_user_profile' %}">
   {% csrf_token %}
   <div class="modal-header">

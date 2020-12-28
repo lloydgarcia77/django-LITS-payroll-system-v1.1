@@ -1,5 +1,5 @@
 {% extends 'index.html' %} 
-{% load staticfiles %} 
+{% load static %} 
 {% load humanize %} 
 {% block title %} 
 Create Employee Payroll Page 
@@ -218,42 +218,33 @@ Create Employee Payroll Page
                                     </div>
                                 </td>
                             </tr>
+                            <!-- New -->
+                            <tr>
+                                <th>Overtime Hours:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        <input name="_overtimeHours" id="overtimeHours" type="number" class="form-control" value="{{T_OT_HOURS}}" readonly>
+                                        <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
                             <tr>
                                 <th>Overtime Pay:</th>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_overtimePay" id="overtimePay" type="number" class="form-control" value="{{overtime_pay}}" readonly>
-                                        <span class="input-group-addon">.00</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- <tr>
-                                <th>Legal Holiday:</th>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-addon">&#8369;</span>
-                                        <input name="_legalHoliday" id="legalHoliday" type="number" class="form-control" value="{{legal_holiday}}" readonly>
+                                        <input name="_overtimePay" id="overtimePay" type="number" class="form-control" value="{{T_OT_PAY}}" readonly>
                                         <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
-                                <th>Sunday/Special Holiday:</th>
+                                <th>Holiday Pay:</th>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_sundaySpecialHoliday" id="sundaySpecialHoliday" type="number" class="form-control" value="{{sunday_special_holiday}}" readonly>
-                                        <span class="input-group-addon">.00</span>
-                                    </div>
-                                </td>
-                            </tr> -->
-                            <tr>
-                                <th>Late/Absences:</th>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-addon">&#8369;</span>
-                                        <input name="_lateAbsences" id="lateAbsences" type="number" class="form-control" value="{{late_absences}}" readonly>
+                                        <input name="_holidayPay" id="holidayPay" type="number" class="form-control" value="{{T_HOLIDAY_PAY}}" readonly>
                                         <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
@@ -307,9 +298,9 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_philhealContribution" id="philhealContribution" type="number" value="{{philhealth_contribution|intcomma}}" step="any" class="form-control" readonly>
+                                        <input name="_philhealContribution" id="philhealContribution" type="number" value="{{philhealth_contribution|intcomma}}" step="any" class="form-control">
                                         <span class="input-group-addon">
-                                            <input name="_cboPhilhealth" id="cboPhilhealth" type="checkbox" data-toggle="tooltip" title="Allow Philhealth Deduction" checked>
+                                            .00
                                         </span>
                                     </div>
                                 </td>
@@ -320,9 +311,9 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_pagibigContribution" id="pagibigContribution" type="number" value="{{pagibig_contribution|intcomma}}" step="any" class="form-control" readonly>
+                                        <input name="_pagibigContribution" id="pagibigContribution" type="number" value="{{pagibig_contribution|intcomma}}" step="any" class="form-control">
                                         <span class="input-group-addon">
-                                            <input name="_cboPagibig" id="cboPagibig" type="checkbox" data-toggle="tooltip" title="Allow Pag-ibig Deduction" checked>
+                                           .00
                                         </span>
                                     </div>
                                 </td>
@@ -332,10 +323,60 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_sssPremius" id="sssPremius" type="number" class="form-control" value="{{sss_contribution}}" readonly>
+                                        <input name="_sssPremius" id="sssPremius" type="number" class="form-control" value="{{sss_contribution}}">
                                         <!-- <span class="input-group-addon">.00</span> -->
-                                        <span class="input-group-addon"> <input name="_cboSSS" id="cboSSS" type="checkbox" data-toggle="tooltip"
-                        title="Allow SSS Deduction" checked></span>
+                                        <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- New -->
+                            <tr>
+                                <th>Late Minutes:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        <input name="_lateMin" id="lateMin" type="number" class="form-control" value="{{T_LATE_MIN}}" readonly>
+                                        <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Undertime Minutes:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        <input name="_undertimeMin" id="undertimeMin" type="number" class="form-control" value="{{T_UNDERTIME_MIN}}" readonly>
+                                        <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Late/Undertime Amount:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        <input name="_lateUndertimeMinAmount" id="lateUndertimeMinAmount" type="number" class="form-control" value="{{T_LATE_UNDERTIME_AMOUNT}}" readonly>
+                                        <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Absences:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        <input name="_absences" id="absences" type="number" class="form-control" value="{{T_ABSENCES}}" readonly>
+                                        <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Absences Amount:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        <input name="_absencesAmount" id="absencesAmount" type="number" class="form-control" value="{{T_ABSENCES_AMOUNT}}" readonly>
+                                        <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
                             </tr>
@@ -374,7 +415,7 @@ Create Employee Payroll Page
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        <input name="_totalDeduction" id="totalDeduction" type="number" class="form-control text-red" value="{{total_deduction}}" readonly>
+                                        <input name="_totalDeduction" id="totalDeduction" type="number" class="form-control text-red" value="{{T_DEDUCTIONS}}" readonly>
                                         <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>

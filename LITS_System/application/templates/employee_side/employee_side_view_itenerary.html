@@ -1,5 +1,5 @@
 {% extends 'employee_index_page.html' %}
-{% load staticfiles %}
+{% load static %}
 {% load humanize %} 
 {% block title %}
 Employee View Itinerary Form
@@ -108,6 +108,8 @@ Employee View Itinerary Form
             <!-- /.col --> 
         </div>
         <div class="row">
+         <form  method="POST">
+            {% csrf_token %}
             <div class="col-xs-12">
                 <p class="lead">Itenerary Details</p>
                 <div class="table-responsive">
@@ -171,12 +173,16 @@ Employee View Itinerary Form
             </div>
             <div class="row no-print">
                 <div class="col-xs-12"> 
-                    <a href="{% url 'application:employee_side_manage_iteneraries_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 
-                    <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
+                    <a href="{% url 'application:employee_side_manage_iteneraries_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a>                    
+                    {% if is_approvable %}
+                     <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
                         <i class="fa fa-download"></i> Generate PDF
                     </button>
+                    <button type="submit" class="btn btn-info pull-right" style="margin-right: 5px;"><span class="fa fa-fw fa-thumbs-o-up"></span> Approve</button>
+                    {% endif %}
                 </div>
             </div>
+         </form> 
         </div>
 
     </section>

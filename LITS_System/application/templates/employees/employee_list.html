@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% load staticfiles %}
+{% load static %}
 {% block title %}
 Employee List Page
 {% endblock title%}
@@ -56,6 +56,7 @@ Employee List Page
     #tblEmployees td {
         vertical-align: middle;
     }
+   
 </style>
 {% endblock css %}
 
@@ -138,7 +139,7 @@ Employee List Page
                     </div>
                 </div>
                 <!-- /.box-header -->
-                <div class="box-body">
+                <div class="box-body" > 
                     <table id="tblEmployees" class="table table-bordered table-striped text-center">
                         <thead>
                             <tr>

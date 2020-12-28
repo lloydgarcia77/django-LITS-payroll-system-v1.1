@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 <form class="edit-company-details-form" method="POST" enctype="multipart/form-data" data-url="{% url 'application:edit_company_details' %}">
     {% csrf_token %}
     <div class="modal-header">

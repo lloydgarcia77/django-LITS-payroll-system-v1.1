@@ -1,5 +1,5 @@
 {% extends 'employee_index_page.html' %}
-{% load staticfiles %}
+{% load static %}
 {% load humanize %} 
 {% block title %}
 Employee Create Overtime Form
@@ -112,6 +112,7 @@ Employee Create Overtime Form
                     <div id="formOvertimeDetailsOuter">
                         {{formOvertimeDetails.management_form}}
                         {% for form in formOvertimeDetails.forms %}
+                        {{formOvertime.errors}}
                         {{ form.non_field_errors }}
                         {{ form.errors}}
                         <div id="formOvertimeDetailsInner"> 

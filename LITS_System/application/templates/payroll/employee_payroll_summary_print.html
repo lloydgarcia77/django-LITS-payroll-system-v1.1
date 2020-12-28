@@ -1,0 +1,157 @@
+{% load static %}
+{% load humanize %} 
+{% load custom_tags%}
+
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Print Employee Payroll Print</title>
+        <!-- Tell the browser to be responsive to screen width -->
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <!-- Bootstrap 3.3.7 -->
+        <link rel="stylesheet" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css' %}">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="{% static 'bower_components/Ionicons/css/ionicons.min.css' %}">
+        <!-- Theme style -->
+        <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+      
+          <style>
+              #tblPaymentMethod th,
+              td,
+              #tblDeductions th,
+              td {
+                      vertical-align: middle;
+                  }
+              @media print { 
+                  @page { 
+                      margin-top: 0; 
+                      margin-bottom: 0; 
+                  } 
+                  body { 
+                      padding-top: 72px; 
+                      padding-bottom: 72px ; 
+                  } 
+              } 
+          </style> 
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    </head>
+    <body onload="window.print();"> 
+        
+        <section class="invoice">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h2 class="page-header">
+                        <i class="fa fa-globe"></i> LBPASCUAL INFORMATION TECHNOLOGY SOLUTIONS. 
+                    </h2>
+                </div>
+                <!-- /.col -->
+            </div>
+            <div class="row invoice-info">
+                <div class="col-sm-4 invoice-col"> 
+                    Payroll Date: <b><u>{{cutoff.date_created}}</u></b>
+                </div>
+                <!-- /.col -->
+                <div class="col-sm-4 invoice-col">
+                    Payroll Cut-Off Period: <b><u>{{cutoff.cut_off_period}}</u></b> 
+                </div>
+                <!-- /.col -->
+                <div class="col-sm-4 invoice-col"> 
+                </div>
+                <!-- /.col -->
+            </div>
+        
+            <div class="row invoice-info">
+                <div class="box-body">
+                    <table id="" class="table table-bordered text-center" >
+                        <thead>
+                            <tr > 
+                                <th rowspan="3">TIN</th> 
+                                <th rowspan="3">EMPLOYEE NAME</th>  
+                                <th rowspan="3">SEMI MONTHLY SALARY</th> 
+                                <th colspan="2">OVERTIME</th> 
+                                <th rowspan="3">HOLIDAY</th>  
+                                <th colspan="3">(ABSENT/LATE)</th> 
+                                <th rowspan="3">GROSS SALARY</th> 
+                                <th colspan="6">DEDUCTIONS</th> 
+                                <th rowspan="3">TOTAL DEDUCTIONS</th> 
+                                <th rowspan="3">NET PAID AMOUNT</th> 
+                               
+                            </tr>
+                            <tr>   
+                                <th rowspan="2">Hrs.</th> 
+                                <th rowspan="2">Amount</th> 
+                                <th rowspan="2">Days</th> 
+                                <th rowspan="2">Min</th> 
+                                <th rowspan="2">Amount</th> 
+                                <th rowspan="2">PHIC</th>  
+                                <th rowspan="2">SSS</th> 
+                                <th rowspan="2">HDMF</th> 
+                                <th rowspan="2">W/TAX</th> 
+                                <th rowspan="2">S.LOAN</th> 
+                                <th rowspan="2">OTHERS</th>  
+                            </tr>
+                           
+                        </thead>
+                        <tbody> 
+                            {% for x in payroll_list %}  
+                            <tr>
+                                <td>{{x.employee_fk.fk_user.company_to_user.personal_tin}}</td> 
+                                <td>{{x.employee_fk}}</td>
+                                <td>{{x.basic_pay|intcomma}}</td>
+                                <td>{{x.ot_hours}}</td>
+                                <td>{{x.ot_pay}}</td>
+                                <td>{{x.holiday_pay}}</td>
+                                <td>{{x.absences}}</td>
+                                <td>{% sum x.late_min x.undertime_min%}</td> 
+                                <td>{% sum x.late_undertime_min_amount x.absences_amount %}</td>
+                                <td>{{x.gross_pay}}</td>
+                                <td>{{x.philhealth_contribution}}</td>
+                                <td>{{x.sss_premiums}}</td>
+                                <td>{{x.pagibig_contribution}}</td>
+                                <td>{{x.withholding_tax}}</td> 
+                                <td>{{x.deducted_salary_cash_advance}}</td>  
+                                <td>{{x.pagibig_loan}}</td>
+                                <td>{{x.total_deduction}}</td> 
+                                <td>{{x.net_pay}}</td>  
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot style="background-color: yellow; color: red;">
+                            <th colspan="2">Sub Total: </th> 
+                            <th>{{t_sms|intcomma}}</th>
+                            <th>{{t_oth|intcomma}}</th>
+                            <th>{{t_ota|intcomma}}</th>
+                            <th>{{t_hol|intcomma}}</th>
+                            <th>{{t_ald|intcomma}}</th>
+                            <th>{{t_alm|intcomma}}</th>
+                            <th>{{t_ala|intcomma}}</th> 
+                            <th>{{t_gs|intcomma}}</th>
+                            <th>{{t_dp|intcomma}}</th>
+                            <th>{{t_ds|intcomma}}</th>
+                            <th>{{t_dh|intcomma}}</th>
+                            <th>{{t_dt|intcomma}}</th> 
+                            <th>{{t_dl|intcomma}}</th>
+                            <th>{{t_do|intcomma}}</th>
+                            <th>{{t_td|intcomma}}</th>
+                            <th>{{t_npa|intcomma}}</th> 
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="row invoice-info">
+                <div class="col-sm-4 invoice-col"> 
+                    <b>Prepared by:</b>  <u>Vangie Marcelino</u>
+                </div>
+                <!-- /.col -->
+                <div class="col-sm-4 invoice-col">
+                    <b>Approved by:</b>  <u>Lawrence Paul B. Pascual</u>
+                </div>
+            </div> 
+        </section>
+        
+    </body>
+</html>

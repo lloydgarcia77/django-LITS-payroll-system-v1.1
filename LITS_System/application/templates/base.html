@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 <!DOCTYPE html>
  
 <html > 
@@ -64,7 +64,18 @@
         }
       
     </style>   
-    {% endblock css %} 
+    {% endblock css %}  
+    <style>
+        .box-body{
+            overflow-x:auto;
+        }
+    </style>
+
+    
+    {% block additional_custom_header %}
+        
+    {% endblock additional_custom_header %}
+        
  
 </head>
 

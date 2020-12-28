@@ -1,5 +1,5 @@
 {% extends 'employee_index_page.html' %}
-{% load staticfiles %}
+{% load static %}
 {% load humanize %} 
 {% block title %}
 Employee View Overtime Form
@@ -111,86 +111,92 @@ Employee View Overtime Form
             <!-- /.col --> 
         </div>
         <div class="row">
-            <div class="col-xs-12">
-                <p class="lead">Overtime Details</p>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tr >
-                            <th >Name:</th>
-                            <td colspan="6">{{ overtime.employee_overtime }}</td>
-                        </tr>
-                        <tr>
-                            <th>Postion:</th>
-                            <td colspan="6">{{ user.company_to_user.designation }}</td>
-                        </tr>
-                        <tr>
-                            <th>Group/Department:</th>
-                            <td colspan="6">{{ user.company_to_user.department }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Prepared By:</th>
-                            <td colspan="6">{{ overtime.employee_overtime }}</td>
-                        </tr>
-
-
-
-                        <!--  -->
-                        <tr style="background-color: #ECF0F5;">
-                            <th class="text-center" style="width:20%">Date</th>
-                            <th class="text-center" style="width:10%">Day</th>
-                            <th class="text-center" style="width:10%">RE/SP OT</th>
-                            <th class="text-center" style="width:20%">Description</th>
-                            <th class="text-center" style="width:10%">Product</th>
-                            <th class="text-center" style="width:20%">Time-In & Time-Out</th>
-                            <th class="text-center" style="width:10%">Duration</th>
-                        </tr>
-
-                        
-                        {% for id in overtime_details  %}
-                            <tr style="background-color: #ECF0F5;">
-                                <td class="text-center">{{id.date_rendered}}</td>
-                                <td class="text-center">{{id.day}}</td>
-                                <td class="text-center">{{id.re_sp_ot}}</td>
-                                <td class="text-center">{{id.description}}</td>
-                                <td class="text-center">{{id.product}}</td>
-                                <td class="text-center">{{id.timeIn}} - {{id.timeOut}}</td>
-                                <td class="text-center">{{id.duration}}</td>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="col-xs-12">
+                    <p class="lead">Overtime Details</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tr >
+                                <th >Name:</th>
+                                <td colspan="6">{{ overtime.employee_overtime }}</td>
                             </tr>
-                        {% endfor %}
+                            <tr>
+                                <th>Postion:</th>
+                                <td colspan="6">{{ user.company_to_user.designation }}</td>
+                            </tr>
+                            <tr>
+                                <th>Group/Department:</th>
+                                <td colspan="6">{{ user.company_to_user.department }}</td>
+                            </tr>
 
-                        <tr style="background-color: #ECF0F5;">
-                            <td colspan="6" class="text-right"><b>Total Hours:</b></td>
-                            <td class="text-center"><b>{{overtime_sum}}</b></td>
-                        </tr>
+                            <tr>
+                                <th>Prepared By:</th>
+                                <td colspan="6">{{ overtime.employee_overtime }}</td>
+                            </tr>
+
+
+
+                            <!--  -->
+                            <tr style="background-color: #ECF0F5;">
+                                <th class="text-center" style="width:20%">Date</th>
+                                <th class="text-center" style="width:10%">Day</th>
+                                <th class="text-center" style="width:10%">RE/SP OT</th>
+                                <th class="text-center" style="width:20%">Description</th>
+                                <th class="text-center" style="width:10%">Product</th>
+                                <th class="text-center" style="width:20%">Time-In & Time-Out</th>
+                                <th class="text-center" style="width:10%">Duration</th>
+                            </tr>
+
                             
-                        <!--  -->
-                        <tr>
-                            <th>Noted By:</th>
-                            <td colspan="6">{{ overtime.noted_by }}</td>
-                        </tr>
+                            {% for id in overtime_details  %}
+                                <tr style="background-color: #ECF0F5;">
+                                    <td class="text-center">{{id.date_rendered}}</td>
+                                    <td class="text-center">{{id.day}}</td>
+                                    <td class="text-center">{{id.re_sp_ot}}</td>
+                                    <td class="text-center">{{id.description}}</td>
+                                    <td class="text-center">{{id.product}}</td>
+                                    <td class="text-center">{{id.timeIn}} - {{id.timeOut}}</td>
+                                    <td class="text-center">{{id.duration}}</td>
+                                </tr>
+                            {% endfor %}
 
-                        <tr>
-                            <th>Checked By:</th>
-                            <td colspan="6">{{ overtime.checked_by }}</td>
-                        </tr>
+                            <tr style="background-color: #ECF0F5;">
+                                <td colspan="6" class="text-right"><b>Total Hours:</b></td>
+                                <td class="text-center"><b>{{overtime_sum}}</b></td>
+                            </tr>
+                                
+                            <!--  -->
+                            <tr>
+                                <th>Noted By:</th>
+                                <td colspan="6">{{ overtime.noted_by }}</td>
+                            </tr>
 
-                        <tr>
-                            <th>Approved By:</th>
-                            <td colspan="6">{{ overtime.approved_by }}</td>
-                        </tr>
-                        
-                    </table>
+                            <tr>
+                                <th>Checked By:</th>
+                                <td colspan="6">{{ overtime.checked_by }}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Approved By:</th>
+                                <td colspan="6">{{ overtime.approved_by }}</td>
+                            </tr>
+                            
+                        </table>
+                    </div>
                 </div>
-            </div>
-            <div class="row no-print">
-                <div class="col-xs-12"> 
-                    <a href="{% url 'application:employee_side_manage_overtime_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 
-                    <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
-                        <i class="fa fa-download"></i> Generate PDF
-                    </button>
+                <div class="row no-print">
+                    <div class="col-xs-12"> 
+                        <a href="{% url 'application:employee_side_manage_overtime_page' %}" class="btn btn-default"><i class="fa fa-fw fa-arrow-circle-left"></i> Back</a> 
+                        {% if is_approvable  %} 
+                        <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
+                            <i class="fa fa-download"></i> Generate PDF
+                        </button>
+                        <button type="submit" class="btn btn-info pull-right" style="margin-right: 5px;"><span class="fa fa-fw fa-thumbs-o-up"></span> Approve</button>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
 
     </section>

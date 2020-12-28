@@ -1,5 +1,5 @@
 {% extends 'index.html' %} 
-{% load staticfiles %} 
+{% load static %} 
 {% load humanize %} 
 {% block title %} 
 View Employee Leave Form
@@ -222,20 +222,8 @@ View Employee Leave Form
                             <div class="input-group">
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-sticky-note"></i>
-                                </div> 
-                                <select name="notedByList" id="notedBy" class="form-control" style="width: 100%;">  
-                                    {% if leave.noted_by == None  %}
-                                    <option selected="selected">None</option>
-                                    {% endif %}
-                                            
-                                    {% for employee in employee_list  %}  
-                                        {% if leave.noted_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                        <option selected="selected">{{employee}}</option>                                     
-                                        {% else %}
-                                        <option>{{employee}}</option> 
-                                        {% endif %} 
-                                    {% endfor %} 
-                                </select>
+                                </div>  
+                                <input type="text" name="notedByList" class="form-control" placeholder="" value="{{leave.noted_by}}" disabled> 
                             </div> 
                         </div>
                         <div class="form-group">
@@ -244,19 +232,8 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-check-square-o"></i>
                                 </div> 
-                                <select name="checkedByList" id="checkedBy" class="form-control" style="width: 100%;">  
-                                    {% if leave.checked_by == None  %}
-                                    <option selected="selected">None</option> 
-                                    {% endif %}
-                                            
-                                    {% for employee in employee_list  %}  
-                                        {% if leave.checked_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                        <option selected="selected">{{employee}}</option>                                     
-                                        {% else %}
-                                        <option>{{employee}}</option> 
-                                        {% endif %} 
-                                    {% endfor %} 
-                                </select>
+                                <input type="text" name="checkedByList" class="form-control" placeholder="" value="{{leave.checked_by}}" disabled> 
+                           
                             </div> 
                         </div>
                         <div class="form-group">
@@ -267,21 +244,8 @@ View Employee Leave Form
                                 </div> 
                                 <!-- template tag string convertion -->
                                     <!-- https://docs.python.org/2/library/stdtypes.html#string-formatting-operations -->
+                                <input type="text" name="approvedByList" class="form-control" placeholder="" value="{{leave.approved_by}}" disabled> 
                                  
-                                <select name="approvedByList" id="approvedBy" class="form-control" style="width: 100%;">  
-                                    
-                                {% if leave.approved_by == None  %}
-                                <option selected="selected">None</option>
-                                {% endif %}
-                                        
-                                {% for employee in employee_list  %}  
-                                    {% if leave.approved_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                    <option selected="selected">{{employee}}</option>                                     
-                                    {% else %}
-                                    <option>{{employee}}</option> 
-                                    {% endif %} 
-                                {% endfor %} 
-                                </select>
                             </div> 
                         </div>
                     </div>
@@ -302,7 +266,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-bell"></i>
                                 </div>  
-                                <select name="statusList" id="status" class="form-control" style="width: 100%;">   
+                                <select name="statusList" id="status" class="form-control" style="width: 100%;" {% if user.company_to_user.employee_ci_rp_fk_r.role != 'Managing Director' %}disabled{% endif %}>   
                                     
                                     {% for status in status_list %}
                                         
@@ -333,7 +297,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-credit-card"></i>
                                 </div>
-                                <input name="_leaveCredits" type="number" class="form-control" id="leaveCredits" value="{{ leave.leave_credits }}" readonly> 
+                                <input name="_leaveCredits" type="number" class="form-control" id="leaveCredits" value="{{ leave.leave_credits }}"> 
                             </div> 
                         </div>
 
@@ -343,7 +307,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-credit-card"></i>
                                 </div>
-                                <input name="_lessThisApplication" type="number" class="form-control" id="lessThisApplication" value="{{ leave.less_this_application }}" readonly> 
+                                <input name="_lessThisApplication" type="number" class="form-control" id="lessThisApplication" value="{{ leave.less_this_application }}" > 
                             </div> 
                         </div>
 
@@ -353,7 +317,7 @@ View Employee Leave Form
                                 <div class="input-group-addon">
                                   <i class="fa fa-fw fa-credit-card"></i>
                                 </div>
-                                <input name="_balanceAsOfThisDate" type="number" class="form-control" id="balanceAsOfThisDate" value="{{ leave.balance_as_of_this_date }}" readonly> 
+                                <input name="_balanceAsOfThisDate" type="number" class="form-control" id="balanceAsOfThisDate" value="{{ leave.balance_as_of_this_date }}" > 
                             </div> 
                         </div>
                         <div class="form-group">
@@ -393,7 +357,7 @@ View Employee Leave Form
             </div>
             <div class="box-footer">
                 <a href="{% url 'application:employee_manage_leaves_page' %}" class="btn btn-default"> <span class="fa fa-fw fa-ban"></span> Cancel</a>
-                <button type="submit" class="btn btn-info pull-right"><span class="fa fa-fw fa-send"></span> Submit</button>
+                <button type="submit" class="btn btn-info pull-right"><span class="fa fa-fw fa-thumbs-o-up"></span> Approve</button>
             </div>
         </div>
     </form>

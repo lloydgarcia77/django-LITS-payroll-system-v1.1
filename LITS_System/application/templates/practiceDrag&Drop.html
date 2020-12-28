@@ -1,0 +1,88 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+
+<title>A jQuery Drag-and-Drop Number Cards Game</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+
+
+<style>
+
+    .header{
+        background-color: #5F5F5F;
+
+    }
+   
+    #name{
+      float: left;
+      width: 58px;
+      height: 78px;
+      padding: 10px;
+      padding-top: 40px;
+      padding-bottom: 0;
+      border: 2px solid #333;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      border-radius: 10px;
+      margin: 0 0 0 10px;
+      background: #fff;
+    }
+
+    #destination{ 
+      float: left;
+      width: 58px;
+      height: 78px;
+      padding: 10px;
+      padding-top: 40px;
+      padding-bottom: 0;
+      border: 2px solid #333;
+      -moz-border-radius: 10px;
+      -webkit-border-radius: 10px;
+      border-radius: 10px;
+      margin: 0 0 0 10px;
+      background: #FFFA92; 
+      
+    }
+    #destination.hovered{
+      background: #aaa;
+    }
+    
+
+
+</style>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+<script type="text/javascript">
+    $( function() {
+        $( "#name" ).draggable({
+            //cursor: 'move',
+           revert: true
+        });
+        $( "#destination" ).droppable({
+            accept: '#name',
+            hoverClass: 'hovered', 
+            drop: function( event, ui ) {   
+                $(this).droppable( 'disable' );
+                ui.draggable.position( { of: $(this), my: 'left top', at: 'left top' } ); 
+            }
+          });
+      } ); 
+</script>
+
+
+</head>
+<body>
+
+    <div class="header">
+        <h1>Manage employees/users permission and roles</h1>
+        <p>Assign proper</p>
+    </div>
+
+    <div id="name">Lloyd Garcia</div> 
+    <div id="destination">Put it here!</div>
+ 
+</body>
+</html>
+

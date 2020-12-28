@@ -1,5 +1,5 @@
 {% extends 'index.html' %}
-{% load staticfiles %}
+{% load static %}
 {% block title %}
 Manage Employee Payroll Page
 {% endblock title%}
@@ -133,12 +133,18 @@ Manage Employee Payroll Page
                                 <td>{{ cut_off_period.date_created}}</td>
 
                                 <td>
-                                    <a href="{% url 'application:employee_payroll_manage_employee_list' cut_off_period.id %}" class="btn bg-navy btn-block" data-toggle="tooltip"
+
+                                    <div class="btn-group">
+                                        <a href="{% url 'application:employee_payroll_manage_employee_list' cut_off_period.id %}" class="btn bg-navy" data-toggle="tooltip"
                                         title="Select Cut-Off Period">
                                         <span class="fa fa-fw fa-hand-o-up"></span>
-                                        Select
-                                    </a>
+                                        
+                                        </a>
+                                        <a href="{% url 'application:employee_payroll_summary' cut_off_period.id %}" class="btn bg-aqua" data-toggle="tooltip" title="Payroll summary">
+                                            <span class="fa fa-fw fa-suitcase"></span>
+                                        </a>   
 
+                                    </div> 
                                 </td>
                             </tr>
                             {% endfor %}

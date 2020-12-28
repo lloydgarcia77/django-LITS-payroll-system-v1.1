@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
 {% load humanize %} 
 <!DOCTYPE html>
 <html>
@@ -24,6 +24,16 @@
         td {
                 vertical-align: middle;
             }
+        @media print { 
+            @page { 
+                margin-top: 0; 
+                margin-bottom: 0; 
+            } 
+            body { 
+                padding-top: 72px; 
+                padding-bottom: 72px ; 
+            } 
+        } 
     </style>
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -105,18 +115,25 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Overtime Hours:</th>
+                        <td> 
+                            &#8369;
+                            {{emp_payroll_count.ot_hours|intcomma}}    
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Overtime Pay:</th>
                         <td> 
                             &#8369;
-                            {{emp_payroll_count.overtime_pay|intcomma}}    
+                            {{emp_payroll_count.ot_pay|intcomma}}    
                         </td>
                     </tr>
-              
+                 
                     <tr>
-                        <th>Late/Absences:</th>
+                        <th>Holiday Pay:</th>
                         <td> 
                             &#8369;
-                            {{emp_payroll_count.late_or_absences|intcomma}}    
+                            {{emp_payroll_count.holiday_pay|intcomma}}    
                         </td>
                     </tr>
                     <tr>
@@ -167,6 +184,41 @@
                     <td>
                         &#8369;
                         {{emp_payroll_count.sss_premiums|intcomma}}   
+                    </td>
+                </tr>
+                <tr>
+                    <th>Late Min:</th>
+                    <td> 
+                        &#8369;
+                        {{emp_payroll_count.late_min|intcomma}}    
+                    </td>
+                </tr>
+                <tr>
+                    <th>Undertime Min:</th>
+                    <td> 
+                        &#8369;
+                        {{emp_payroll_count.undertime_min|intcomma}}    
+                    </td>
+                </tr>
+                <tr>
+                    <th>Late/Undertime Amount:</th>
+                    <td>
+                        &#8369;
+                        {{emp_payroll_count.late_undertime_min_amount|intcomma}}   
+                    </td>
+                </tr>
+                <tr>
+                    <th>Absences:</th>
+                    <td> 
+                        &#8369;
+                        {{emp_payroll_count.absences|intcomma}}    
+                    </td>
+                </tr>
+                <tr>
+                    <th>Absences Amount:</th>
+                    <td>
+                        &#8369;
+                        {{emp_payroll_count.absences_amount|intcomma}}   
                     </td>
                 </tr>
                 <tr>

@@ -64,11 +64,10 @@ def file_validator2(value):
             print('FILE is VALID')
             return value
 
-
 def file_validator_image(value):
 
     file_size = value.size
-    valid_file_extension = ['.jpg', '.png', '.jpeg', '.pdf', '.doc', '.docx']
+    valid_file_extension = ['.jpg', '.png', '.jpeg','.JPG','.PNG','.JPEG',]
 
     file_extension = os.path.splitext(value.name)[1]
 
@@ -167,7 +166,7 @@ class CompanyInfo(models.Model):
     philhealth = models.CharField(max_length=50, blank=True, null=True) 
     vacation_leave_credits = models.IntegerField(default=7, blank=True)
     sick_leave_credits = models.IntegerField(default=7, blank=True)
-    preffered_working_hours = models.CharField(max_length=100, choices=preffered_working_hours_list, default=preffered_working_hours_list[0][0])
+    preffered_working_hours = models.CharField(max_length=100, choices=preffered_working_hours_list, default=preffered_working_hours_list[0][0], blank=True)
     def __str__(self):
         return str(self.company_id)
 
@@ -219,6 +218,12 @@ ph_regular_holidays = (
     ('Christmas Day','Christmas Day'),
     ('Rizal Day','Rizal Day'), 
 )
+
+holiday_category = (
+    ('No Holiday','No Holiday'),
+    ('Regular Holiday','Regular Holiday'),
+    ('Special Holiday', 'Special Holiday'),
+)
 class AttendanceInfo(models.Model): 
     employee_profile = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name='employee_personal_info_fk')
     cut_off_period = models.ForeignKey(CutOffPeriodInfo, on_delete=models.CASCADE, related_name='cut_off_period_fk')
@@ -234,7 +239,7 @@ class AttendanceInfo(models.Model):
     has_itenerary = models.BooleanField(default=False)
     has_leave = models.BooleanField(default=False)
     overtime_category = models.CharField(max_length=100, choices=Overtime_Category, default=Overtime_Category[0][0])
-    holiday = models.CharField(max_length=100, choices=ph_regular_holidays, default=ph_regular_holidays[0][0])
+    holiday = models.CharField(max_length=100, choices=holiday_category, default=holiday_category[0][0])
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
@@ -243,28 +248,32 @@ class AttendanceInfo(models.Model):
 class EmployeePayroll(models.Model): 
     employee_fk = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_payroll_fk", null=True)
     payroll_cutoff_period = models.ForeignKey(CutOffPeriodInfo, on_delete=models.CASCADE, related_name="employee_cutoff_fk", null=True) 
-    payroll_date = models.DateField(auto_now=True)
-    # monthly_rate = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    # monthly_allowance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    payroll_date = models.DateField(auto_now=True) 
 
     basic_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    allowance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    overtime_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    # legal_holiday = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    # special_holiday = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    late_or_absences = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    allowance = models.DecimalField(default=0, max_digits=12, decimal_places=2)  
     salary_or_cash_advance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    ot_hours = models.IntegerField(default=0)
+    ot_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    holiday_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     gross_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
 
     #deductions
+    # late_or_absences = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    late_min = models.IntegerField(default=0)
+    undertime_min = models.IntegerField(default=0)
+    late_undertime_min_amount = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    absences = models.IntegerField(default=0)
+    absences_amount = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     sss_premiums = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     philhealth_contribution = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     pagibig_contribution = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     withholding_tax = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     pagibig_loan = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     deducted_salary_cash_advance = models.DecimalField(default=0, max_digits=12, decimal_places=2)
-    total_deduction = models.DecimalField(default=0, max_digits=12, decimal_places=2)
 
+
+    total_deduction = models.DecimalField(default=0, max_digits=12, decimal_places=2)
     net_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
 
     thirteenth_month_pay = models.DecimalField(default=0, max_digits=12, decimal_places=2)
@@ -337,6 +346,7 @@ class EmployeeLeaves(models.Model):
 class EmployeeItenerary(models.Model):
     employee_itenerary_fk = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_itenerary_fk")
     date_filed = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=150, choices=leave_status, default=leave_status[0][0])
     noted_by = models.CharField(max_length=100, null=True, blank = True)
     checked_by =models.CharField(max_length=100, null=True, blank = True)
     approved_by = models.CharField(max_length=100, null=True, blank = True)
@@ -408,7 +418,8 @@ RE_SP = (
 )
 class Overtime(models.Model):
     employee_overtime  = models.ForeignKey(PersonalInfo, on_delete=models.CASCADE, related_name="employee_overtime")
-    department = models.CharField(max_length=100, null=False, blank = False)
+    department = models.CharField(max_length=100, null=False, blank = True)
+    status = models.CharField(max_length=150, choices=leave_status, default=leave_status[0][0])
     date_filed = models.DateField(auto_now_add=True) 
     noted_by = models.CharField(max_length=100, null=True, blank = True)
     checked_by =models.CharField(max_length=100, null=True, blank = True)
@@ -430,3 +441,19 @@ class OvertimeDetails(models.Model):
 
     def __str__(self):
         return str(self.overtime)
+
+ROLES = (
+    ('Managing Director','Managing Director'),
+    ('Human Resource','Human Resource'),
+    ('Business Unit Head','Business Unit Head'),
+    ('Employee','Employee'),
+)
+
+class RolesPermission(models.Model):
+    employee_ci_rp_fk = models.OneToOneField(CompanyInfo, on_delete=models.CASCADE, related_name="employee_ci_rp_fk_r")
+    role = models.CharField(max_length=200, choices=ROLES, default=ROLES[0][0])
+    title = models.CharField(max_length=200, null=True, blank=True)
+    # immidiate_head = models.CharField(max_length=200, default="sad") 
+    immidiate_head = models.ForeignKey(CompanyInfo, on_delete=models.CASCADE, null=True, blank=True, related_name='immidiate_head_fk') 
+    def __str__(self):
+        return str(self.role)

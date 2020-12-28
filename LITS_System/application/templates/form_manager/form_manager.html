@@ -1,0 +1,207 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load custom_tags%}
+{% block title %}
+Manage Forms
+{% endblock title%}
+
+
+{% block css %}
+
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.min.css' %}">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
+<!-- Ionicons -->
+<link rel="stylesheet" href="{% static 'bower_components/Ionicons/css/ionicons.min.css' %}">
+<!-- daterange picker -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.css' %}">
+<!-- bootstrap datepicker -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+<!-- iCheck for checkboxes and radio inputs -->
+<link rel="stylesheet" href="{% static 'plugins/iCheck/all.css' %}">
+<!-- Bootstrap Color Picker -->
+<link rel="stylesheet" href="{% static 'bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css' %}">
+<!-- Bootstrap time Picker -->
+<link rel="stylesheet" href="{% static 'plugins/timepicker/bootstrap-timepicker.min.css' %}">
+<!-- Select2 -->
+<link rel="stylesheet" href="{% static 'bower_components/select2/dist/css/select2.min.css' %}">
+<!-- Theme style -->
+<link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
+<!-- AdminLTE Skins. Choose a skin from the css/skins
+     folder instead of downloading all of them to reduce the load. -->
+<link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">
+ 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+
+<style>
+    .display-image{
+        height: 80px !important; 
+        width: 80px !important;  
+    } 
+
+    .custom-img{
+        height: 50px !important;
+        width: 50px !important;
+    }
+    .user_name{
+        white-space: nowrap; 
+        width: 150px; 
+        overflow: hidden;
+        text-overflow: ellipsis;  
+    }
+    table th, tr, td{ 
+        vertical-align: middle !important;  
+        text-align: center; 
+     }
+   
+</style>
+
+        
+<link rel="stylesheet" href="{% static 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css' %}"> 
+{% endblock css %}  
+
+{% block additional_custom_header %}
+
+{% endblock additional_custom_header %}
+
+{% block nav_mgmt_forms %}
+<li class="active"><a href="{% url 'application:form_manager' %}" data-toggle="tooltip" title="Manage Forms"><i class="fa fa-fw fa-table text-red"></i> <span>Manage Forms</span></a></li> 
+{% endblock nav_mgmt_forms %}
+  
+
+{% block main_content %}
+
+
+<section class="content-header">
+    <h1>
+        Manage Forms
+        <small>Leave, Itinerary & Overtime Forms</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active"><i class="fa fa-fw fa-table"></i> Manage Forms</li>
+    </ol>
+</section>
+
+<section class="content">
+    <section class="invoice">
+        <div class="row">
+            <div class="col-xs-12">
+                <h2 class="page-header">
+                    <i class="fa fa-fw fa-table"></i> Manage Forms
+                    <small class="pull-right" id="current_date_display"></small>
+                </h2>
+            </div>
+            <!-- /.col --> 
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">Itenerary, Leave & Overtime Forms</h3> 
+                    </div>
+                    <div class="box-body">
+                        <table id="tblForms" class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>I.D</th>  
+                                    <th>Name</th>  
+                                    <th>Category</th>  
+                                    <th>Status</th> 
+                                    <th>Date Filed</th>    
+                                    <th style="width: 15%"></th>    
+                                </tr>
+                            </thead>
+                            <tbody>  
+                                {% for item in all_forms %}
+                                <tr>
+                                    <td>{{item.id}}</td>
+                                    <td>{{item}}</td>
+                                    <td>
+                                        {% if item.employee_leave_fk %}
+                                        <span class="label label-success">LEAVE</span>
+                                        {% elif item.employee_itenerary_fk %}
+                                        <span class="label label-warning">ITINERARY</span>
+                                        {% elif item.employee_overtime %}
+                                        <span class="label label-info">OVERTIME</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        
+                                        {% if item.status == 'Pending' %}
+                                        <span class="label label-warning">{{item.status}}</span>
+                                        {% elif item.status == 'Disapproved' %}
+                                        <span class="label label-danger">{{item.status}}</span>
+                                        {% elif item.status == 'Approved' %}
+                                        <span class="label label-success">{{item.status}}</span>
+                                        {% endif %} 
+                                    
+                                    </td>
+                                    <td>{{item.date_filed}}</td>
+                                    <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-default">Action</button>
+                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                            <span class="caret"></span>
+                                            <span class="sr-only">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu">
+                                            <li>
+                                            {% if item.employee_leave_fk %}
+                                            <a href="{% url 'application:employee_view_employee_leaves_page' item.id %}">View</a>
+                                            {% elif item.employee_itenerary_fk %}
+                                            <a href="{% url 'application:employee_view_iteneraries_page' item.id %}">View</a>
+                                            {% elif item.employee_overtime %}
+                                            <a href="{% url 'application:employee_view_overtime_page' item.id %}">View</a>
+                                            {% endif %} 
+                                            </li>
+                                            <li><a href="#">Another action</a></li>
+                                            <li><a href="#">Something else here</a></li>
+                                            <li class="divider"></li>
+                                            <li><a href="#">Separated link</a></li>
+                                        </ul>
+                                    </div>
+                                    </td> 
+                                </tr>
+                                {% endfor %} 
+                            </tbody>
+                        </table>
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</section>
+
+{% block js %} 
+{% endblock js %}
+
+<!-- jQuery 3 -->
+<script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
+
+<script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+<!-- Slimscroll -->
+<script src="{% static 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js' %}"></script>
+<!-- FastClick -->
+<script src="{% static 'bower_components/fastclick/lib/fastclick.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'dist/js/adminlte.min.js' %}"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="{% static 'dist/js/demo.js' %}"></script>
+
+<!-- DataTables -->
+<script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script> 
+
+<script src="{% static 'js/form_manager.js' %}" type="text/javascript"></script>
+
+ 
+
+{% endblock main_content %}

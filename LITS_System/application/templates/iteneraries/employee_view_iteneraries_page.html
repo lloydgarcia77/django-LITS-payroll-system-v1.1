@@ -1,5 +1,5 @@
 {% extends 'index.html' %} 
-{% load staticfiles %} 
+{% load static %} 
 {% load humanize %} 
 {% block title %} 
 View Employee Itinerary Form
@@ -175,20 +175,8 @@ View Employee Itinerary Form
                                     </div> 
                                     <!-- template tag string convertion -->
                                     <!-- https://docs.python.org/2/library/stdtypes.html#string-formatting-operations -->
-                                 
-                                    <select name="notedByList" id="notedBy" class="form-control select2" style="width: 200px;">  
-                                        {% if itenerary.noted_by == None  %}
-                                        <option selected="selected">None</option>
-                                        {% endif %}
-                                                
-                                        {% for employee in employee_list  %}  
-                                            {% if itenerary.noted_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                            <option selected="selected">{{employee}}</option>                
-                                            {% else %}
-                                            <option>{{employee}}</option> 
-                                            {% endif %} 
-                                        {% endfor %} 
-                                    </select>
+                                    <input type="text" name="notedByList" class="form-control" placeholder="" value="{{itenerary.noted_by}}" disabled> 
+                     
                                 </div> 
                             </td>
                         </tr>
@@ -200,19 +188,8 @@ View Employee Itinerary Form
                                     <div class="input-group-addon">
                                         <i class="fa fa-fw fa-check-square-o"></i>
                                     </div> 
-                                    <select name="checkedByList" id="checkedBy" class="form-control select2" style="width: 200px;">  
-                                        {% if itenerary.noted_by == None  %}
-                                        <option selected="selected">None</option>
-                                        {% endif %}
-                                                
-                                        {% for employee in employee_list  %}  
-                                            {% if itenerary.checked_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                            <option selected="selected">{{employee}}</option>                                     
-                                            {% else %}
-                                            <option>{{employee}}</option> 
-                                            {% endif %} 
-                                        {% endfor %} 
-                                    </select>
+                                    <input type="text" name="checkedByList" class="form-control" placeholder="" value="{{itenerary.checked_by}}" disabled> 
+                                     
                                 </div>  
                             </td>
                         </tr>
@@ -224,19 +201,8 @@ View Employee Itinerary Form
                                     <div class="input-group-addon">
                                         <i class="fa fa-fw fa-thumbs-o-up"></i>
                                     </div> 
-                                    <select name="approvedByList" id="approvedBy" class="form-control select2" style="width: 200px;">  
-                                        {% if itenerary.noted_by == None  %}
-                                        <option selected="selected">None</option>
-                                        {% endif %}
-                                                
-                                        {% for employee in employee_list  %}  
-                                            {% if itenerary.approved_by|stringformat:"s"  == employee|stringformat:"s"  %}
-                                            <option selected="selected">{{employee}}</option>                                     
-                                            {% else %}
-                                            <option>{{employee}}</option> 
-                                            {% endif %} 
-                                        {% endfor %} 
-                                    </select>
+                                    <input type="text" name="approvedByList" class="form-control" placeholder="" value="{{itenerary.approved_by}}" disabled> 
+                        
                                 </div>  
                             </td>
                         </tr>
@@ -250,7 +216,7 @@ View Employee Itinerary Form
                     <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
                         <i class="fa fa-download"></i> Generate PDF
                     </button>
-                    <button type="submit" class="btn btn-info pull-right" style="margin-right: 5px;"><span class="fa fa-fw fa-send"></span> Submit</button>
+                    <button type="submit" class="btn btn-info pull-right" style="margin-right: 5px;"><span class="fa fa-fw fa-thumbs-o-up"></span> Approve</button>
                 </div>
             </div>
         </div>
