@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 {% load humanize %} 
 {% block title %}
 Payroll System Index Page
@@ -276,8 +276,14 @@ Payroll System Index Page
 
 
         <li class="header">LABELS</li>
-        <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-fw fa-gear text-red"></i> <span>Settings</span></a></li>
-        <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-circle-o text-yellow"></i> <span>Warning</span></a></li>
+        
+        {% block nav_mgmt_forms %}
+        <li><a href="{% url 'application:form_manager' %}" data-toggle="tooltip" title="Manage Forms"><i class="fa fa-fw fa-table text-red"></i> <span>Manage Forms</span></a></li> 
+        {% endblock nav_mgmt_forms %}
+          
+        {% block nav_rap %}
+        <li><a href="{% url 'application:employee_manage_roles_and_permission' %}" data-toggle="tooltip" title="This feature is under maintainance" ><i class="fa fa-fw fa-legal text-orange"></i> <span>Roles & Permission</span></a></li>
+        {% endblock nav_rap %} 
         <li><a href="#" data-toggle="tooltip" title="This feature is under maintainance"><i class="fa fa-circle-o text-aqua"></i> <span>Information</span></a></li>
       </ul>
     </section>
@@ -571,13 +577,16 @@ Payroll System Index Page
   </div>
   <!-- /.content-wrapper -->
   <footer class="main-footer">
+
+
+    
     <div class="pull-right hidden-xs">
       <b>Version</b> 0.9.0
     </div>
     <strong>Copyright &copy; 2020 <a href="https://lits.com.ph">LITS System</a>.</strong> All rights
     reserved.
   </footer>
-
+   
   <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark" style="display: none;">
     <!-- Create the tabs -->

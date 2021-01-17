@@ -28,9 +28,18 @@ urlpatterns = [
     path('employees/attendance/view/cutoff/<str:pk>/<int:id>/', views.employee_attendance_cutoff, name="employee_attendance_cut_off_view"),
     path('employees/attendance/view/cutoff/manual/<str:pk>/<int:id>/', views.employee_attendance_manual_configuration, name="employee_attendance_cut_off_manual"),
     path('employees/payroll/manage/admin/', views.employee_payroll_page, name="employee_payroll_manage"),
+    path('employees/payroll/manage/admin/payroll-summary/<int:id>/', views.employee_payroll_summary_page, name="employee_payroll_summary"),
+    path('employees/payroll/manage/admin/payroll-summary/print/<int:id>/', views.employee_payroll_summary_print_page, name="employee_payroll_summary_print_page"),
     path('employees/payroll/manage/admin/cutoff/<int:id>/', views.employee_payroll_employee_list, name="employee_payroll_manage_employee_list"),
     path('employees/payroll/manage/admin/cutoff/create/payroll/<str:key>/<int:id>/', views.employee_create_payroll, name="employee_create_payroll"),
     path('employees/payroll/manage/admin/cutoff/print/payroll/<str:key>/<int:id>/', views.employee_print_payroll, name="employee_print_payroll"),
+    # path('employees/admin/manage/roles-and-permissions/', views.employee_view_roles_and_permission, name="employee_view_roles_and_permission"),
+    path('employees/admin/manage/roles-and-permissions/', views.employee_manage_roles_and_permission, name="employee_manage_roles_and_permission"),
+    path('employees/admin/create/roles-and-permission/', views.employee_create_roles_permission, name="employee_create_roles_permission"),
+    path('employees/admin/edit/roles-and-permission/<int:id>', views.employee_edit_roles_permission, name="employee_edit_roles_permission"),
+    path('employees/admin/delete/roles-and-permission/<int:id>', views.employee_delete_role_permission, name="employee_delete_role_permission"),
+    path('manage/form-manager/', views.form_manager, name="form_manager"),
+
     
     path('employees/payroll/manage/cutoff/edit/payroll/<str:key>/<int:id>/', views.employee_edit_payroll, name="employee_edit_payroll"),
     path('employees/payroll/manage/cutoff/delete/payroll/<str:key>/<int:id>/', views.employee_delete_payroll, name="employee_delete_payroll"),
@@ -89,5 +98,5 @@ urlpatterns = [
     path('employee/error/', views.employee_side_error_page, name="employee_side_error_page"),
     path('employee/error/leave/', views.employee_side_leave_error_page, name="employee_side_leave_error_page"),
     path('employee/error/payroll/', views.employee_side_error_payroll_page, name="employee_side_error_payroll_page"),
-    
+    path('employee/form-manager/', views.employee_side_form_manager, name="employee_side_form_manager"),    
 ]

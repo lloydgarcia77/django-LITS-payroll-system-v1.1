@@ -1,5 +1,5 @@
 {% extends 'index.html' %} 
-{% load staticfiles %} 
+{% load static %} 
 {% load humanize %} 
 {% block title %} 
 Manage Employee Leaves
@@ -115,7 +115,7 @@ Manage Employee Leaves
                     <h3 class="box-title">Employee Leaves Table</h3>
                 </div>
                 <div class="box-body">
-                    <table id="tblLeaves" class="table table-bordered table-striped text-center">
+                    <table id="tblLeaves" class="table table-bordered table-striped text-center" >
                         <thead>
                             <tr>
                                 <th style="width: 5%">ID</th>

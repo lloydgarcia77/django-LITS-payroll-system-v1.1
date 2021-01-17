@@ -218,15 +218,24 @@ LOGOUT_REDIRECT_URL = 'login'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # --------Send Grid
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY') 
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-DEFAULT_FROM_EMAIL = 'lloydgarcia77@gmail.com'
-EMAIL_FROM = 'lloydgarcia77@gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY') 
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+# EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+# DEFAULT_FROM_EMAIL = 'lloydgarcia77@gmail.com'
+# EMAIL_FROM = 'lloydgarcia77@gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
 
+# Go Daddy
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_HOST_USER = 'info@lits.com.ph'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = '@Helios2o18'
+EMAIL_PORT = 587
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = True
 # from cryptography.fernet import Fernet
 # Fernet.generate_key()
 ENCRYPT_KEY = b'xlNVkz4loCnsQWGmKEMjj7De5fj0d_N0_yeKxGJxDSk='

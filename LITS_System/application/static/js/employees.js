@@ -1,5 +1,5 @@
-$(document).ready(function(e){
-    let table = $('#tblEmployees').DataTable({
+$(document).ready(function(e){ 
+    let table = $('#tblEmployees').DataTable({ 
         'columnDefs': [{
             'targets': [1, 5], /* column index */
             'orderable': false, /* true or false */

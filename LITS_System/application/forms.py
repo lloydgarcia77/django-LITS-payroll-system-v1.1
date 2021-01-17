@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, CompanyInfo,TelephoneNumberInfo,CutOffPeriodInfo, AttendanceInfo, EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails,Concerns,Overtime,OvertimeDetails
+from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, CompanyInfo,TelephoneNumberInfo,CutOffPeriodInfo, AttendanceInfo, EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails,Concerns,Overtime,OvertimeDetails,RolesPermission
 import os
 from decimal import Decimal
 
@@ -110,19 +110,19 @@ class PersonalForm(forms.ModelForm):
             'type': 'text',
             'class': 'form-control',
             'placeholder': 'First name', 
-            'maxlength': '10',
+            'maxlength': '20',
         }
         self.fields['middle_name'].widget.attrs = {
             'type': 'text',
             'class': 'form-control',
             'placeholder': 'Middle Name',
-            'maxlength': '10',
+            'maxlength': '20',
         }
         self.fields['last_name'].widget.attrs = {
             'type': 'text',
             'class': 'form-control',
             'placeholder': 'Last name',
-            'maxlength': '10',
+            'maxlength': '20',
         }
         self.fields['age'].widget.attrs = {
             'class': 'form-control',
@@ -565,18 +565,20 @@ class EmployeePayrollForm(forms.ModelForm):
     #         }
     #     ),
     #     input_formats=('%b %d %Y',)
-    # )
-    #monthly_rate = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val, required=True)
-    #monthly_allowance = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    # ) 
     basic_pay = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val, required=True)
     allowance = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    overtime_pay = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    # legal_holiday = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    # special_holiday = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
-    late_or_absences = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    ot_hours = forms.IntegerField(initial=0)
+    ot_pay = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val) 
+    holiday_pay = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     salary_or_cash_advance = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
 
     # deductions
+    late_min = forms.IntegerField(initial=0)
+    undertime_min = forms.IntegerField(initial=0)
+    late_undertime_min_amount = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
+    absences = forms.IntegerField(initial=0)
+    absences_amount = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     sss_premiums = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     philhealth_contribution = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
     pagibig_contribution = forms.DecimalField(max_digits=12, decimal_places=2, initial=default_val)
@@ -602,25 +604,22 @@ class EmployeePayrollForm(forms.ModelForm):
             'id':'allowance',
             'class': 'form-control',
             'step': 'any',
-        }
-        self.fields['overtime_pay'].widget.attrs = {
-            'id':'overtimePay',
+        } 
+        self.fields['ot_hours'].widget.attrs = {
+            'id':'otHours',
             'class': 'form-control',
             'step': 'any',
         }
-        # self.fields['legal_holiday'].widget.attrs = {
-        #     'id':'legalHoliday',
-        #     'class': 'form-control',
-        # }
-        # self.fields['special_holiday'].widget.attrs = {
-        #     'id':'sundaySpecialHoliday',
-        #     'class': 'form-control',
-        # }
-        self.fields['late_or_absences'].widget.attrs = {
-            'id':'lateAbsences',
+        self.fields['ot_pay'].widget.attrs = {
+            'id':'otPay',
             'class': 'form-control',
             'step': 'any',
         }
+        self.fields['holiday_pay'].widget.attrs = {
+            'id':'holidayPay',
+            'class': 'form-control',
+            'step': 'any',
+        } 
         self.fields['salary_or_cash_advance'].widget.attrs = {
             'id':'salaryCashAdvance',
             'class': 'form-control',
@@ -639,7 +638,37 @@ class EmployeePayrollForm(forms.ModelForm):
             'readonly': 'readonly',
             'step': 'any',
         }
-        #---
+        # Deductions
+        self.fields['late_min'].widget.attrs = {
+            'id':'lateMin',
+            'class': 'form-control',
+            'readonly': 'readonly',
+            'step': 'any',
+        }
+        self.fields['undertime_min'].widget.attrs = {
+            'id':'undertimeMin',
+            'class': 'form-control',
+            'readonly': 'readonly',
+            'step': 'any',
+        }
+        self.fields['late_undertime_min_amount'].widget.attrs = {
+            'id':'lateUndertimeMinAmount',
+            'class': 'form-control',
+            'readonly': 'readonly',
+            'step': 'any',
+        }
+        self.fields['absences'].widget.attrs = {
+            'id':'Absences',
+            'class': 'form-control',
+            'readonly': 'readonly',
+            'step': 'any',
+        }
+        self.fields['absences_amount'].widget.attrs = {
+            'id':'AbsencesAmount',
+            'class': 'form-control',
+            'readonly': 'readonly',
+            'step': 'any',
+        }
         self.fields['philhealth_contribution'].widget.attrs = {
             'id':'philhealContribution',
             'class': 'form-control',
@@ -893,3 +922,29 @@ class OvertimeDetailsForm(forms.ModelForm):
             #'required': 'required',
         }
 
+
+class RolesPermissionForm(forms.ModelForm):
+    class Meta():
+        model = RolesPermission
+        #fields = '__all__'
+        exclude = ('employee_ci_rp_fk','immidiate_head',)
+    def __init__(self, *args, **kwargs):
+        super(RolesPermissionForm, self).__init__(*args, **kwargs)
+
+        # self.fields['employee_ci_rp_fk'].widget.attrs = {  
+        #     'class': 'form-control select2',  
+        #     'width': '100%',  
+        # }
+
+        self.fields['role'].widget.attrs = {  
+            'class': 'form-control select2',  
+            'style': 'width: 100%',  
+        }
+
+        self.fields['title'].widget.attrs = {  
+            'class': 'form-control',     
+        }
+
+        # self.fields['immidiate_head'].widget.attrs = {  
+        #     'class': 'form-control',     
+        # }

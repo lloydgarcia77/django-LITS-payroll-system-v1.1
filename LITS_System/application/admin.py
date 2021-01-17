@@ -1,5 +1,5 @@
 from django.contrib import admin
-from application.models import PersonalInfo, MobileNumberInfo, TelephoneNumberInfo, SkillsInfo, CompanyInfo, CutOffPeriodInfo, AttendanceInfo,EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary,EmployeeIteneraryDetails,Concerns,Notifications,Overtime,OvertimeDetails
+from application.models import PersonalInfo, MobileNumberInfo, TelephoneNumberInfo, SkillsInfo, CompanyInfo, CutOffPeriodInfo, AttendanceInfo,EmployeePayroll, EmployeeSalary, EmployeeLeaves, EmployeeItenerary,EmployeeIteneraryDetails,Concerns,Notifications,Overtime,OvertimeDetails,RolesPermission
 from import_export.admin import ImportExportModelAdmin 
 # Register your models here.
 
@@ -129,10 +129,10 @@ class AttendanceAdmin(ImportExportModelAdmin):
 admin.site.register(AttendanceInfo, AttendanceAdmin)
 
 class EmployeePayrollAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'employee_fk','payroll_cutoff_period','payroll_date','basic_pay','allowance','overtime_pay','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','net_pay','thirteenth_month_pay','date_added','is_seen')
-    list_editable = ('employee_fk','payroll_cutoff_period','basic_pay','allowance','overtime_pay','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay','is_seen')
+    list_display = ('id', 'employee_fk','payroll_cutoff_period','payroll_date','basic_pay','allowance','salary_or_cash_advance','gross_pay','ot_hours', 'ot_pay','holiday_pay','late_min', 'undertime_min', 'late_undertime_min_amount','absences','absences_amount','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','net_pay','thirteenth_month_pay','date_added','is_seen')
+    list_editable = ('employee_fk','payroll_cutoff_period','basic_pay','allowance','salary_or_cash_advance','gross_pay','ot_hours', 'ot_pay', 'holiday_pay','late_min', 'undertime_min',  'late_undertime_min_amount','absences','absences_amount','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay','is_seen')
     list_per_page = 10
-    search_fields = ('employee_fk','payroll_cutoff_period','payroll_date','basic_pay','allowance','overtime_pay','late_or_absences','salary_or_cash_advance','gross_pay','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay')
+    search_fields = ('employee_fk','payroll_cutoff_period','payroll_date','basic_pay','allowance','salary_or_cash_advance','gross_pay','ot_hours', 'ot_pay', 'holiday_pay','late_min', 'undertime_min',  'late_undertime_min_amount','absences','absences_amount','sss_premiums','philhealth_contribution','pagibig_contribution','withholding_tax','pagibig_loan','deducted_salary_cash_advance','total_deduction','thirteenth_month_pay','net_pay')
     list_filter = ('employee_fk','payroll_cutoff_period','payroll_date')
 
 admin.site.register(EmployeePayroll, EmployeePayrollAdmin)
@@ -220,7 +220,14 @@ class OvertimeDetailsAdmin(ImportExportModelAdmin):
 
 admin.site.register(OvertimeDetails, OvertimeDetailsAdmin)
 
+class RolesPermissionAdmin(ImportExportModelAdmin):
+    list_display = ('id','employee_ci_rp_fk','role','title','immidiate_head',)
+    list_editable = ('employee_ci_rp_fk','role','title','immidiate_head',)
+    list_per_page = 10
+    search_fields = ('id','employee_ci_rp_fk','role','title','immidiate_head',)
+    list_filter = ('employee_ci_rp_fk','role','title','immidiate_head',)
 
+admin.site.register(RolesPermission, RolesPermissionAdmin)
 #  list_display = ()
 #  list_editable = ()
 #  list_per_page = 10

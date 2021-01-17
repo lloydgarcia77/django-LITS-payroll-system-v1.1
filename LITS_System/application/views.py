@@ -46,12 +46,15 @@ import logging
 import traceback
 import xlrd 
 from django.forms import modelformset_factory, inlineformset_factory
-from application.forms import UserAccountCredentialsForm, PersonalForm, MobileNumberForm, SkillsForm, CompanyForm, TelephoneNumberForm, CutOffPeriodForm,AttendanceForm,AttendanceFormManual,EmployeeSalaryForm,EmployeePayrollForm,EmployeeLeavesForm, EmployeeIteneraryForm, EmployeeIteneraryDetailsForm, ConcernsEmployeeForm, ConcernsReplyEmployeeForm,OvertimeForm,OvertimeDetailsForm
-from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, TelephoneNumberInfo, CompanyInfo, AttendanceInfo, CutOffPeriodInfo, EmployeeSalary, EmployeePayroll,EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails, Concerns, Notifications,Overtime,OvertimeDetails
+from application.forms import UserAccountCredentialsForm, PersonalForm, MobileNumberForm, SkillsForm, CompanyForm, TelephoneNumberForm, CutOffPeriodForm,AttendanceForm,AttendanceFormManual,EmployeeSalaryForm,EmployeePayrollForm,EmployeeLeavesForm, EmployeeIteneraryForm, EmployeeIteneraryDetailsForm, ConcernsEmployeeForm, ConcernsReplyEmployeeForm,OvertimeForm,OvertimeDetailsForm,RolesPermissionForm
+from application.models import PersonalInfo, MobileNumberInfo, SkillsInfo, TelephoneNumberInfo, CompanyInfo, AttendanceInfo, CutOffPeriodInfo, EmployeeSalary, EmployeePayroll,EmployeeLeaves, EmployeeItenerary, EmployeeIteneraryDetails, Concerns, Notifications,Overtime,OvertimeDetails,RolesPermission
 from django.forms import modelformset_factory, inlineformset_factory
 from datetime import date
+from django.db.models import F
 # https://www.pythoncircle.com/post/641/encryption-decryption-in-python-django/
 # https://www.quora.com/How-do-I-block-inspect-element-on-my-website
+
+from application.custom_user_validator import validate
 
 category_list = [
     'Uploading File',
@@ -105,6 +108,7 @@ def read_notifications(request,id):
     else:
         raise Http404()
 
+
 def read_all_notifications(request):
     data = dict()
     current_user = get_object_or_404(User, username=request.user.username)
@@ -146,7 +150,7 @@ def read_attendance_file(attendance_file, request, form, data):
         instance.attendance_file = attendance_file
         instance.cut_off_period = cut_off_period
         instance.save() #save the form if successful
- 
+        
 
         # dates
         for index in range(3, schedule_information.ncols):
@@ -159,73 +163,69 @@ def read_attendance_file(attendance_file, request, form, data):
             #checking if db has multiple names might duplicate the attendance record for other matching names
         starting_row = 3 # verify
         for row in range(3, att_log_report.nrows):
-                starting_row += 2    
-                starting_col = 2
-                #cols
-                for col in range(att_log_report.ncols):
-                    #rows
-                    if not starting_row > att_log_report.nrows: 
-                        starting_col += 1 
-                        date = att_log_report.cell_value(3,col)
-                        hours = att_log_report.cell_value(starting_row,col)
-                        id = att_log_report.cell_value(starting_row-1,2)
-                        name = att_log_report.cell_value(starting_row-1,10)   
-                        # print('Row:',starting_row,'ID: ',id ,"Name: ",name)
-                        timeIn = hours[:5]
-                        timeOut = hours[-5:]    
-                        
-                        
-                        #columns
-                        if starting_col < schedule_information.ncols:   
-                            days_of_month = schedule_information.cell_value(3, starting_col)    
-                            if date != "": 
-                                # for id
-                                company_info = CompanyInfo.objects.all() 
-                                for company in company_info:  
-                                    if not company.biometrics_id == "0":
-                                        if company.biometrics_id == id:
-                                            company_user_profile = get_object_or_404(PersonalInfo, fk_user=company.fk_company_user)
+            
+            starting_row += 2    
+            starting_col = 2
+            #cols
+            for col in range(att_log_report.ncols):
+                #rows
+                
+                if not starting_row > att_log_report.nrows: 
+                    
+                    starting_col += 1 
+                    date = att_log_report.cell_value(3,col)
+                    hours = att_log_report.cell_value(starting_row,col)
+                    id = att_log_report.cell_value(starting_row-1,2)
+                    name = att_log_report.cell_value(starting_row-1,10)   
+                    # print('Row:',starting_row,'ID: ',id ,"Name: ",name)
+                    timeIn = hours[:5]
+                    timeOut = hours[-5:]     
+                    #columns
+                    if starting_col < schedule_information.ncols:   
+                        days_of_month = schedule_information.cell_value(3, starting_col)    
+                        if date != "": 
+                            # for id
+                            company_info = CompanyInfo.objects.all()   
+                            for company in company_info:   
+                                if not company.biometrics_id == "0":
+                                    if company.biometrics_id == id:   
+                                        personal = PersonalInfo.objects.filter(fk_user=company.fk_company_user).count()
+                                        if personal > 0: 
+                                            company_user_profile = get_object_or_404(PersonalInfo, fk_user=company.fk_company_user) 
                                             t_diff, under_time, overtime_hours = calculate_hours(timeIn, timeOut, company)
-                                            #print(company.biometrics_id,'-',company.fk_company_user,'=',company_user_profile)
+                                            # print(company.biometrics_id,'-',company.fk_company_user,'=',company_user_profile)
                                             attendance = AttendanceInfo(employee_profile=company_user_profile, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
-                                            attendance.save()
-                                    
+                                            attendance.save() 
+                            # 
+                            # employees = PersonalInfo.objects.all()
+                            # for employee in employees:
+                            #     employee_name = '{fname} {mname} {lname}'.format(fname=employee.first_name, mname=employee.middle_name, lname=employee.last_name) 
+                            #     #print(name,'-',employee_name)
+                            #     if name in employee_name:
+                            #         #important notes get will not return when multiple names has been detected on the database or xlsx
+                            #         #employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).filter(Q(name__icontains=name.casefold()))
+                            #         try:
+                            #             employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).get(Q(name__icontains=name.casefold()))
+                            #             attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
+                            #             attendance.save()
+                                
+                            #         except PersonalInfo.MultipleObjectsReturned:
+                            #             print('Multiple Names Detected! Cannot be processed!')
+                                        
+                            #             success = False
+                            #     else:
+                            #         #print('Not Found')
+                            #         pass
+                            # 
+                            # attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time)
+                            # attendance.save()
 
-                                # 
-                                # employees = PersonalInfo.objects.all()
-                                # for employee in employees:
-                                #     employee_name = '{fname} {mname} {lname}'.format(fname=employee.first_name, mname=employee.middle_name, lname=employee.last_name) 
-                                #     #print(name,'-',employee_name)
-                                #     if name in employee_name:
-                                #         #important notes get will not return when multiple names has been detected on the database or xlsx
-                                #         #employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).filter(Q(name__icontains=name.casefold()))
-                                #         try:
-                                #             employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).get(Q(name__icontains=name.casefold()))
-                                #             attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time, overtime=overtime_hours)
-                                #             attendance.save()
-                                    
-                                #         except PersonalInfo.MultipleObjectsReturned:
-                                #             print('Multiple Names Detected! Cannot be processed!')
-                                            
-                                #             success = False
-                                #     else:
-                                #         #print('Not Found')
-                                #         pass
-                                # 
-                                # attendance = AttendanceInfo(employee_profile=employees, cut_off_period=instance, days_of_week=days_of_month, date=str(int(date)), time_in=timeIn, time_out=timeOut, late=t_diff, undertime=under_time)
-                                # attendance.save()
-
-                                #print(row,hours,end=" ")
-                                #output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
-                                # output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
-                                # print(output, end=" ")
-                                # print()
-                                #print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")  
-                        
-                print('')             
-        
-        
-
+                            #print(row,hours,end=" ")
+                            #output = '{row} => ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime}) Late: ({dtime}) Under Time: ({utime})'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, dtime=t_diff, utime=under_time)
+                            # output = 'ID: [{id}] Day:[{days}] Name: [{name}]- Date: ({date}) - Hours: ({stime}-{etime} O.T: ({overtime}))'.format(row=row, id=id, days=days_of_month,name=name,date=str(int(date)),stime=timeIn,etime=timeOut, overtime=overtime_hours)
+                            # print(output, end=" ")
+                            # print()
+                            #print(row,'=>','[]',str(int(days)), '-(', hours[:5], '-', hours[-5:],')', end=" ")         
         if success:
             data['success'] = True
         else:
@@ -257,6 +257,7 @@ def read_attendance_file(attendance_file, request, form, data):
             Notifications.objects.create(sender=current_user,recipient=p.fk_user,message="Cut-off attendance was uploaded!",category=category_list[0],level=level_list[1])
              
     else:
+        
         data['success'] = True
         data['form_is_valid'] = False
         messages.error(request, 'Record Already Exists')
@@ -289,8 +290,12 @@ def calculate_hours(timeIn, timeOut, company):
         if d_time_in > d_working_hours_in:
             # convert time diff to minutes 1 min = 60 secs
             t_diff =  int((d_time_in - d_working_hours_in).total_seconds() / 60.0)
+            if t_diff < 0:
+                t_diff = 0
         if d_time_out < d_working_hours_out:
             under_time = int((d_time_out - d_working_hours_out).total_seconds() / 60.0)
+            if under_time < 0:
+                under_time = 0
         
         #for ot computation
         if d_time_out > min_overtime:
@@ -353,92 +358,181 @@ def error_500(request):
     return render(request, template_name, context)
 
 
-class PayrollAttendanceIndexPage(LoginRequiredMixin, TemplateView):
-    template_name = "index.html"
+# class PayrollAttendanceIndexPage(LoginRequiredMixin, TemplateView):
+#     template_name = "index.html"
 
-    def get_context_data(self, *args, **kwargs): 
-        context = super(PayrollAttendanceIndexPage, self).get_context_data(*args, **kwargs)
-        user = get_object_or_404(User, username=self.request.user.username) 
-        if user.is_active and user.is_staff and user.is_superuser: 
-            notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-            notifications_count = notifications.count()
-            total_emp = PersonalInfo.objects.all().distinct().count()
-            #unapproved user registration
-            total_unpermitted_emp = User.objects.all().filter(Q(is_active=False) | Q(is_staff=False)).distinct().count()            
-            total_active_user_emp = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True)).distinct().count()
-            total_attendance = AttendanceInfo.objects.all().distinct().count()  
-            total_payroll = EmployeePayroll.objects.all().distinct().count()  
-            total_leaves = EmployeeLeaves.objects.all().distinct().count()  
-            total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved')).distinct().count()  
-            total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')).distinct().count()  
-            total_iteneraries = EmployeeItenerary.objects.all().distinct().count()  
-            total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(~Q(checked_by=None) & ~Q(approved_by=None)).distinct().count()  
-            total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(checked_by=None) & Q(approved_by=None)).distinct().count() 
-            total_concern =  Concerns.objects.all().distinct().count() 
-            total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None)).distinct().count()   
-            emp_payrolls = EmployeePayroll.objects.all()
-            year_list = [] 
+#     def get_context_data(self, *args, **kwargs): 
+#         context = super(PayrollAttendanceIndexPage, self).get_context_data(*args, **kwargs)
+#         user = get_object_or_404(User, username=self.request.user.username) 
 
-            yearly_employee_wages_list = []
-            yearly_emplpyee_deduction_list = []
 
-            for emp in emp_payrolls:
-                year = str(emp.payroll_cutoff_period)[:4]
-                if not year in year_list:
-                    year_list.append(year)  
+#         notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+#         notifications_count = notifications.count()
+#         total_emp = PersonalInfo.objects.all().distinct().count()
+#         #unapproved user registration
+#         total_unpermitted_emp = User.objects.all().filter(Q(is_active=False) | Q(is_staff=False)).distinct().count()            
+#         total_active_user_emp = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True)).distinct().count()
+#         total_attendance = AttendanceInfo.objects.all().distinct().count()  
+#         total_payroll = EmployeePayroll.objects.all().distinct().count()  
+#         total_leaves = EmployeeLeaves.objects.all().distinct().count()  
+#         total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved')).distinct().count()  
+#         total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')).distinct().count()  
+#         total_iteneraries = EmployeeItenerary.objects.all().distinct().count()  
+#         total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(~Q(checked_by=None) & ~Q(approved_by=None)).distinct().count()  
+#         total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(checked_by=None) & Q(approved_by=None)).distinct().count() 
+#         total_concern =  Concerns.objects.all().distinct().count() 
+#         total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None)).distinct().count()   
+#         emp_payrolls = EmployeePayroll.objects.all()
+#         year_list = [] 
+
+#         yearly_employee_wages_list = []
+#         yearly_emplpyee_deduction_list = []
+
+#         for emp in emp_payrolls:
+#             year = str(emp.payroll_cutoff_period)[:4]
+#             if not year in year_list:
+#                 year_list.append(year)  
+        
+#         #print(year_list)
+
+#         for year in year_list:
+#             total_net_pay = 0
+#             total_deductions = 0
+#             cutoffperiod = CutOffPeriodInfo.objects.all().filter(Q(cut_off_period__icontains=year)) 
+#             for cutoff in cutoffperiod:
+#                 emp_payroll = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('net_pay')).get('net_pay__sum') 
+#                 emp_deductions  = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('total_deduction')).get('total_deduction__sum') 
+#                 if emp_payroll:
+#                     total_net_pay = total_net_pay + emp_payroll 
+#                     total_deductions = total_deductions + emp_deductions
+#                 #print(year,'=',cutoff,':',emp_payroll)
+#             #print('----')
+#             #print(year,'=',total_net_pay)
             
-            #print(year_list)
+#             yearly_employee_wages_list.append({'year': year, 'value': int(round(total_net_pay,2))})
+#             yearly_emplpyee_deduction_list.append({'year': year, 'deduction': int(round(total_deductions,2)), 'wages': int(round(total_net_pay,2))})
 
-            for year in year_list:
-                total_net_pay = 0
-                total_deductions = 0
-                cutoffperiod = CutOffPeriodInfo.objects.all().filter(Q(cut_off_period__icontains=year)) 
-                for cutoff in cutoffperiod:
-                    emp_payroll = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('net_pay')).get('net_pay__sum') 
-                    emp_deductions  = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('total_deduction')).get('total_deduction__sum') 
-                    if emp_payroll:
-                        total_net_pay = total_net_pay + emp_payroll 
-                        total_deductions = total_deductions + emp_deductions
-                    #print(year,'=',cutoff,':',emp_payroll)
-                #print('----')
-                #print(year,'=',total_net_pay)
+#         dumps_yearly_employee_wages_list = json.dumps(yearly_employee_wages_list)
+#         loads_yearly_employee_wages_list =json.loads(dumps_yearly_employee_wages_list)
+#         # print(dumps_yearly_employee_wages_list)
+        
+#         dumps_yearly_employee_deduction_list = json.dumps(yearly_emplpyee_deduction_list)
+#         loads_yearly_employee_deduction_list =json.loads(dumps_yearly_employee_deduction_list)
                 
-                yearly_employee_wages_list.append({'year': year, 'value': int(round(total_net_pay,2))})
-                yearly_emplpyee_deduction_list.append({'year': year, 'deduction': int(round(total_deductions,2)), 'wages': int(round(total_net_pay,2))})
+#         # https://www.educative.io/edpresso/what-is-the-difference-between-jsonloads-and-jsondumps
 
-            dumps_yearly_employee_wages_list = json.dumps(yearly_employee_wages_list)
-            loads_yearly_employee_wages_list =json.loads(dumps_yearly_employee_wages_list)
-            # print(dumps_yearly_employee_wages_list)
+#         context.update({
+#             'user': user, 
+#             'total_emp': total_emp,
+#             'total_unpermitted_emp': total_unpermitted_emp,
+#             'total_active_user_emp': total_active_user_emp,
+#             'total_attendance': total_attendance,
+#             'total_payroll': total_payroll,
+#             'total_leaves': total_leaves,
+#             'total_unapproved_leaves': total_unapproved_leaves,
+#             'total_approved_leaves': total_approved_leaves,
+#             'total_iteneraries': total_iteneraries,
+#             'total_unapproved_iteneraries': total_unapproved_iteneraries,
+#             'total_approved_iteneraries': total_approved_iteneraries,
+#             'total_concern': total_concern,
+#             'total_unreplied_concern': total_unreplied_concern, 
+#             'loads_yearly_employee_wages_list': loads_yearly_employee_wages_list,
+#             'loads_yearly_employee_deduction_list': loads_yearly_employee_deduction_list,
+#             'notifications': notifications,
+#             'notifications_count': notifications_count,
+#         })
+#         return context
+         
             
-            dumps_yearly_employee_deduction_list = json.dumps(yearly_emplpyee_deduction_list)
-            loads_yearly_employee_deduction_list =json.loads(dumps_yearly_employee_deduction_list)
-                 
-            # https://www.educative.io/edpresso/what-is-the-difference-between-jsonloads-and-jsondumps
- 
-            context.update({
-                'user': user, 
-                'total_emp': total_emp,
-                'total_unpermitted_emp': total_unpermitted_emp,
-                'total_active_user_emp': total_active_user_emp,
-                'total_attendance': total_attendance,
-                'total_payroll': total_payroll,
-                'total_leaves': total_leaves,
-                'total_unapproved_leaves': total_unapproved_leaves,
-                'total_approved_leaves': total_approved_leaves,
-                'total_iteneraries': total_iteneraries,
-                'total_unapproved_iteneraries': total_unapproved_iteneraries,
-                'total_approved_iteneraries': total_approved_iteneraries,
-                'total_concern': total_concern,
-                'total_unreplied_concern': total_unreplied_concern, 
-                'loads_yearly_employee_wages_list': loads_yearly_employee_wages_list,
-                'loads_yearly_employee_deduction_list': loads_yearly_employee_deduction_list,
-                'notifications': notifications,
-                'notifications_count': notifications_count,
-            })
-            return context
-        else:
-            raise Http404()
 
+@login_required
+def PayrollAttendanceIndexPage(request):
+    template_name = "index.html"
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user,is_managing_director=True, is_human_resource=True)
+
+    if user:  
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+        total_emp = PersonalInfo.objects.all().distinct().count()
+        #unapproved user registration
+        total_unpermitted_emp = User.objects.all().filter(Q(is_active=False) | Q(is_staff=False)).distinct().count()            
+        total_active_user_emp = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True)).distinct().count()
+        total_attendance = AttendanceInfo.objects.all().distinct().count()  
+        total_payroll = EmployeePayroll.objects.all().distinct().count()  
+        total_leaves = EmployeeLeaves.objects.all().distinct().count()  
+        total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved')).distinct().count()  
+        total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')).distinct().count()  
+        total_iteneraries = EmployeeItenerary.objects.all().distinct().count()  
+        total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(~Q(checked_by=None) & ~Q(approved_by=None)).distinct().count()  
+        total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(checked_by=None) & Q(approved_by=None)).distinct().count() 
+        total_concern =  Concerns.objects.all().distinct().count() 
+        total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None)).distinct().count()   
+        emp_payrolls = EmployeePayroll.objects.all()
+        year_list = [] 
+
+        yearly_employee_wages_list = []
+        yearly_emplpyee_deduction_list = []
+
+        for emp in emp_payrolls:
+            year = str(emp.payroll_cutoff_period)[:4]
+            if not year in year_list:
+                year_list.append(year)  
+        
+        #print(year_list)
+
+        for year in year_list:
+            total_net_pay = 0
+            total_deductions = 0
+            cutoffperiod = CutOffPeriodInfo.objects.all().filter(Q(cut_off_period__icontains=year)) 
+            for cutoff in cutoffperiod:
+                emp_payroll = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('net_pay')).get('net_pay__sum') 
+                emp_deductions  = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('total_deduction')).get('total_deduction__sum') 
+                if emp_payroll:
+                    total_net_pay = total_net_pay + emp_payroll 
+                    total_deductions = total_deductions + emp_deductions
+                #print(year,'=',cutoff,':',emp_payroll)
+            #print('----')
+            #print(year,'=',total_net_pay)
+            
+            yearly_employee_wages_list.append({'year': year, 'value': int(round(total_net_pay,2))})
+            yearly_emplpyee_deduction_list.append({'year': year, 'deduction': int(round(total_deductions,2)), 'wages': int(round(total_net_pay,2))})
+
+        dumps_yearly_employee_wages_list = json.dumps(yearly_employee_wages_list)
+        loads_yearly_employee_wages_list =json.loads(dumps_yearly_employee_wages_list)
+        # print(dumps_yearly_employee_wages_list)
+        
+        dumps_yearly_employee_deduction_list = json.dumps(yearly_emplpyee_deduction_list)
+        loads_yearly_employee_deduction_list =json.loads(dumps_yearly_employee_deduction_list)
+                
+        # https://www.educative.io/edpresso/what-is-the-difference-between-jsonloads-and-jsondumps
+
+        context = {
+            'user': user, 
+            'total_emp': total_emp,
+            'total_unpermitted_emp': total_unpermitted_emp,
+            'total_active_user_emp': total_active_user_emp,
+            'total_attendance': total_attendance,
+            'total_payroll': total_payroll,
+            'total_leaves': total_leaves,
+            'total_unapproved_leaves': total_unapproved_leaves,
+            'total_approved_leaves': total_approved_leaves,
+            'total_iteneraries': total_iteneraries,
+            'total_unapproved_iteneraries': total_unapproved_iteneraries,
+            'total_approved_iteneraries': total_approved_iteneraries,
+            'total_concern': total_concern,
+            'total_unreplied_concern': total_unreplied_concern, 
+            'loads_yearly_employee_wages_list': loads_yearly_employee_wages_list,
+            'loads_yearly_employee_deduction_list': loads_yearly_employee_deduction_list,
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+        }
+
+        return render(request, template_name, context)
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+
+ 
 
 def login_page(request):
     template_name = "registration/login.html"
@@ -451,7 +545,7 @@ def login_page(request):
 
         if user:
             if user.is_active and user.is_staff and user.is_superuser:
-                request.session.set_expiry(300)
+                # request.session.set_expiry(300)
                 login(request, user)
                 logged_in_time = get_object_or_404(User, username=user)
                 cd = datetime.datetime.now()
@@ -462,7 +556,7 @@ def login_page(request):
                 logged_in_time.save()
                 return HttpResponseRedirect(reverse("index"))
             elif user.is_active and user.is_staff and not user.is_superuser: 
-                request.session.set_expiry(300)
+                # request.session.set_expiry(300)
                 login(request, user)
                 logged_in_time = get_object_or_404(User, username=user)
                 cd = datetime.datetime.now()
@@ -764,6 +858,7 @@ def new_company_details(request):
             
                 data['form_is_valid'] = True
             else:
+                print(form.errors)
                 data['form_is_valid'] = False
 
         context = {
@@ -849,16 +944,16 @@ def delete_telephone_number(request, id):
     else:
         raise Http404()
 
-@login_required
+@login_required 
 def cut_off_page(request):
     template_name = "attendance/cut_off_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
         cut_off_period_list = CutOffPeriodInfo.objects.all().order_by('-id').distinct()
         notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
         notifications_count = notifications.count()
- 
+
         context = {
             'user':user, 
             'cut_off_period_list': cut_off_period_list,
@@ -866,9 +961,9 @@ def cut_off_page(request):
             'notifications_count': notifications_count,
         }
 
-        return render(request, template_name, context)
+        return render(request, template_name, context) 
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 def delete_attendance(request, id):
     data = dict()
@@ -915,25 +1010,23 @@ def delete_attendance(request, id):
 def employee_list_page(request):
     template_name = "employees/employee_list.html"
     user = get_object_or_404(User, username=request.user.username)
-    # employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).exclude(username='lloyd.garcia').distinct()
-    employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).distinct()
-    employees = PersonalInfo.objects.all().filter(fk_user__in=employees_company).exclude(Q(key_id='') | Q(first_name='') | Q(middle_name='') | Q(last_name='last_name'))
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser: 
-        
- 
+    
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).distinct()
+        employees = PersonalInfo.objects.all().filter(fk_user__in=employees_company).exclude(Q(key_id='') | Q(first_name='') | Q(middle_name='') | Q(last_name='last_name'))
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         context = {
             'user':user, 
             'employees':employees,
             'employees_company': employees_company,
             'notifications': notifications,
             'notifications_count': notifications_count,
-        }
-
+        } 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))     
 
 @login_required
 def employee_view_profile(request, key):
@@ -1038,12 +1131,13 @@ def delete_employee(request, id):
 def employee_attendance(request, pk):
     template_name = "employees/employee_attendance_list.html"
     user = get_object_or_404(User, username=request.user.username)
-    id = decrypt_key(pk)
-    employee = get_object_or_404(PersonalInfo, id=id)
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    
-    if user.is_active and user.is_staff and user.is_superuser: 
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        id = decrypt_key(pk)
+        employee = get_object_or_404(PersonalInfo, id=id)
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         cut_off_period_list = CutOffPeriodInfo.objects.all().order_by('-id').distinct()
         # attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period__in=cut_off_period_list)).distinct()
         # print(attendance)
@@ -1056,28 +1150,31 @@ def employee_attendance(request, pk):
         }
 
         return render(request, template_name, context)
+       
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_attendance_cutoff(request, pk, id):
     template_name = "employees/employee_cutoff_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    pid = decrypt_key(pk)
-    employee = get_object_or_404(PersonalInfo, id=pid) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        pid = decrypt_key(pk)
+        employee = get_object_or_404(PersonalInfo, id=pid) 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
 
-    today = date.today()
-    year_today = today.strftime("%Y") 
+        today = date.today()
+        year_today = today.strftime("%Y") 
 
-    attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).distinct()
-    #print(attendance,cutoff)
+        attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).distinct()
+        #print(attendance,cutoff)
 
-    AttendanceInlineFormset = inlineformset_factory(PersonalInfo, AttendanceInfo, form=AttendanceForm, extra=0, can_delete=False)
-    
-    if user.is_active and user.is_staff and user.is_superuser:  
+        AttendanceInlineFormset = inlineformset_factory(PersonalInfo, AttendanceInfo, form=AttendanceForm, extra=0, can_delete=False)
+        
         is_available = True
         selected_cut_off = AttendanceInfo.objects.filter(Q(cut_off_period=cutoff) & Q(employee_profile=employee)).order_by("-id")
         
@@ -1150,26 +1247,25 @@ def employee_attendance_cutoff(request, pk, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+		
 @login_required
 def employee_attendance_manual_configuration(request, pk, id):
     template_name = "employees/employee_cutoff_manual_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    pid = decrypt_key(pk)
-    employee = get_object_or_404(PersonalInfo, id=pid) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    today = date.today()
-    year_today = today.strftime("%Y") 
-    AttendanceInlineFormset = inlineformset_factory(CutOffPeriodInfo, AttendanceInfo, form=AttendanceFormManual, extra=16, can_delete=False) 
-     
+    user = get_object_or_404(User, username=request.user.username)     
     # working_hours_in = company.preffered_working_hours[:6]
-    # working_hours_out = company.preffered_working_hours[7:13]
-    if user.is_active and user.is_staff and user.is_superuser: 
+    # working_hours_out = company.preffered_working_hours[7:13]  
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        pid = decrypt_key(pk)
+        employee = get_object_or_404(PersonalInfo, id=pid) 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+        today = date.today()
+        year_today = today.strftime("%Y") 
+        AttendanceInlineFormset = inlineformset_factory(CutOffPeriodInfo, AttendanceInfo, form=AttendanceFormManual, extra=16, can_delete=False) 
         try:  
-            # https://ourcodeworld.com/articles/read/555/how-to-format-datetime-objects-in-the-view-and-template-in-django
             # https://ourcodeworld.com/articles/read/555/how-to-format-datetime-objects-in-the-view-and-template-in-django
             # https://adamj.eu/tech/2020/02/18/safely-including-data-for-javascript-in-a-django-template/
             # https://docs.djangoproject.com/en/3.1/ref/templates/builtins/ 
@@ -1219,43 +1315,156 @@ def employee_attendance_manual_configuration(request, pk, id):
             return render(request, template_name, context) 
         except CompanyInfo.DoesNotExist:
             return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
-        
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+				 
 @login_required
 def employee_payroll_page(request):
     template_name = "payroll/employee_manage_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    cut_off_period_list = CutOffPeriodInfo.objects.all().order_by('-id').distinct()
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser: 
- 
+
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        cut_off_period_list = CutOffPeriodInfo.objects.all().order_by('-id').distinct()
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         context = {
-            'user':user, 
-            'cut_off_period_list':cut_off_period_list,
+        'user':user, 
+        'cut_off_period_list':cut_off_period_list,
+        'notifications': notifications,
+        'notifications_count': notifications_count,
+        } 
+        return render(request, template_name, context)
+
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
+    
+@login_required
+def employee_payroll_summary_page(request, id):
+    template_name = "payroll/employee_payroll_summary.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        cut_off_period_list = EmployeePayroll.objects.all().filter(payroll_cutoff_period=cutoff).order_by('-id').distinct()
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+
+        payroll_list = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).order_by('-id').distinct()
+
+        t_sms = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('basic_pay')).get('basic_pay__sum')
+        t_oth = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('ot_hours')).get('ot_hours__sum')
+        t_ota = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('ot_pay')).get('ot_pay__sum')
+        t_hol = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('holiday_pay')).get('holiday_pay__sum')
+        t_ald = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('absences')).get('absences__sum')
+        t_alm = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(total=Sum(F('late_min') + F('undertime_min')))['total']
+        t_ala = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(total=Sum(F('late_undertime_min_amount') + F('absences_amount')))['total']
+        t_gs = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('gross_pay')).get('gross_pay__sum')
+        t_dp = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('philhealth_contribution')).get('philhealth_contribution__sum')
+        t_ds = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('sss_premiums')).get('sss_premiums__sum')
+        t_dh = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('pagibig_contribution')).get('pagibig_contribution__sum')
+        t_dt = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('withholding_tax')).get('withholding_tax__sum')
+        t_dl = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('deducted_salary_cash_advance')).get('deducted_salary_cash_advance__sum')
+        t_do = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('pagibig_loan')).get('pagibig_loan__sum')
+        t_td = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('total_deduction')).get('total_deduction__sum')
+        t_npa = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('net_pay')).get('net_pay__sum')
+        context = {
+            'user':user,  
+            'payroll_list':payroll_list,
+            'cutoff': cutoff,
+            't_sms':t_sms,
+            't_oth':t_oth,
+            't_ota':t_ota,
+            't_hol':t_hol,
+            't_ald':t_ald,
+            't_alm':t_alm,
+            't_ala':t_ala,
+            't_gs':t_gs,
+            't_dp':t_dp,
+            't_ds':t_ds,
+            't_dh':t_dh,
+            't_dt':t_dt,
+            't_dl':t_dl,
+            't_do':t_do,
+            't_td':t_td,
+            't_npa':t_npa,
             'notifications': notifications,
             'notifications_count': notifications_count,
         }
 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
+@login_required
+def employee_payroll_summary_print_page(request, id):
+    template_name = "payroll/employee_payroll_summary_print.html"
+    user = get_object_or_404(User, username=request.user.username)
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        cut_off_period_list = EmployeePayroll.objects.all().filter(payroll_cutoff_period=cutoff).order_by('-id').distinct()
+
+        payroll_list = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).order_by('-id').distinct()
+
+        t_sms = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('basic_pay')).get('basic_pay__sum')
+        t_oth = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('ot_hours')).get('ot_hours__sum')
+        t_ota = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('ot_pay')).get('ot_pay__sum')
+        t_hol = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('holiday_pay')).get('holiday_pay__sum')
+        t_ald = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('absences')).get('absences__sum')
+        t_alm = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(total=Sum(F('late_min') + F('undertime_min')))['total']
+        t_ala = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(total=Sum(F('late_undertime_min_amount') + F('absences_amount')))['total']
+        t_gs = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('gross_pay')).get('gross_pay__sum')
+        t_dp = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('philhealth_contribution')).get('philhealth_contribution__sum')
+        t_ds = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('sss_premiums')).get('sss_premiums__sum')
+        t_dh = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('pagibig_contribution')).get('pagibig_contribution__sum')
+        t_dt = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('withholding_tax')).get('withholding_tax__sum')
+        t_dl = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('deducted_salary_cash_advance')).get('deducted_salary_cash_advance__sum')
+        t_do = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('pagibig_loan')).get('pagibig_loan__sum')
+        t_td = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('total_deduction')).get('total_deduction__sum')
+        t_npa = EmployeePayroll.objects.filter(Q(payroll_cutoff_period=cutoff)).aggregate(Sum('net_pay')).get('net_pay__sum')
+
+        context = {
+        'user':user,  
+        'payroll_list':payroll_list,
+        'cutoff': cutoff,
+        't_sms':t_sms,
+        't_oth':t_oth,
+        't_ota':t_ota,
+        't_hol':t_hol,
+        't_ald':t_ald,
+        't_alm':t_alm,
+        't_ala':t_ala,
+        't_gs':t_gs,
+        't_dp':t_dp,
+        't_ds':t_ds,
+        't_dh':t_dh,
+        't_dt':t_dt,
+        't_dl':t_dl,
+        't_do':t_do,
+        't_td':t_td,
+        't_npa':t_npa, 
+        }
+
+        return render(request, template_name, context)
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+	
 @login_required
 def employee_payroll_employee_list(request, id):
     template_name = "payroll/employee_manage_payroll_employee_list.html"
     user = get_object_or_404(User, username=request.user.username)
-    employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True) ).exclude(username='lloyd.garcia').distinct()
-    employees = PersonalInfo.objects.all().filter(fk_user__in=employees_company).exclude(Q(key_id='') | Q(first_name='') | Q(middle_name='') | Q(last_name='last_name'))
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-
      
-    if user.is_active and user.is_staff and user.is_superuser: 
- 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        employees_company = User.objects.all().filter(Q(is_active=True) & Q(is_staff=True)).distinct()
+        employees = PersonalInfo.objects.all().filter(fk_user__in=employees_company).exclude(Q(key_id='') | Q(first_name='') | Q(middle_name='') | Q(last_name='last_name'))
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+
         context = {
             'user':user, 
             'cutoff': cutoff,
@@ -1267,7 +1476,8 @@ def employee_payroll_employee_list(request, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+ 
  
 def sss_contribution(monthy_salary_credit):
     #https://sssinquiries.com/contributions/new-sss-contributions-table-and-payment-schedule-2019/
@@ -1349,136 +1559,8 @@ def sss_contribution(monthy_salary_credit):
 def phlhealth_contribution(monthy_salary_credit):
     ph_contrib = float(monthy_salary_credit) * 0.03
     return ph_contrib
-
-def day_shift_payroll_computation(data):
-    WORKING_DAYS = [
-        "MON","TUE","WED","THU","FRI", 
-    ]
-    REST_DAYS = [
-       "SAT", "SUN",
-    ]
-    LEAVES = [
-        'Vacation Leave',
-        'Sick Leave',
-        'Paternity Leave',
-        'Leave without pay',
-        'Others',
-    ]
-    monthly_rate = data["employee_salary"]
-    #daily_rate = (monthly_rate * 12) / 313
-    daily_rate = (monthly_rate * 12) / 261 #because based on the payroll 5 days a week is counting
-    hourly_rate = daily_rate / 8
-    min_rate = hourly_rate / 60
-
-    daily_rate = round(daily_rate, 2)
-    hourly_rate = round(hourly_rate, 2)
-    min_rate = round(min_rate, 2)
-
-    payroll_info = {
-        "Basic Pay": 0,
-        "Overtime Pay": 0,
-        "Legal Holiday": 0,
-        "Sunday/Special Holiday": 0,
-        "Late/Absences": 0,
-        "Gross Pay":0, 
-    }
-
-    PCO = {
-        "Ordinary Days" : 1.25,
-        "Rest Day, Special Day, or Regular Day": 1.30, 
-    }
-
-    LEGAL_HOLIDAY = {
-        'Regular Holiday': 2.0,
-        'Regular Holiday and Rest Day': 2.60,
-    }
-
-    SPECIAL_HOLIDAY = {
-        'Special Day': 1.30,
-        'Special Day and Rest Day': 1.50,
-    }
-
-    HOLIDAYS = [
-        "Regular Holiday",
-        "Special Day",
-        "Special Day and Rest Day",
-        "Regular Holiday and Rest Day",
-    ]
- 
-    
-    if data["Day"] in WORKING_DAYS:
-        if data["PCFWD"] in LEAVES:
-            if data["PCFWD"] == "Leave without pay":
-                payroll_info.update({"Late/Absences": float(daily_rate)})
-                return payroll_info 
-            else:
-                #excempted
-                payroll_info.update({"Basic Pay": float(daily_rate)})
-                return payroll_info
-        
-        else: 
-            if not data["TimeIn"] or not data["TimeOut"] or data["TimeIn"] == "0:00" or data["TimeOut"] == "0:00" : 
-                if data["PCFWD"] in HOLIDAYS:
-                    payroll_info.update({"Basic Pay": float(daily_rate)})
-                    return payroll_info
-                else:
-                    
-                    payroll_info.update({"Late/Absences": float(daily_rate)})
-                    return payroll_info
-
-            else:
-                total_late_absences = 0.0
-                if data["Late"] or data["Late"] is not None:
-                    total_late_absences = total_late_absences + float(data["Late"])
-                if data["Undertime"] or data["Undertime"] is not None: 
-                    total_late_absences = total_late_absences + float(data["Undertime"]) 
-                    total_late_absences = total_late_absences * float(min_rate)
-
-                payroll_info.update({"Late/Absences": total_late_absences})
-
-                if data["Overtime"]: 
-                    total_overtime_pay = float(data["Overtime"]) *  PCO[data["PCO"]]
-                    payroll_info.update({"Overtime Pay": total_overtime_pay})
-                
-                if data["PCFWD"] in LEGAL_HOLIDAY: 
-                    legal_holiday = float(daily_rate) * float(LEGAL_HOLIDAY[data["PCFWD"]])
-                    payroll_info.update({"Legal Holiday": legal_holiday})
-                elif data["PCFWD"] in SPECIAL_HOLIDAY: 
-                    special_holiday = float(daily_rate) * float(SPECIAL_HOLIDAY[data["PCFWD"]])
-                    payroll_info.update({"Sunday/Special Holiday": special_holiday})
-                else:
-                    payroll_info.update({"Basic Pay": float(daily_rate)}) 
-                return payroll_info 
-
-    elif data["Day"] in REST_DAYS:
-        if not data["TimeIn"] or not data["TimeOut"] or data["TimeIn"] == "0:00" or data["TimeOut"] == "0:00":
-            payroll_info.update({"Basic Pay": 0})
-            return payroll_info
-        else:
-                total_late_absences = 0.0
-                if data["Late"] or data["Late"] is not None:
-                    total_late_absences = total_late_absences + float(data["Late"])
-                if data["Undertime"] or data["Undertime"] is not None: 
-                    total_late_absences = total_late_absences + float(data["Undertime"]) 
-                    total_late_absences = total_late_absences * float(min_rate)
-
-                payroll_info.update({"Late/Absences": total_late_absences})
-
-                if data["Overtime"]: 
-                    total_overtime_pay = float(data["Overtime"]) *  PCO[data["PCO"]]
-                    payroll_info.update({"Overtime Pay": total_overtime_pay})
-                
-                if data["PCFWD"] in LEGAL_HOLIDAY: 
-                    legal_holiday = float(daily_rate) * float(LEGAL_HOLIDAY[data["PCFWD"]])
-                    payroll_info.update({"Legal Holiday": legal_holiday})
-                elif data["PCFWD"] in SPECIAL_HOLIDAY: 
-                    special_holiday = float(daily_rate) * float(SPECIAL_HOLIDAY[data["PCFWD"]])
-                    payroll_info.update({"Sunday/Special Holiday": special_holiday})
-                else:
-                    payroll_info.update({"Basic Pay": float(daily_rate)}) 
-                return payroll_info 
-
-def day_shift_payroll_computation_v1_1(data):
+   
+def day_shift_payroll_computation_v1_2(data):
     WORKING_DAYS = [
         "MON","TUE","WED","THU","FRI", 
     ]
@@ -1486,24 +1568,36 @@ def day_shift_payroll_computation_v1_1(data):
        "SAT", "SUN",
     ]
     PAYROLL_INFO ={
-        "total_overtime": 0,
-        "total_absences": 0,
+        # "total_overtime": 0,
+        # "total_absences": 0,
+        "OT_HOURS": 0,
+        "LATE_MIN": 0,
+        "UNDERTIME_MIN": 0,
+        "LATE_UNDERTIME_AMOUNT": 0,
+        "ABSENCES": 0,
+        "ABSENCES_AMOUNT": 0,
+        "OT_PAY": 0,
+        "HOLIDAY_PAY": 0,
     }
     OVERTIME_CATEGORY = [
         "No Overtime",
         "Regular Day",
         "Rest Day",
     ]
+    HOLIDAY_CATEGORY =[
+        "No Holiday",
+        "Regular Holiday",
+        "Special Holiday",
+    ]
     total_overtime = 0 # total overtime
     total_late_absences = 0
-
 
     #Overtime per hour
     OT_Regular_Day = 1.25
     OT_Rest_Day = 1.30
 
     #Holiday Pay Per Day
-    Legal_Holiday_Pay = 2.00
+    Regular_Holiday_Pay = 2.00
     Special_Holiday_Pay = 0.30
 
     monthly_rate = data["employee_salary"]
@@ -1517,231 +1611,312 @@ def day_shift_payroll_computation_v1_1(data):
     hourly_rate = daily_rate / 8
     min_rate = hourly_rate / 60
 
+    # print("DR: ",daily_rate)
+    # print("HR: ", hourly_rate)
+    # print("MR: ",min_rate)
+
     regular_hourly_rate_overtime = float(hourly_rate) * float(OT_Regular_Day)
     rest_day_hourly_rate_overtime = float(hourly_rate) * float(OT_Rest_Day)
 
     daily_rate = round(daily_rate, 2)
     hourly_rate = round(hourly_rate, 2)
-    min_rate = round(min_rate, 2)
-
-
+    min_rate = round(min_rate, 2) 
 
     invalid_time = datetime.datetime.strptime('0:00', '%H:%M')
     time_in = datetime.datetime.strptime(data['TimeIn'], '%H:%M')
     time_out = datetime.datetime.strptime(data['TimeOut'], '%H:%M')
 
-    if data["Day"] in REST_DAYS:
+    # Constant variables for payroll breakdown
+    OT_HOURS = 0
+    LATE_MIN = 0
+    UNDERTIME_MIN = 0
+    LATE_UNDERTIME_AMOUNT = 0
+    ABSENCES = 0
+    ABSENCES_AMOUNT = 0
+
+    DEDUCTIONS = 0
+    OT_PAY = 0
+    HOLIDAY_PAY = 0 
+
+    if data['Day'] in REST_DAYS:
+        # During rest days
         if time_in != invalid_time and time_out != invalid_time:
+            # When time in and time out is invalid
             if time_out > time_in:
-                if data['OTCategory'] != OVERTIME_CATEGORY[0]: 
-                    if data['Overtime']: 
-                        overtime = float(data['Overtime'])
+                if data['OTCategory'] != OVERTIME_CATEGORY[0] and data['Holiday'] != HOLIDAY_CATEGORY[0]:
+                    overtime = float(data['Overtime']) 
+                    if data['Holiday'] == HOLIDAY_CATEGORY[1]:
+                        # Regular Holiday
+                        HOLIDAY_PAY = HOLIDAY_PAY + (float(daily_rate) * Regular_Holiday_Pay) 
                         if overtime > 0.00:
                             if data['OTCategory'] == OVERTIME_CATEGORY[1]:
-                                t_diff = int((time_out - time_in).total_seconds() / 60.0)
-                                t_diff_h = round(float(t_diff/60),2)   
-                                total_overtime = round(t_diff_h * float(regular_hourly_rate_overtime),2) 
-                                # print('Time-In: {timein} | Time-Out: {timeout} | Diff Min: {min} | Diff Hour: {hour} | total cost: {tcost}'
-                                # .format(timein=time_in, timeout=time_out, min=t_diff, hour=t_diff_h, tcost=total_overtime)) 
+                                # Regular OT
+                                daily_rate = (float(daily_rate) * Regular_Holiday_Pay / 8.00 * OT_Regular_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
                             if data['OTCategory'] == OVERTIME_CATEGORY[2]:
-                                t_diff = int((time_out - time_in).total_seconds() / 60.0)
-                                t_diff_h = round(float(t_diff/60),2)   
-                                total_overtime = round(t_diff_h * float(rest_day_hourly_rate_overtime),2)  
-                        else:
-                            total_overtime = total_overtime + 0.00
-              
+                                # Regular OT  
+                                daily_rate = (float(daily_rate) * 2.00 / 8.00 * OT_Regular_Day) * float(overtime)
+                                # daily_rate = float(daily_rate * Regular_Holiday_Pay / 8.00 * OT_Regular_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
+                            
+                    elif data['Holiday'] == HOLIDAY_CATEGORY[2]:
+                        HOLIDAY_PAY = HOLIDAY_PAY + (float(daily_rate) * Special_Holiday_Pay)
+                        if overtime > 0.00:
+                            if data['OTCategory'] == OVERTIME_CATEGORY[1]:
+                                # Regular OT
+                                daily_rate = (float(daily_rate) * Special_Holiday_Pay / 8.00 * OT_Regular_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
+                            if data['OTCategory'] == OVERTIME_CATEGORY[2]:
+                                # Rest day OT
+                                daily_rate = (float(daily_rate) * Special_Holiday_Pay / 8.00 * OT_Rest_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
 
-            late = data["Late"] if None else 0.0 #ternary operator
-            #undertime? to be verified on monday
-            total_late_absences = float(late) * float(min_rate)
-                
-        else:
-            total_overtime = 0
-            print("Invalid overtime either no time in or time out!") 
-
-        PAYROLL_INFO.update({"total_overtime": round(float(total_overtime),2), "total_absences": round(total_late_absences,2)})
-        
-        #print('#',PAYROLL_INFO)
-        return PAYROLL_INFO
-    elif data["Day"] in WORKING_DAYS:
-        if time_in != invalid_time and time_out != invalid_time:
-            #if present
-
-            if data['Late']:
-                late = data['Late']
-                #total_late_absences = total_late_absences + (float(late) * float(min_rate))
-                deduction = float(late) * float(min_rate)
-                if deduction > daily_rate:
-                    total_late_absences = float(daily_rate)
-                else: 
-                    total_late_absences = total_late_absences + deduction
-
-            if data['Undertime']:
-                undertime = data['Undertime']
-                #total_late_absences = total_late_absences + (float(undertime) * float(min_rate))
-                deduction = float(undertime) * float(min_rate)
-                if deduction > daily_rate:
-                    total_late_absences = float(daily_rate)
-                else: 
-                    total_late_absences = total_late_absences + deduction
-
-            #overtime
-            if data['OTCategory'] != OVERTIME_CATEGORY[0]: 
-                if data['Overtime']: 
+                elif data['OTCategory'] != OVERTIME_CATEGORY[0]:  
+                    # If category is excluded regular days 
                     overtime = float(data['Overtime'])
-                    if overtime > 0.00:
+                    if overtime > 0.00: 
                         if data['OTCategory'] == OVERTIME_CATEGORY[1]:
-                            total_overtime = total_overtime + (float(overtime) * regular_hourly_rate_overtime)
+                            t_diff = int((time_out - time_in).total_seconds() / 60.0)
+                            t_diff_h = round(float(t_diff/60),2)   
+                            total_overtime = round(t_diff_h * float(regular_hourly_rate_overtime),2) 
+                        if  data['OTCategory'] == OVERTIME_CATEGORY[2]:
+                            t_diff = int((time_out - time_in).total_seconds() / 60.0)
+                            t_diff_h = round(float(t_diff/60),2)   
+                            total_overtime = round(t_diff_h * float(rest_day_hourly_rate_overtime),2)  
+    elif data['Day'] in WORKING_DAYS:
+        if data['Itinerary'] or data['Leave']:
+            # If the day was Itineraried or leaved safe!
+            pass 
+        else:
+           
+            if time_in != invalid_time and time_out != invalid_time:
+                # If present
+                # If time is valid
+                if data['Late']:
+                    # Calculate Late
+                    l = 0
+                    late = data['Late'] 
+                    LATE_MIN += float(late)
+                    deduction = float(late) * float(min_rate)
+                    if deduction > daily_rate:
+                        l = float(daily_rate)
+                    else: 
+                        l = l + deduction     
+                    LATE_UNDERTIME_AMOUNT = LATE_UNDERTIME_AMOUNT + l
+                    DEDUCTIONS = DEDUCTIONS + l  
+                if data['Undertime']:
+                    # Calculating Undertime
+                    u = 0
+                    undertime = data['Undertime']  
+                    UNDERTIME_MIN += float(undertime)
+                    deduction = float(undertime) * float(min_rate)
+                    if deduction > daily_rate:
+                        u = float(daily_rate)
+                    else: 
+                        u = u + deduction 
+                    LATE_UNDERTIME_AMOUNT = LATE_UNDERTIME_AMOUNT + u
+                    DEDUCTIONS = DEDUCTIONS + u 
+                if data['OTCategory'] != OVERTIME_CATEGORY[0] and data['Holiday'] != HOLIDAY_CATEGORY[0]:
+                    overtime = float(data['Overtime']) 
+                    OT_HOURS += overtime
+                    if data['Holiday'] == HOLIDAY_CATEGORY[1]:
+                        # Regular Holiday
+                        HOLIDAY_PAY = HOLIDAY_PAY + (float(daily_rate) * Regular_Holiday_Pay) 
+                        if overtime > 0.00:
+                            if data['OTCategory'] == OVERTIME_CATEGORY[1]:
+                                # Regular OT
+                                daily_rate = (float(daily_rate) * Regular_Holiday_Pay / 8.00 * OT_Regular_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
+                            if data['OTCategory'] == OVERTIME_CATEGORY[2]:
+                                # Regular OT  
+                                daily_rate = (float(daily_rate) * 2.00 / 8.00 * OT_Regular_Day) * float(overtime)
+                                # daily_rate = float(daily_rate * Regular_Holiday_Pay / 8.00 * OT_Regular_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
+                            
+                    elif data['Holiday'] == HOLIDAY_CATEGORY[2]:
+                        HOLIDAY_PAY = HOLIDAY_PAY + (float(daily_rate) * Special_Holiday_Pay)
+                        if overtime > 0.00:
+                            if data['OTCategory'] == OVERTIME_CATEGORY[1]:
+                                # Regular OT
+                                daily_rate = (float(daily_rate) * Special_Holiday_Pay / 8.00 * OT_Regular_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
+                            if data['OTCategory'] == OVERTIME_CATEGORY[2]:
+                                # Rest day OT
+                                daily_rate = (float(daily_rate) * Special_Holiday_Pay / 8.00 * OT_Rest_Day) * float(overtime) 
+                                OT_PAY = OT_PAY + daily_rate
+
+                elif data['OTCategory'] != OVERTIME_CATEGORY[0]: 
+                    # When you have overtime 
+                    overtime = float(data['Overtime']) 
+                    if overtime > 0.00:
+                        OT_HOURS += overtime
+                        if data['OTCategory'] == OVERTIME_CATEGORY[1]:
+                            # Regular OT
+                            OT_PAY = OT_PAY + (float(overtime) * regular_hourly_rate_overtime) 
                         if data['OTCategory'] == OVERTIME_CATEGORY[2]:
-                            total_overtime = total_overtime + (float(overtime) * rest_day_hourly_rate_overtime)
+                            # Rest day OT
+                            OT_PAY = OT_PAY + (float(overtime) * rest_day_hourly_rate_overtime) 
                     else:
                         total_overtime = total_overtime + 0.00
 
-            PAYROLL_INFO.update({"total_overtime": float(total_overtime), "total_absences": total_late_absences})
-        else:
-            # boolean
-            if data["Itinerary"] or data["Leave"] or data['Holiday'] != "Regulary Day":
-                #no deductions
-                PAYROLL_INFO.update({"total_absences": 0.0})
-                pass
-            else:
-                PAYROLL_INFO.update({"total_absences": round(float(daily_rate),2)})
-                # how much absent per day? or - daily rate
-        #print('~',PAYROLL_INFO)
-        return PAYROLL_INFO
-        
+                elif data['Holiday'] != HOLIDAY_CATEGORY[0]:
+                    if data['Holiday'] == HOLIDAY_CATEGORY[1]:
+                        # Regular Holiday
+                        HOLIDAY_PAY = HOLIDAY_PAY + (float(daily_rate) * Regular_Holiday_Pay)  
+                    elif data['Holiday'] == HOLIDAY_CATEGORY[2]:
+                        HOLIDAY_PAY = HOLIDAY_PAY + (float(daily_rate) * Special_Holiday_Pay) 
 
+             # Working Day
+            else:
+                # If no IN or OUt
+                if data['Holiday'] != "No Holiday":
+                    # If Holiday
+                    # Do nothing!
+                    pass
+                else:
+                    # Your Absent
+                    ABSENCES += 1
+                    ABSENCES_AMOUNT = ABSENCES_AMOUNT + float(daily_rate)  
+                    DEDUCTIONS = DEDUCTIONS + ABSENCES_AMOUNT
+    
+    PAYROLL_INFO.update({"OT_HOURS": round(float(OT_HOURS),2)})
+    PAYROLL_INFO.update({"LATE_MIN": round(float(LATE_MIN),2)})
+    PAYROLL_INFO.update({"UNDERTIME_MIN": round(float(UNDERTIME_MIN),2)})
+    PAYROLL_INFO.update({"LATE_UNDERTIME_AMOUNT": round(float(LATE_UNDERTIME_AMOUNT),2)})
+    PAYROLL_INFO.update({"ABSENCES": round(float(ABSENCES),2)})
+    PAYROLL_INFO.update({"ABSENCES_AMOUNT": round(float(ABSENCES_AMOUNT),2)})
+    PAYROLL_INFO.update({"DEDUCTIONS": round(float(DEDUCTIONS),2)})
+    PAYROLL_INFO.update({"OT_PAY": round(float(OT_PAY),2)})
+    PAYROLL_INFO.update({"HOLIDAY_PAY": round(float(HOLIDAY_PAY),2)})
+    # PAYROLL_INFO.update({"total_overtime": round(float(total_overtime),2)})
+    # PAYROLL_INFO.update({"total_absences": round(float(total_late_absences),2)})
+    return PAYROLL_INFO
 
 @login_required
 def employee_create_payroll(request, key, id): 
     template_name = "payroll/employee_create_payroll.html" 
-    user = get_object_or_404(User, username=request.user.username)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    pid = decrypt_key(key)
-    employee = get_object_or_404(PersonalInfo, id=pid) 
-    company_details = get_object_or_404(User, username=employee.fk_user.username) 
-    employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
-    
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-
-    #https://www.programiz.com/python-programming/datetime/current-datetime
-    today = date.today()
-    date_today = today.strftime("%m/%d/%Y") 
-    attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).order_by("id").distinct()
-    
-    #check if payroll exists
-    emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
-    
-    # basic_pay = 0
-    # overtime_pay = 0
-    # legal_holiday = 0
-    # sunday_spec_holiday = 0
-    # late_absences = 0
-    
-    total_lates_absences = 0.00
-    total_overtime = 0.00
-    total_deductions = 0.00
-
-    #print(attendance,attendance.count())
-    for data in attendance:
+    user = get_object_or_404(User, username=request.user.username)      
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        pid = decrypt_key(key)
+        employee = get_object_or_404(PersonalInfo, id=pid) 
+        company_details = get_object_or_404(User, username=employee.fk_user.username) 
+        employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
         
-        # [on_true] if [expression] else [on_false] 
-        dTIn = data.time_in if data.time_in  else '0:00'
-        dTOut = data.time_out if data.time_out  else '0:00'
-        output = 'day: {day} | date: {date} | time-in: {timein} | time-out: {timeout} | late: {late} | undertime: {undertime} | overtime: {overtime} | itinerary: {itinerary} | leave: {leave} | category: {category} | holiday: {holiday}'.format(day=data.days_of_week, date=data.date, timein=dTIn, timeout=dTOut, late=data.late, undertime=data.undertime, overtime=data.overtime, itinerary=data.has_itenerary, leave=data.has_leave, category=data.overtime_category, holiday=data.holiday)
-        # print(output)
-        attendance_data = {
-            "Day": data.days_of_week,
-            "TimeIn": dTIn,
-            "TimeOut": dTOut, 
-            "Late":data.late,
-            "Undertime": data.undertime,
-            "Overtime": data.overtime, 
-            "Itinerary": data.has_itenerary,
-            "Leave": data.has_leave,
-            "OTCategory":data.overtime_category,
-            "Holiday": data.holiday,
-            "employee_salary":employee_salary.amount,
-            "employee_allowance": employee_salary.allowance,
-        } 
-        #calculation 
-        output = day_shift_payroll_computation_v1_1(attendance_data) 
-        total_lates_absences = total_lates_absences + output['total_absences'] 
-        total_overtime = total_overtime + output['total_overtime']
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
 
+        #https://www.programiz.com/python-programming/datetime/current-datetime
+        today = date.today()
+        date_today = today.strftime("%m/%d/%Y") 
+        attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).order_by("id").distinct()
+        
+        #check if payroll exists
+        emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
+        
+        
+        total_deduction = 0.00
+
+        T_OT_HOURS = 0
+        T_LATE_MIN = 0
+        T_UNDERTIME_MIN = 0
+        T_LATE_UNDERTIME_AMOUNT = 0
+        T_ABSENCES = 0 
+        T_ABSENCES_AMOUNT = 0
+        T_DEDUCTIONS = 0
+        T_OT_PAY = 0
+        T_HOLIDAY_PAY = 0
+
+        #print(attendance,attendance.count())
+        for data in attendance:
+            
+            # [on_true] if [expression] else [on_false] 
+            dTIn = data.time_in if data.time_in  else '0:00'
+            dTOut = data.time_out if data.time_out  else '0:00'
+            output = 'day: {day} | date: {date} | time-in: {timein} | time-out: {timeout} | late: {late} | undertime: {undertime} | overtime: {overtime} | itinerary: {itinerary} | leave: {leave} | category: {category} | holiday: {holiday}'.format(day=data.days_of_week, date=data.date, timein=dTIn, timeout=dTOut, late=data.late, undertime=data.undertime, overtime=data.overtime, itinerary=data.has_itenerary, leave=data.has_leave, category=data.overtime_category, holiday=data.holiday)
+            # print('->',output)
+            attendance_data = {
+                "Day": data.days_of_week,
+                "TimeIn": dTIn,
+                "TimeOut": dTOut, 
+                "Late":data.late,
+                "Undertime": data.undertime,
+                "Overtime": data.overtime, 
+                "Itinerary": data.has_itenerary,
+                "Leave": data.has_leave,
+                "OTCategory":data.overtime_category,
+                "Holiday": data.holiday,
+                "employee_salary":employee_salary.amount,
+                "employee_allowance": employee_salary.allowance,
+            } 
+            #calculation 
+            output = day_shift_payroll_computation_v1_2(attendance_data) 
+            # total_lates_absences = total_lates_absences + output['total_absences'] 
+            # total_overtime = total_overtime + output['total_overtime']
+            T_OT_HOURS += output['OT_HOURS'] 
+            T_LATE_MIN += output['LATE_MIN'] 
+            T_UNDERTIME_MIN += output['UNDERTIME_MIN'] 
+            T_LATE_UNDERTIME_AMOUNT += output['LATE_UNDERTIME_AMOUNT'] 
+            T_ABSENCES += output['ABSENCES']  
+            T_ABSENCES_AMOUNT += output['ABSENCES_AMOUNT'] 
+            T_DEDUCTIONS += output['DEDUCTIONS']  
+            T_OT_PAY += output['OT_PAY'] 
+            T_HOLIDAY_PAY += output['HOLIDAY_PAY'] 
+
+        print("OT_HOURS:",T_OT_HOURS)
+        print("LATE_MIN:",T_LATE_MIN)
+        print("UNDERTIME_MIN:",T_UNDERTIME_MIN)
+        print("LATE_UNDERTIME_AMOUNT:",T_LATE_UNDERTIME_AMOUNT)
+        print("ABSENCES:",T_ABSENCES)
+        print("ABSENCES_AMOUNT:",T_ABSENCES_AMOUNT)
+        print("T_DEDUCTIONS:",T_DEDUCTIONS)
+        print("OT_PAY:",T_OT_PAY)
+        print("HOLIDAY_PAY:",T_HOLIDAY_PAY) 
+
+        # total_sss_contribution = round(sss_contribution(float(employee_salary.amount)),2)
+        # total_philhealth_contribution = round(phlhealth_contribution(float(employee_salary.amount)),2)
+
+        # total_deductions = total_lates_absences + total_sss_contribution + total_philhealth_contribution
+        # total_gross_pay = float(employee_salary.amount/2) + float(employee_salary.allowance/2)  + total_overtime
+        # total_net_pay = total_gross_pay - total_deductions
     
-    total_late_absences= round(total_lates_absences, 2)
-    total_sss_contribution = round(sss_contribution(float(employee_salary.amount)),2)
-    total_philhealth_contribution = round(phlhealth_contribution(float(employee_salary.amount)),2)
 
-    total_deductions = total_lates_absences + total_sss_contribution + total_philhealth_contribution
-    total_gross_pay = float(employee_salary.amount/2) + float(employee_salary.allowance/2)  + total_overtime
-    total_net_pay = total_gross_pay - total_deductions
-    #print('TOTAL OT: {ot} | TOTAL DEDUCT: {deduct}'.format(ot=total_overtime,deduct=total_deductions)) 
-
-    # for a in attendance:
-
-    #     attendance_data = {
-    #         "Day": a.days_of_week,
-    #         "TimeIn": a.time_in,
-    #         "TimeOut": a.time_out,
-    #         "PCFWD": a.payment_computation_for_work_done,
-    #         "Late":a.late,
-    #         "Undertime": a.undertime,
-    #         "Overtime": a.overtime,
-    #         "PCO": a.payment_computation_overtime,
-    #         "employee_salary":employee_salary.amount,
-    #     } 
-
-    #     output = day_shift_payroll_computation(attendance_data) 
-    #     basic_pay = basic_pay + output["Basic Pay"]
-    #     overtime_pay = overtime_pay + output["Overtime Pay"]
-    #     legal_holiday = legal_holiday + output["Legal Holiday"]
-    #     sunday_spec_holiday = sunday_spec_holiday + output["Sunday/Special Holiday"]
-    #     late_absences = late_absences + output["Late/Absences"]
-        # print(attendance_data)
-        # print(output)
-        # print("")
+        # print('TOTAL OT: {ot} | TOTAL DEDUCT: {deduct}'.format(ot=total_overtime,deduct=total_deductions)) 
     
-    # print("Total Basic Pay:",round(basic_pay, 2))
-    # print("Total Overtime Pay:",round(overtime_pay, 2))
-    # print("Total Legal Holiday:",round(legal_holiday, 2))
-    # print("Total Sunday/Special Holiday:",round(sunday_spec_holiday, 2))
-    # print("Total Late/Absences:",round(late_absences, 2))
-    # print("Total SSS: ", round(sss_contribution(float(employee_salary.amount))))
-    # total_gross_pay = basic_pay + overtime_pay + legal_holiday + sunday_spec_holiday + float(employee_salary.allowance)
-    # total_deduction = sss_contribution(float(employee_salary.amount)) + late_absences
-    # total_net_pay = total_gross_pay - total_deduction
-    # print("Total Gross pay: ", total_gross_pay)
-    # print("Total Deduction: ", total_deduction)
-    # print("Total Net pay: ", total_net_pay) 
-        #break
-        # if a.time_in and a.time_out:
-        #     time_format = '%H:%M'
-        #     time_delta = (datetime.datetime.strptime(a.time_out,time_format) - datetime.datetime.strptime(a.time_in,time_format)).total_seconds()
-        #     time_diff_min = time_delta / 60
-        #     total_min_render = total_min_render + time_diff_min
-        #     display = "Day: {day} | Time In:{timein} | Time Out: {timeout} | [Time Diff: {tdiff}]| Late: {late} | undertime: {undertime} | overtime: {overtime}".format(day=a.days_of_week,timein=a.time_in,timeout=a.time_out,late=a.late,undertime=a.undertime,overtime=a.overtime, tdiff=time_diff_min)
- 
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+        total_sss_contribution = 0
+        total_philhealth_contribution = 0
+        
+        total_deduction = T_DEDUCTIONS
+        total_gross_pay = float(employee_salary.amount/2) + float(employee_salary.allowance/2)  + T_OT_PAY + T_HOLIDAY_PAY
+        total_net_pay = total_gross_pay - total_deduction
+        
         if request.method == 'GET':
-             #check if there is an existing record  
-            if emp_payroll_count > 0: 
-                #raise Http404()
-                return HttpResponseRedirect(reverse_lazy('application:employee_edit_payroll', kwargs={'key':employee.key_id,'id': cutoff.id}))
-        
+                #check if there is an existing record  
+                if emp_payroll_count > 0: 
+                    #raise Http404()
+                    return HttpResponseRedirect(reverse_lazy('application:employee_edit_payroll', kwargs={'key':employee.key_id,'id': cutoff.id}))
+            
         elif request.method == 'POST': 
             _basicPay = request.POST.get('_basicPay',"0") if request.POST.get('_basicPay',"0")  != "" else "0"
             _allowance = request.POST.get('_allowance',"0") if request.POST.get('_allowance',"0")  != "" else "0"
+
+            _overtimeHours = request.POST.get('_overtimeHours',"0") if request.POST.get('_overtimeHours',"0")  != "" else "0"
             _overtimePay = request.POST.get('_overtimePay',"0") if request.POST.get('_overtimePay',"0")  != "" else "0"
-            _legalHoliday = request.POST.get('_legalHoliday',"0") if request.POST.get('_legalHoliday',"0")  != "" else "0"
-            _sundaySpecialHoliday = request.POST.get('_sundaySpecialHoliday',"0") if request.POST.get('_sundaySpecialHoliday',"0")  != "" else "0"
-            _lateAbsences = request.POST.get('_lateAbsences',"0") if request.POST.get('_lateAbsences',"0")  != "" else "0"
+            _holidayPay = request.POST.get('_holidayPay',"0") if request.POST.get('_holidayPay',"0")  != "" else "0"
+
+            # _sundaySpecialHoliday = request.POST.get('_sundaySpecialHoliday',"0") if request.POST.get('_sundaySpecialHoliday',"0")  != "" else "0"
+            
             _salaryCashAdvance = request.POST.get('_salaryCashAdvance',"0") if request.POST.get('_salaryCashAdvance',"0")  != "" else "0"
             _grossPay = request.POST.get('_grossPay',"0") if request.POST.get('_grossPay',"0")  != "" else "0"
             _netPay = request.POST.get('_netPay',"0") if request.POST.get('_netPay',"0")  != "" else "0" 
+            
+            _lateMin = request.POST.get('_lateMin',"0") if request.POST.get('_lateMin',"0")  != "" else "0"
+            _undertimeMin = request.POST.get('_undertimeMin',"0") if request.POST.get('_undertimeMin',"0")  != "" else "0"
+            _lateUndertimeMinAmount = request.POST.get('_lateUndertimeMinAmount',"0") if request.POST.get('_lateUndertimeMinAmount',"0")  != "" else "0"
+            _absences = request.POST.get('_absences',"0") if request.POST.get('_absences',"0")  != "" else "0"
+            _absencesAmount = request.POST.get('_absencesAmount',"0") if request.POST.get('_absencesAmount',"0")  != "" else "0"
+
             _philhealContribution = request.POST.get('_philhealContribution',"0") if request.POST.get('_philhealContribution',"0")  != "" else "0"
             _pagibigContribution = request.POST.get('_pagibigContribution',"0") if request.POST.get('_pagibigContribution',"0")  != "" else "0"
             _sssPremius = request.POST.get('_sssPremius',"0") if request.POST.get('_sssPremius',"0")  != "" else "0"
@@ -1749,44 +1924,32 @@ def employee_create_payroll(request, key, id):
             _pagibigLoan = request.POST.get('_pagibigLoan',"0") if request.POST.get('_pagibigLoan',"0")  != "" else "0"
             _deductionSalaryCashAdvance = request.POST.get('_deductionSalaryCashAdvance',"0") if request.POST.get('_deductionSalaryCashAdvance',"0")  != "" else "0"
             _totalDeduction = request.POST.get('_totalDeduction',"0") if request.POST.get('_totalDeduction',"0")  != "" else "0"
-            _cboSSS = request.POST.get('_cboSSS',"0") 
-            _cboPhilhealth = request.POST.get('_cboPhilhealth',"0")
-            _cboPagibig = request.POST.get('_cboPagibig',"0")
- 
-            sss = _sssPremius if _cboSSS == 'on'  else 0
-            philhealth = _philhealContribution if _cboPhilhealth == 'on' else 0
-            pagibig = _pagibigContribution if _cboPagibig == 'on' else 0 
-          
-            # print('SCA:', _salaryCashAdvance)
-            # print('PH',_philhealContribution, '-',request.POST.get('_philhealContribution',"0"))
-            # print('PC',_pagibigContribution)
-            # print('WT',_withholdingTax)
-            # print('PL',_pagibigLoan)
-            # print('SCA',_deductionSalaryCashAdvance)
+        
             
-
-            #employee_payroll_manage_employee_list
             new, existing = EmployeePayroll.objects.update_or_create(employee_fk=employee, payroll_cutoff_period=cutoff, 
-            defaults= {
-                #'payroll_date': date_today, 
-               # 'monthly_rate':float(employee_salary.amount),  
-                #'monthly_allowance': 0, # for future purposes 
+            defaults= { 
                 'basic_pay': round(float(employee_salary.amount/2), 2),
                 'allowance': round(float(employee_salary.allowance/2), 2),
-                'overtime_pay': round(total_overtime, 2),
-                # 'legal_holiday': round(legal_holiday, 2),
-                # 'special_holiday':  round(sunday_spec_holiday, 2),
-                'late_or_absences': round(total_lates_absences, 2),
+                'ot_hours': float(_overtimeHours), 
+                'ot_pay': round(float(_overtimePay), 2), 
+                'holiday_pay': round(float(_holidayPay), 2), 
                 'salary_or_cash_advance': _salaryCashAdvance,
                 'gross_pay': _grossPay,
-                'sss_premiums': sss,
-                'philhealth_contribution': philhealth,
-                'pagibig_contribution': pagibig,
+
+                'late_min': round(float(_lateMin), 2),
+                'undertime_min': round(float(_undertimeMin), 2),
+                'late_undertime_min_amount': round(float(_lateUndertimeMinAmount), 2),
+                'absences': round(float(_absences), 2),
+                'absences_amount': round(float(_absencesAmount), 2),
+
+                'sss_premiums': _sssPremius,
+                'philhealth_contribution': _philhealContribution,
+                'pagibig_contribution': _pagibigContribution,
                 'withholding_tax': _withholdingTax,
                 'pagibig_loan': _pagibigLoan,
                 'deducted_salary_cash_advance': _deductionSalaryCashAdvance,
                 'total_deduction': _totalDeduction,
-                'net_pay': _netPay, 
+                'net_pay': float(_netPay), 
                 })
             url = HttpResponseRedirect(reverse_lazy('application:employee_side_view_payroll_page', kwargs={'id':cutoff.id}))
             Notifications.objects.create(sender=user,recipient=employee.fk_user,url=url.url,message="Your payroll for cut-off {cutoffperiod} was created!".format(cutoffperiod=cutoff.cut_off_period),category=category_list[2],level=level_list[1])
@@ -1803,16 +1966,23 @@ def employee_create_payroll(request, key, id):
 
             'basic_pay': round(float(employee_salary.amount/2), 2),
             'allowance' : round(float(employee_salary.allowance/2), 2),
-            'overtime_pay': round(total_overtime, 2),
             # 'legal_holiday': round(legal_holiday, 2),
             # 'sunday_special_holiday': round(sunday_spec_holiday, 2),
 
-            'late_absences': total_late_absences,
-            'sss_contribution': total_sss_contribution,
-            'philhealth_contribution': total_philhealth_contribution,
-            'pagibig_contribution': 100.00,
-            'gross_pay': round(total_gross_pay, 2),
-            'total_deduction': round(total_deductions, 2),
+            'T_OT_HOURS':T_OT_HOURS,
+            'T_LATE_MIN':T_LATE_MIN,
+            'T_UNDERTIME_MIN':T_UNDERTIME_MIN,
+            'T_LATE_UNDERTIME_AMOUNT': round(T_LATE_UNDERTIME_AMOUNT,2),
+            'T_ABSENCES':T_ABSENCES,
+            'T_ABSENCES_AMOUNT': round(T_ABSENCES_AMOUNT,2),
+            'T_DEDUCTIONS':round(T_DEDUCTIONS,2),
+            'T_OT_PAY':round(T_OT_PAY,2),
+            'T_HOLIDAY_PAY':round(T_HOLIDAY_PAY,2),
+
+            # 'sss_contribution': total_sss_contribution,
+            # 'philhealth_contribution': total_philhealth_contribution,
+            # 'pagibig_contribution': 0,
+            'gross_pay': round(total_gross_pay, 2), 
             'net_pay': round(total_net_pay, 2),
 
             'notifications': notifications,
@@ -1821,32 +1991,34 @@ def employee_create_payroll(request, key, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 		
+		  
 @login_required
 def employee_edit_payroll(request, key, id): 
     template_name = "payroll/employee_edit_payroll.html"
     user = get_object_or_404(User, username=request.user.username)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    pid = decrypt_key(key)
-    employee = get_object_or_404(PersonalInfo, id=pid)  
-    employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
-    company_details = get_object_or_404(User, username=employee.fk_user.username)
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:  
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        pid = decrypt_key(key)
+        employee = get_object_or_404(PersonalInfo, id=pid)  
+        employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
+        company_details = get_object_or_404(User, username=employee.fk_user.username)
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
 
-    today = date.today()
-    date_today = today.strftime("%m/%d/%Y") 
+        today = date.today()
+        date_today = today.strftime("%m/%d/%Y") 
 
-    attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).order_by("-id").distinct()
-    
-    #check if payroll exists
-    emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
-    
+        attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).order_by("-id").distinct()
+        
+        #check if payroll exists
+        emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
+        
 
-    if user.is_active and user.is_staff and user.is_superuser: 
         if request.method == 'GET':
-              
+                
             if emp_payroll_count <= 0: 
                 return HttpResponseRedirect(reverse_lazy('application:employee_create_payroll', kwargs={'key':employee.key_id,'id': cutoff.id}))
             else: 
@@ -1878,33 +2050,33 @@ def employee_edit_payroll(request, key, id):
         }
 
         return render(request, template_name, context)
+
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 @login_required
 def employee_print_payroll(request, key, id):
     template_name = "payroll/employee_print_payroll.html"
-    user = get_object_or_404(User, username=request.user.username)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    pid = decrypt_key(key)
-    employee = get_object_or_404(PersonalInfo, id=pid)  
-    employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
-    company_details = get_object_or_404(User, username=employee.fk_user.username) 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        pid = decrypt_key(key)
+        employee = get_object_or_404(PersonalInfo, id=pid)  
+        employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee)
+        company_details = get_object_or_404(User, username=employee.fk_user.username) 
 
-    today = date.today()
-    date_today = today.strftime("%m/%d/%Y") 
+        today = date.today()
+        date_today = today.strftime("%m/%d/%Y") 
 
-    attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).order_by("-id").distinct()
+        attendance = AttendanceInfo.objects.all().filter(Q(employee_profile=employee) & Q(cut_off_period=cutoff)).order_by("-id").distinct()
+        
+        #check if payroll exists
+        emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
+        
     
-    #check if payroll exists
-    emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
-    
-
-    if user.is_active and user.is_staff and user.is_superuser: 
         if request.method == 'GET': 
-            emp_payroll = get_object_or_404(EmployeePayroll, employee_fk=employee, payroll_cutoff_period=cutoff) 
-
-       
+            emp_payroll = get_object_or_404(EmployeePayroll, employee_fk=employee, payroll_cutoff_period=cutoff)         
         context = {
             'user':user, 
             'cutoff':cutoff,
@@ -1916,9 +2088,9 @@ def employee_print_payroll(request, key, id):
             'emp_payroll_count':emp_payroll,
         }
 
-        return render(request, template_name, context)
+        return render(request, template_name, context) 
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_delete_payroll(request, key, id):
@@ -1954,12 +2126,12 @@ def employee_delete_payroll(request, key, id):
 @login_required
 def employee_manage_leaves(request):
     template_name = "leaves/employee_leaves_page.html"
-    user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    leaves = EmployeeLeaves.objects.all().filter().order_by('-id').distinct()
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:  
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+        leaves = EmployeeLeaves.objects.all().filter().order_by('-id').distinct() 
         if request.method == 'GET':
             try:  
                 employee = PersonalInfo.objects.get(fk_user=user) 
@@ -1972,29 +2144,31 @@ def employee_manage_leaves(request):
                 }
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
-                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+  
 @login_required
 def employee_view_employee_leaves(request, id):
     template_name="leaves/employee_view_leave_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    leave = get_object_or_404(EmployeeLeaves, id=id)
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        leave = get_object_or_404(EmployeeLeaves, id=id)
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
 
-    employee_list = PersonalInfo.objects.all().order_by('-id').distinct()
+        employee_list = PersonalInfo.objects.all().order_by('-id').distinct()
 
-    status_list = [
-        'Pending',
-        'Disapproved',
-        'Approved',
-    ]
+        status_list = [
+            'Pending',
+            'Disapproved',
+            'Approved',
+        ]
 
- 
-    if user.is_active and user.is_staff and user.is_superuser: 
+
         employee_sender = get_object_or_404(EmployeeLeaves, id=id)  
         eid = employee_sender.employee_leave_fk.fk_user.company_to_user.id
         company_employee = CompanyInfo.objects.get(id=eid)
@@ -2066,7 +2240,7 @@ def employee_view_employee_leaves(request, id):
                             balance = sl_credits + no_days
                             company_employee.sick_leave_credits = balance
                             company_employee.save()  
-                 
+                    
             new, existing = EmployeeLeaves.objects.update_or_create(id=id, defaults={
                 'status': _status,
                 'has_payment': _has_payment,
@@ -2096,7 +2270,7 @@ def employee_view_employee_leaves(request, id):
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_delete_leave_form(request, id):
@@ -2148,11 +2322,12 @@ def employee_delete_leave_form(request, id):
 @login_required
 def employee_manage_itenerary(request):
     template_name = "iteneraries/employee_manage_iteneraries_page.html"
-    user = get_object_or_404(User, username=request.user.username) 
-    itenerary_list = EmployeeItenerary.objects.all().order_by('-id').distinct()
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        itenerary_list = EmployeeItenerary.objects.all().order_by('-id').distinct()
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count() 
         if request.method == 'GET':
             try:  
                 employee = PersonalInfo.objects.get(fk_user=user) 
@@ -2165,29 +2340,29 @@ def employee_manage_itenerary(request):
                 }
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
-                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))
-        
+                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))        
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_view_itenerary(request, id):
     template_name = "iteneraries/employee_view_iteneraries_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-    itenerary = get_object_or_404(EmployeeItenerary, id=id)
-    employee_list = PersonalInfo.objects.all().order_by('-id').distinct()
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        itenerary = get_object_or_404(EmployeeItenerary, id=id)
+        employee_list = PersonalInfo.objects.all().order_by('-id').distinct()
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
 
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    
         if request.method == 'GET':
             pass
         elif request.method == 'POST':
             _notedBy = request.POST['notedByList']
             _checkedBy = request.POST['checkedByList']
             _approvedBy = request.POST['approvedByList']
- 
+
 
             new, existing = EmployeeItenerary.objects.update_or_create(id=id, defaults={ 
                 'noted_by': _notedBy,
@@ -2205,19 +2380,18 @@ def employee_view_itenerary(request, id):
             'notifications': notifications,
             'notifications_count': notifications_count,
         }
-        return render(request, template_name, context)
+        return render(request, template_name, context) 
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_manage_concerns(request):
     template_name = "concerns/employee_manage_concern.html"
-    user = get_object_or_404(User, username=request.user.username) 
-    
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count() 
         if request.method == 'GET':
             try:  
                 employee = PersonalInfo.objects.get(fk_user=user) 
@@ -2232,18 +2406,17 @@ def employee_manage_concerns(request):
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
                 return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))
-        
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 @login_required
 def employee_create_concern(request):
     data = dict()
     template_name = "concerns/employee_create_concern.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-
-    if user.is_active and user.is_staff and  user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user) 
         if request.method == 'GET':
             form = ConcernsEmployeeForm(request.GET or None)
         elif request.method == 'POST':
@@ -2284,19 +2457,20 @@ def employee_create_concern(request):
         }
 
         data['html_form'] = render_to_string(template_name, context, request)
-        return JsonResponse(data)
+        return JsonResponse(data) 
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))   
 
 @login_required
 def employee_edit_concern(request, id):
     data = dict()
     template_name = "concerns/employee_edit_concern.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-
-    if user.is_active and user.is_staff and  user.is_superuser: 
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id) 
         if request.method == 'GET':
             form = ConcernsEmployeeForm(request.GET or None, instance=concern)
         elif request.method == 'POST':
@@ -2340,17 +2514,17 @@ def employee_edit_concern(request, id):
         data['html_form'] = render_to_string(template_name, context, request)
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_view_concern(request, id):
     data = dict()
     template_name = "concerns/employee_view_concern.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id) 
         if request.method == 'GET':
             pass
        
@@ -2358,22 +2532,21 @@ def employee_view_concern(request, id):
             'user': user,  
             'employee': employee,  
             'concern': concern,
-        }
-
+        } 
         data['html_form'] = render_to_string(template_name, context, request)
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def employee_delete_concern(request, id):
     data = dict()
     template_name = "concerns/employee_delete_concern.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id) 
         if request.method == 'GET':
             context = { 
             'user': user,  
@@ -2392,17 +2565,16 @@ def employee_delete_concern(request, id):
             
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
  
 @login_required
 def employee_manage_inbox_concern(request):
     template_name = "concerns/employee_manage_inbox_concern.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
- 
-
-    if user.is_active and user.is_staff and user.is_superuser:
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count() 
         if request.method == 'GET':
             try:  
                 employee = PersonalInfo.objects.get(fk_user=user) 
@@ -2417,21 +2589,19 @@ def employee_manage_inbox_concern(request):
 
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
-                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
-        
+                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))         
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 @login_required
 def employee_reply_concern(request, id):
     data = dict()
     template_name = "concerns/employee_reply_concern.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id) 
         if request.method == 'GET':
             form = ConcernsReplyEmployeeForm(request.GET or None, instance=concern)
         elif request.method == 'POST':
@@ -2458,8 +2628,7 @@ def employee_reply_concern(request, id):
         data['html_form'] = render_to_string(template_name, context, request)
         return JsonResponse(data)
     else:
-        raise Http404()
-
+            return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 @login_required
 def employee_payroll_base_salary_settings(request, key):
@@ -2516,6 +2685,7 @@ def upload_attendance(request):
 
             if form.is_valid():
                 try:
+                   
                     if 'attendance_file' in request.FILES:
                         att_file = request.FILES['attendance_file']
                         print(att_file.name) 
@@ -2544,16 +2714,14 @@ def upload_attendance(request):
 
     # For Employees
 
-
 @login_required
 def employee_overtime_management_page(request):
     template_name = "overtime/employee_manage_overtime_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser:
-        
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count() 
         if request.method == 'GET':
             try:  
                 employee = PersonalInfo.objects.get(fk_user=user) 
@@ -2567,30 +2735,23 @@ def employee_overtime_management_page(request):
                 } 
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
-                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))
-        
+                return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))        
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 @login_required
 def employee_view_overtime(request, id):
     template_name = "overtime/employee_view_overtime_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user) 
-    overtime = get_object_or_404(Overtime, id=id)
-    
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-
-    employee_list = PersonalInfo.objects.all().order_by('-id').distinct()# for approval
-
-    overtime_list = Overtime.objects.all().filter(id=id).order_by('-id').distinct()
-    overtime_sum = OvertimeDetails.objects.all().filter(overtime__in=overtime_list).aggregate(Sum('duration')).get('duration__sum') 
- 
-
-    if user.is_active and user.is_staff and user.is_superuser:
-        
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user) 
+        overtime = get_object_or_404(Overtime, id=id) 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+        employee_list = PersonalInfo.objects.all().order_by('-id').distinct()# for approval 
+        overtime_list = Overtime.objects.all().filter(id=id).order_by('-id').distinct()
+        overtime_sum = OvertimeDetails.objects.all().filter(overtime__in=overtime_list).aggregate(Sum('duration')).get('duration__sum')   
         if request.method == 'GET':
             pass
         elif request.method == 'POST':
@@ -2622,15 +2783,267 @@ def employee_view_overtime(request, id):
         } 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
+
+@login_required
+def employee_manage_roles_and_permission(request):
+    template_name = "roles_and_permission/manage_employee_roles_and_permission.html"
+    user = get_object_or_404(User, username=request.user.username)
+
+    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+    notifications_count = notifications.count()
+
+    roles_and_permission = RolesPermission.objects.all() 
+
+    user = validate(user, is_managing_director=True)
+    if user:
+        users = User.objects.all().filter(Q(Q(is_staff=True)  & Q(is_active=True)) | Q(is_staff=True) & Q(is_active=True) & Q(is_superuser=True))
+
+        list_of_users = []
+        for u in users:
+            try:
+                if u.profile_to_user:
+                    list_of_users.append(u.profile_to_user.first_name)
+            except User.profile_to_user.RelatedObjectDoesNotExist:
+                print("No child record!")
+             
+        list_of_users_data = {
+            'list_of_users': list_of_users,
+        }
+
+        context = {
+            'user': user,
+            'users': users,
+            'list_of_users_data': list_of_users_data,
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+            'roles_and_permission': roles_and_permission,
+        }
+        return render(request, template_name, context)
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+
+# Beta version for future testing
+@login_required
+def employee_view_roles_and_permission(request):
+    template_name = "roles_and_permission/manage_roles_and_permission.html" 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        users = User.objects.all().filter(Q(Q(is_staff=True)  & Q(is_active=True)) | Q(is_staff=True) & Q(is_active=True) & Q(is_superuser=True))
+  
+        list_of_users = []
+        for u in users:
+            try:
+                if u.profile_to_user:
+                    list_of_users.append(u.profile_to_user.first_name)
+            except User.profile_to_user.RelatedObjectDoesNotExist:
+                print("No child record!")
+             
+        list_of_users_data = {
+            'list_of_users': list_of_users,
+        }
+        context = {
+            'user':user,
+            'list_of_users_data': list_of_users_data, 
+        }
+        return render(request, template_name, context) 
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+
+@login_required
+def employee_create_roles_permission(request):
+    data = dict()
+    template_name = "roles_and_permission/create_new_role.html"
+    user = get_object_or_404(User, username=request.user.username)
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user) 
+        roles_and_permission = RolesPermission.objects.all()
+        list_of_employees = CompanyInfo.objects.filter(~Q(employee_ci_rp_fk_r__in=roles_and_permission)) 
+    
+        if request.method == 'GET':
+            form = RolesPermissionForm(request.GET or None)
+        elif request.method == 'POST':
+            form = RolesPermissionForm(request.POST or None)  
+            """
+            json objects are surrounded by curly braces { }. They are written in key and value pairs. 
+            json.loads() takes in a string and returns a json object. 
+            json.dumps() takes in a json object and returns a string. 
+            As you can see, json.dumps() and json.loads() are opposite of one another.
+            """
+             
+            request_json = json.loads(request.body)
+            foo = json.dumps(request_json, indent=4, sort_keys=True)
+            # print(foo)
+            
+            _employee = request_json['employee']
+            _role = request_json['role']
+            _title = request_json['title']
+            _immidiate_supervisor = request_json['immidiate_supervisor'] if request_json['immidiate_supervisor'] != None else 'None'
+           
+            # #employees = PersonalInfo.objects.annotate(name=Concat('first_name', Value(' '),'middle_name', Value(' '),'last_name'),).filter(Q(name__icontains='lloyds Salazar Garcia'))
+            p_emp = PersonalInfo.objects.annotate(name=Concat('last_name', Value(' '),'first_name', Value(' '),'middle_name'),).get(Q(name__icontains=_employee))
+            u_emp = get_object_or_404(User,profile_to_user=p_emp)
+            c_emp = get_object_or_404(CompanyInfo, fk_company_user=u_emp) 
+            new, existing = RolesPermission.objects.update_or_create(employee_ci_rp_fk=c_emp, defaults={
+                'role':_role,
+                'title':_title,
+                'immidiate_head':_immidiate_supervisor
+            })
+ 
+
+            _title = str([t for t in _title ]).replace("'","").replace("[","").replace("]","")
+
+            edit_role_url = reverse_lazy('application:employee_edit_roles_permission', kwargs={'id':new.id})
+            delete_role_url = reverse_lazy('application:employee_delete_role_permission', kwargs={'id':new.id}) 
+
+            data['record_data'] = {
+                'employee': str(p_emp),
+                'designation': c_emp.designation,
+                'role': _role,
+                'title': _title,
+                'immidiate_supervisor':_immidiate_supervisor,
+                'edit_role_url':edit_role_url,
+                'delete_role_url': delete_role_url,
+            }
+            data['form_is_valid'] = True            
+        context = {
+            'form': form,
+            'user': user,
+            'employee': employee,
+            'list_of_employees':list_of_employees,
+        }        
+        # roles
+        list_emp = []
+        roles_permission = RolesPermission.objects.all() 
+        for rp in roles_permission:
+            list_emp.append({"Role":str(rp.role),"Employee":str(rp.employee_ci_rp_fk.fk_company_user.profile_to_user)})
+
+        bar = json.dumps(list_emp, indent=4, sort_keys=True)
+        # print(bar) 
+        data['list_of_employees'] = json.loads(bar)
+        data['html_form'] = render_to_string(template_name, context, request)
+
+        return JsonResponse(data)
+    else:  
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+ 
+def remove_characters(remove_char, string):
+    new_string = string
+    for r_char in remove_char:       
+        new_string = new_string.replace(r_char, "")   
+    return new_string
+
+# edit
+@login_required
+def employee_edit_roles_permission(request, id):
+    data = dict()
+    template_name = "roles_and_permission/edit_role.html"
+    user = get_object_or_404(User, username=request.user.username)
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        roles_permission = get_object_or_404(RolesPermission, id=id) 
+        if request.method == 'GET':
+            _employee_name = roles_permission.employee_ci_rp_fk.fk_company_user.profile_to_user
+            _role = roles_permission.role
+            _title = roles_permission.title
+            _immidiate_head = roles_permission.immidiate_head
+
+            _title = list(remove_characters("[]'",_title).split(", ")) 
+
+            rp_data = {
+                '_employee_name': str(_employee_name),
+                '_role': str(_role),
+                '_title': _title,
+                '_immidiate_head': str(_immidiate_head),
+            }
+            rp_data = json.dumps(rp_data, indent=4, sort_keys=True)   
+
+            # roles
+            list_emp = []
+            roles_permission_list = RolesPermission.objects.all() 
+            for rp in roles_permission_list:
+                list_emp.append({"Role":str(rp.role),"Employee":str(rp.employee_ci_rp_fk.fk_company_user.profile_to_user)})
+
+            list_emp = json.dumps(list_emp, indent=4, sort_keys=True) 
+            data['list_emp'] = json.loads(list_emp) 
+            data['rp_data'] = json.loads(rp_data)  
+
+        elif request.method == 'POST':
+            request_json = json.loads(request.body)
+            foo = json.dumps(request_json, indent=4, sort_keys=True)
+        
+
+            _employee = request_json['employee']
+            _role = request_json['role']
+            _title = request_json['title']
+            _immidiate_supervisor = request_json['immidiate_supervisor'] 
+
+            p_emp = PersonalInfo.objects.annotate(name=Concat('last_name', Value(' '),'first_name', Value(' '),'middle_name'),).get(Q(name__icontains=_employee))
+            u_emp = get_object_or_404(User,profile_to_user=p_emp)
+            c_emp = get_object_or_404(CompanyInfo, fk_company_user=u_emp) 
+
+            new, existing = RolesPermission.objects.update_or_create(employee_ci_rp_fk=c_emp, defaults={
+                'role':_role,
+                'title':_title,
+                'immidiate_head':_immidiate_supervisor
+            })
+
+            _title = str([t for t in _title ]).replace("'","").replace("[","").replace("]","")
+
+            rp_data = {
+                '_employee_name': str(_employee),
+                '_role': str(_role),
+                '_title': _title,
+                '_immidiate_supervisor': str(_immidiate_supervisor),
+            }
+            rp_data = json.dumps(rp_data, indent=4, sort_keys=True)   
+
+            data['rp_data'] = json.loads(rp_data)  
+            data['form_is_valid'] = True
+        context = {
+            'user':user,
+            'roles_permission':roles_permission,
+        }
+        data['html_form'] = render_to_string(template_name, context, request)
+        return JsonResponse(data) 
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
+# delete
+@login_required
+def employee_delete_role_permission(request, id):
+    data = dict()
+    template_name = "roles_and_permission/delete_role.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        role_permission = get_object_or_404(RolesPermission,id=id) 
+        if request.method == 'GET': 
+            context = { 
+            'user': user,   
+            'role_permission': role_permission,
+            } 
+            data['html_form'] = render_to_string(template_name, context, request)
+        elif request.method == 'POST':
+            role_permission.delete()
+            data['form_is_valid'] = True 
+
+        return JsonResponse(data) 
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
 
 @login_required
 def reports_page(request):
     template_name = "reports/reports_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser: 
+     
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count() 
         if request.method == 'GET':
          pass
 
@@ -2643,16 +3056,16 @@ def reports_page(request):
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+  
 @login_required
 def admin_search_page(request):
     template_name = "admin_search_page.html"
-    user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user: 		 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()  
         if request.method == 'GET':
             search_term = request.GET.get('search_term')
             if search_term.strip():
@@ -2684,10 +3097,7 @@ def admin_search_page(request):
                 #personal_filter = PersonalInfo.objects.filter(Q(first_name__icontains=search_term)).order_by('-id').values_list('first_name','middle_name','last_name')[0][1]
 
                 all_cutoff_list = CutOffPeriodInfo.objects.all().order_by('id').distinct()
-                # Advance filter for every cut off there is multiple emp
-               
- 
-
+                # Advance filter for every cut off there is multiple emp           
         elif request.method == 'POST':
             pass
         context = {
@@ -2700,151 +3110,168 @@ def admin_search_page(request):
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
+ 
 @login_required
 def maintainance_page(request):
     template_name = "maintainance_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         if request.method == 'GET':
             search_term = request.GET.get('search_term')
-            if search_term.strip(): 
-                print(search_term)
-
-        elif request.method == 'POST':
-            pass
+        if search_term.strip(): 
+            print(search_term) 
         context = {
-            'user':user, 
-            'notifications': notifications,
-            'notifications_count': notifications_count,
-            'search_term': search_term,
+        'user':user, 
+        'notifications': notifications,
+        'notifications_count': notifications_count,
+        'search_term': search_term,
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page')) 
 
 @login_required
 def employee_admin_error_page(request):
     template_name = "error/employee_admin_error_page.html"
-    user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username)   
+    if user.is_active and user.is_staff and user.is_superuser:
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count() 
         context = {
             'user':user, 
             'notifications': notifications,
             'notifications_count': notifications_count,
         }
-        return render(request, template_name, context)
+        return render(request, template_name, context) 
     else:
         raise Http404()
-
-
-# employee side-----------------------------------------------------------------------------
-
-class PayrallAttendanceEmployeeIndexPage(LoginRequiredMixin, TemplateView):
-    template_name = "employee_index_page.html"
-    
-    def get_context_data(self, *args, **kwargs):
-
-        context = super(PayrallAttendanceEmployeeIndexPage,
-                        self).get_context_data(*args, **kwargs)
-        user = get_object_or_404(User, username=self.request.user.username)
-        #employee = get_object_or_404(PersonalInfo, fk_user=user)
-        employee = PersonalInfo.objects.filter(fk_user=user).order_by('-id') 
-
-        if user.is_active and user.is_staff and not user.is_superuser: 
-            notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+   
+@login_required
+def form_manager(request):
+    template_name = "form_manager/form_manager.html"
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user, is_managing_director=True, is_human_resource=True) 
+    if user:
+        if request.method == 'GET':
+            notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
             notifications_count = notifications.count()
-            cutoffperiods = CutOffPeriodInfo.objects.all().distinct().count()
-            total_leaves = EmployeeLeaves.objects.all().filter(Q(employee_leave_fk__in=employee)).distinct().count()  
-            total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved') & Q(employee_leave_fk__in=employee)).distinct().count()  
-            total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')& Q(employee_leave_fk__in=employee)).distinct().count()  
 
-            total_concern =  Concerns.objects.all().filter(Q(sender__in=employee)).distinct().count() 
-            total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None) & Q(sender__in=employee)).distinct().count() 
-            
-            total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(Q(~Q(checked_by=None) & ~Q(approved_by=None)) & Q(employee_itenerary_fk__in=employee)).distinct().count()  
-            total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(Q(checked_by=None) & Q(approved_by=None)) &  Q(employee_itenerary_fk__in=employee) ).distinct().count() 
+            # get all record in the models
+            leaves = list(EmployeeLeaves.objects.all().filter().order_by('-id').distinct() )
+            itinerary_list = list(EmployeeItenerary.objects.all().order_by('-id').distinct())
+            overtime_list = list(Overtime.objects.all().order_by('-id').distinct())
+            all_forms = leaves + itinerary_list + overtime_list 
 
-            emp_payrolls = EmployeePayroll.objects.all().filter(Q(employee_fk__in=employee))
-            year_list = []
-            yearly_employee_salary_list = []
-            yearly_emplpyee_deduction_list = []
-
-            for emp in emp_payrolls:
-                year = str(emp.payroll_cutoff_period)[:4]
-                if not year in year_list:
-                    year_list.append(year) 
-
-            for year in year_list:
-                total_net_pay = 0
-                total_deductions = 0
-                cutoffperiod = CutOffPeriodInfo.objects.all().filter(Q(cut_off_period__icontains=year)) 
-                for cutoff in cutoffperiod:
-                    emp_payroll = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff) & Q(employee_fk=employee)).aggregate(Sum('net_pay')).get('net_pay__sum') 
-                    emp_deductions  = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff) & Q(employee_fk=employee)).aggregate(Sum('total_deduction')).get('total_deduction__sum') 
-                    if emp_payroll:
-                        total_net_pay = total_net_pay + emp_payroll 
-                        total_deductions = total_deductions + emp_deductions
-                yearly_employee_salary_list.append({'year': year, 'value': int(round(total_net_pay,2))})
-                yearly_emplpyee_deduction_list.append({'year': year, 'deduction': int(round(total_deductions,2)), 'wages': int(round(total_net_pay,2))})
-            
-            
-            dumps_yearly_employee_salary_list = json.dumps(yearly_employee_salary_list)
-            loads_yearly_employee_salary_list =json.loads(dumps_yearly_employee_salary_list)
-            # print(dumps_yearly_employee_wages_list)
-            
-            dumps_yearly_employee_deduction_list = json.dumps(yearly_emplpyee_deduction_list)
-            loads_yearly_employee_deduction_list =json.loads(dumps_yearly_employee_deduction_list)
-
-            
-            context.update({
-                'user': user,
-                'cutoffperiods': cutoffperiods,
-                'total_leaves':total_leaves,
-                'total_unapproved_leaves': total_unapproved_leaves,
-                'total_approved_leaves': total_approved_leaves,
-                'total_concern': total_concern,
-                'total_unreplied_concern': total_unreplied_concern,
-                'total_unapproved_iteneraries':total_unapproved_iteneraries,
-                'total_approved_iteneraries': total_approved_iteneraries,
-                'loads_yearly_employee_salary_list': loads_yearly_employee_salary_list,
-                'loads_yearly_employee_deduction_list':loads_yearly_employee_deduction_list, 
+            for item in all_forms:
+                if hasattr(item,'employee_leave_fk'):
+                    print(item.employee_leave_fk)
+                else:
+                    continue
+            context = {
+                'user': user,   
+                'all_forms': all_forms,
                 'notifications': notifications,
                 'notifications_count': notifications_count,
-            })
-            return context
-        else:
-            raise Http404()
+            }
 
+            return render(request, template_name, context)
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_admin_error_page'))  
+# employee side-----------------------------------------------------------------------------
+ 
+@login_required
+def PayrallAttendanceEmployeeIndexPage(request):
+    template_name = "employee_index_page.html"
+    user = get_object_or_404(User, username=request.user.username)
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user: 
+        employee = PersonalInfo.objects.filter(fk_user=user).order_by('-id') 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+        cutoffperiods = CutOffPeriodInfo.objects.all().distinct().count()
+        total_leaves = EmployeeLeaves.objects.all().filter(Q(employee_leave_fk__in=employee)).distinct().count()  
+        total_unapproved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Disapproved') & Q(employee_leave_fk__in=employee)).distinct().count()  
+        total_approved_leaves = EmployeeLeaves.objects.all().filter(Q(status='Approved')& Q(employee_leave_fk__in=employee)).distinct().count()  
+
+        total_concern =  Concerns.objects.all().filter(Q(sender__in=employee)).distinct().count() 
+        total_unreplied_concern = Concerns.objects.all().filter(Q(reply=None) & Q(sender__in=employee)).distinct().count() 
+        
+        total_unapproved_iteneraries = EmployeeItenerary.objects.all().filter(Q(~Q(checked_by=None) & ~Q(approved_by=None)) & Q(employee_itenerary_fk__in=employee)).distinct().count()  
+        total_approved_iteneraries = EmployeeItenerary.objects.all().filter(Q(Q(checked_by=None) & Q(approved_by=None)) &  Q(employee_itenerary_fk__in=employee) ).distinct().count() 
+
+        emp_payrolls = EmployeePayroll.objects.all().filter(Q(employee_fk__in=employee))
+        year_list = []
+        yearly_employee_salary_list = []
+        yearly_emplpyee_deduction_list = []
+
+        for emp in emp_payrolls:
+            year = str(emp.payroll_cutoff_period)[:4]
+            if not year in year_list:
+                year_list.append(year) 
+
+        for year in year_list:
+            total_net_pay = 0
+            total_deductions = 0
+            cutoffperiod = CutOffPeriodInfo.objects.all().filter(Q(cut_off_period__icontains=year)) 
+            for cutoff in cutoffperiod:
+                emp_payroll = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff) & Q(employee_fk__in=employee)).aggregate(Sum('net_pay')).get('net_pay__sum')                   
+                emp_deductions  = EmployeePayroll.objects.all().filter(Q(payroll_cutoff_period=cutoff) & Q(employee_fk__in=employee)).aggregate(Sum('total_deduction')).get('total_deduction__sum') 
+                
+                if emp_payroll:
+                    total_net_pay = total_net_pay + emp_payroll 
+                    total_deductions = total_deductions + emp_deductions
+            yearly_employee_salary_list.append({'year': year, 'value': int(round(total_net_pay,2))})
+            yearly_emplpyee_deduction_list.append({'year': year, 'deduction': int(round(total_deductions,2)), 'wages': int(round(total_net_pay,2))})
+        
+        
+        dumps_yearly_employee_salary_list = json.dumps(yearly_employee_salary_list)
+        loads_yearly_employee_salary_list =json.loads(dumps_yearly_employee_salary_list)
+        # print(dumps_yearly_employee_wages_list)
+        
+        dumps_yearly_employee_deduction_list = json.dumps(yearly_emplpyee_deduction_list)
+        loads_yearly_employee_deduction_list =json.loads(dumps_yearly_employee_deduction_list)
+
+        
+        context = {
+            'user': user,
+            'cutoffperiods': cutoffperiods,
+            'total_leaves':total_leaves,
+            'total_unapproved_leaves': total_unapproved_leaves,
+            'total_approved_leaves': total_approved_leaves,
+            'total_concern': total_concern,
+            'total_unreplied_concern': total_unreplied_concern,
+            'total_unapproved_iteneraries':total_unapproved_iteneraries,
+            'total_approved_iteneraries': total_approved_iteneraries,
+            'loads_yearly_employee_salary_list': loads_yearly_employee_salary_list,
+            'loads_yearly_employee_deduction_list':loads_yearly_employee_deduction_list, 
+            'notifications': notifications,
+            'notifications_count': notifications_count,
+        }
+        return render(request, template_name, context) 
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 @login_required
 def employee_profile(request):
     template_name = "employee_side/employee_profile_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    last_time_logged = user.last_login
-    last_time_joined = user.date_joined
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        last_time_logged = user.last_login
+        last_time_joined = user.date_joined
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count() 
         if request.method == "GET": 
             record = PersonalInfo.objects.filter(fk_user=user)
             company = CompanyInfo.objects.filter(fk_company_user=user)
             profiles =  PersonalInfo.objects.all().filter(fk_user=user).distinct()
-            company_details = CompanyInfo.objects.all().filter(fk_company_user=user).distinct()
-
-        
+            company_details = CompanyInfo.objects.all().filter(fk_company_user=user).distinct()        
         elif request.method == "POST":
             pass
-    
-
         context = {
             'user': user,
             'last_time_logged': last_time_logged,
@@ -2857,20 +3284,20 @@ def employee_profile(request):
             'notifications_count': notifications_count,
         }
 
-        return render(request, template_name, context)
+        return render(request, template_name, context) 
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+      
 
 @login_required
 def side_employee_cut_off_payroll_page(request):
     template_name="employee_side/employee_side_cutoff_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    cut_off_list = CutOffPeriodInfo.objects.all().order_by('-id').distinct()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count() 
+        cut_off_list = CutOffPeriodInfo.objects.all().order_by('-id').distinct()  
         if request.method == 'GET':
             pass
 
@@ -2882,17 +3309,18 @@ def side_employee_cut_off_payroll_page(request):
         }
 
         return render(request, template_name, context)
+  
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+  
 
 @login_required
 def side_employee_cut_off_page(request, id):
     template_name = "employee_side/employee_side_cutoff_page.html"
-    user = get_object_or_404(User, username=request.user.username)
-    #employee = get_object_or_404(PersonalInfo, fk_user=user)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-     
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = get_object_or_404(User, username=request.user.username)  
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
         if request.method == 'GET':
             try:  
                 employee = PersonalInfo.objects.get(fk_user=user) 
@@ -2910,31 +3338,24 @@ def side_employee_cut_off_page(request, id):
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
-
-        
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+ 
 
 @login_required
 def side_employee_view_payroll_page(request, id):
     template_name = "employee_side/employee_side_view_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    # employee = get_object_or_404(PersonalInfo, fk_user=user)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
- 
-    
-
-    if user.is_active and user.is_staff and not user.is_superuser:
-        if request.method == 'GET':
-          
-            try:  
-                 
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
+        if request.method == 'GET': 
+            try:   
                 employee = PersonalInfo.objects.get(fk_user=user) # handle error doesnotexist
                 #employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee) 
-                employee_salary = EmployeeSalary.objects.get(employee_salary_fk=employee) # handle error doesnotexist
-
+                employee_salary = EmployeeSalary.objects.get(employee_salary_fk=employee) # handle error doesnotexist 
                 attendance_list = AttendanceInfo.objects.filter(Q(cut_off_period=cutoff) & Q(employee_profile=employee)).order_by("-id")
                 try:
                     emp_payroll_count = EmployeePayroll.objects.all().get(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff))
@@ -2958,31 +3379,28 @@ def side_employee_view_payroll_page(request, id):
             except PersonalInfo.DoesNotExist:
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
             except EmployeeSalary.DoesNotExist: 
-                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_payroll_page'))
-            
-
-        
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_payroll_page')) 
     else:
-        raise Http404()
-
-@login_required
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+ 
 def side_employee_print_payroll_page(request, id):    
     template_name = "employee_side/employee_side_print_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
- 
-    employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee) 
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:  
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        cutoff = get_object_or_404(CutOffPeriodInfo, id=id)
+    
+        employee_salary = get_object_or_404(EmployeeSalary, employee_salary_fk=employee) 
 
-    attendance_list = AttendanceInfo.objects.filter(Q(cut_off_period=cutoff) & Q(employee_profile=employee)).order_by("-id")
-    try:
-        emp_payroll_count = EmployeePayroll.objects.all().get(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff))
-    except EmployeePayroll.DoesNotExist:
-        emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
-    today = date.today()
-    date_today = today.strftime("%m/%d/%Y") 
+        attendance_list = AttendanceInfo.objects.filter(Q(cut_off_period=cutoff) & Q(employee_profile=employee)).order_by("-id")
+        try:
+            emp_payroll_count = EmployeePayroll.objects.all().get(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff))
+        except EmployeePayroll.DoesNotExist:
+            emp_payroll_count = EmployeePayroll.objects.all().filter(Q(employee_fk=employee) & Q(payroll_cutoff_period=cutoff)).distinct().count()
+        today = date.today()
+        date_today = today.strftime("%m/%d/%Y") 
 
-    if user.is_active and user.is_staff and not user.is_superuser:
         if request.method == 'GET':
             pass
 
@@ -2998,15 +3416,16 @@ def side_employee_print_payroll_page(request, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 @login_required
 def side_employee_manage_leaves_page(request):
     template_name = "employee_side/employee_side_leaves_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user:
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
         if request.method == 'GET':
             try: 
                 #employee = get_object_or_404(PersonalInfo, fk_user=user)
@@ -3023,23 +3442,22 @@ def side_employee_manage_leaves_page(request):
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
-            
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
 
 @login_required
 def side_employee_create_leave_form(request):
     template_name = "employee_side/employee_side_create_leave.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
         try:
             employee_company_details = CompanyInfo.objects.get(fk_company_user=user) 
             if request.method == 'GET':
                 form = EmployeeLeavesForm(request.GET or None)
             elif request.method == 'POST':
-                form = EmployeeLeavesForm(request.POST or None)
+                form = EmployeeLeavesForm(request.POST or None, request.FILES)
                 if form.is_valid():
                     instance = form.save(commit=False) 
                     instance.employee_leave_fk = employee
@@ -3066,18 +3484,19 @@ def side_employee_create_leave_form(request):
         except CompanyInfo.DoesNotExist:
             return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
 @login_required
 def side_employee_edit_leave_form(request, id):
     template_name = "employee_side/employee_side_edit_leave.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    leave = get_object_or_404(EmployeeLeaves, id=id)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        leave = get_object_or_404(EmployeeLeaves, id=id)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
 
-    if user.is_active and user.is_staff and not user.is_superuser:
         try:
             employee_company_details = CompanyInfo.objects.get(fk_company_user=user)
             if request.method == 'GET':
@@ -3085,7 +3504,7 @@ def side_employee_edit_leave_form(request, id):
                 if leave.status == 'Approved':
                     return HttpResponseRedirect(reverse_lazy('application:employee_side_leave_error_page')) 
             elif request.method == 'POST':
-                form = EmployeeLeavesForm(request.POST or None, instance=leave)
+                form = EmployeeLeavesForm(request.POST or None, request.FILES, instance=leave)
                 if form.is_valid():
                     
                     instance = form.save(commit=False)  
@@ -3129,32 +3548,30 @@ def side_employee_edit_leave_form(request, id):
             return render(request, template_name, context)
         except CompanyInfo.DoesNotExist:
             return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
-        
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
+ 
 # Use to redirect the user if the leave form was approved
 @login_required
 def employee_side_leave_error_page(request):
     template_name = "employee_side/employee_side_leave_error_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and not user.is_superuser: 
-        if request.method == 'GET': 
-            pass
-        elif request.method == 'POST':
-            pass
-        context = {
-            'user':user, 
-            'notifications': notifications,
-            'notifications_count': notifications_count, 
-        }
-        return render(request, template_name, context)
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
+        if request.method == 'GET':  
+            context = {
+                'user':user, 
+                'notifications': notifications,
+                'notifications_count': notifications_count, 
+            }
+            return render(request, template_name, context)
     else:
-        raise Http404()
-
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+  
+ 
 @login_required
 def side_employee_delete_leave_form(request, id):
     data = dict()
@@ -3190,12 +3607,12 @@ def side_employee_delete_leave_form(request, id):
 def side_employee_view_leave_form(request, id):
     template_name="employee_side/employee_side_view_leave.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    leave = get_object_or_404(EmployeeLeaves, id=id)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        leave = get_object_or_404(EmployeeLeaves, id=id)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
         if request.method == 'GET':
             pass
         elif request.method == 'POST':
@@ -3212,15 +3629,14 @@ def side_employee_view_leave_form(request, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+ 
 @login_required
 def side_employee_manage_inteneraries(request):
     template_name = "employee_side/employee_side_manage_iteneraries.html"
     user = get_object_or_404(User, username=request.user.username) 
-    
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
         if request.method == 'GET':
             try: 
                 #employee = get_object_or_404(PersonalInfo, fk_user=user)
@@ -3242,18 +3658,17 @@ def side_employee_manage_inteneraries(request):
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
         
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
 
 @login_required
 def side_employee_create_inteneraries(request):
     template_name = "employee_side/employee_side_create_itenerary.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
         EmployeeIteneraryDetailsFormset = inlineformset_factory(EmployeeItenerary, EmployeeIteneraryDetails, form=EmployeeIteneraryDetailsForm, extra=1, can_delete=False) 
             
         if request.method == 'GET':
@@ -3294,20 +3709,19 @@ def side_employee_create_inteneraries(request):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+ 
 
 @login_required
 def side_employee_edit_inteneraries(request, id):
     template_name = "employee_side/employee_side_edit_itenerary.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    itenerary = get_object_or_404(EmployeeItenerary, id=id)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
-        #remove extra
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:   
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        itenerary = get_object_or_404(EmployeeItenerary, id=id)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
         EmployeeIteneraryDetailsFormset = inlineformset_factory(EmployeeItenerary, EmployeeIteneraryDetails, form=EmployeeIteneraryDetailsForm, extra=0, can_delete=True) 
             
         if request.method == 'GET':
@@ -3321,12 +3735,12 @@ def side_employee_edit_inteneraries(request, id):
                 # instanceFEID = formEID.save(commit=False) 
                 # for form in instanceFEID: 
                 #     form.save() 
-                 #lookup from parent table
+                #lookup from parent table
                 url = HttpResponseRedirect(reverse_lazy('application:employee_manage_iteneraries_page'))
                 admins = PersonalInfo.objects.all().filter(Q(fk_user__is_superuser=True))
                 for admin in admins:
                     Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="Itinerary form from {sender} has been updated!".format(sender=user),category=category_list[10],level=level_list[1])
-               
+            
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_iteneraries_page')) 
         context = {
             'user': user,  
@@ -3338,8 +3752,7 @@ def side_employee_edit_inteneraries(request, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 @login_required
 def side_employee_delete_inteneraries(request, id):
@@ -3372,18 +3785,18 @@ def side_employee_delete_inteneraries(request, id):
     else:
         raise Http404()
 
-
 @login_required
 def side_employee_view_itenerary_form(request, id):
     template_name = "employee_side/employee_side_view_itenerary.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    itenerary = get_object_or_404(EmployeeItenerary, id=id)
-    itenerary_details = EmployeeIteneraryDetails.objects.all().filter(Q(employee_itenerary=itenerary)).order_by('-id').distinct()
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:  
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        itenerary = get_object_or_404(EmployeeItenerary, id=id)
+        itenerary_details = EmployeeIteneraryDetails.objects.all().filter(Q(employee_itenerary=itenerary)).order_by('-id').distinct()
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
+    
         if request.method == 'GET':
             pass
         elif request.method == 'POST':
@@ -3398,16 +3811,14 @@ def side_employee_view_itenerary_form(request, id):
         } 
         return render(request, template_name, context)
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
 
 @login_required
 def side_employee_manage_concerns(request):
     template_name = "employee_side/employee_side_manage_concerns.html"
     user = get_object_or_404(User, username=request.user.username)
-    
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user:
         if request.method == 'GET':
             try: 
                 #employee = get_object_or_404(PersonalInfo, fk_user=user)
@@ -3426,19 +3837,18 @@ def side_employee_manage_concerns(request):
 
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
-                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))   
-        
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))           
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
 
 @login_required
 def side_employee_create_concern(request):
     data = dict()
     template_name = "employee_side/employee_side_create_concern.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True)   
+    if user:  
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
         if request.method == 'GET':
             form = ConcernsEmployeeForm(request.GET or None)
         elif request.method == 'POST':
@@ -3480,18 +3890,18 @@ def side_employee_create_concern(request):
         data['html_form'] = render_to_string(template_name, context, request)
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
     
-
 @login_required
 def side_employee_edit_concern(request, id):
     data = dict()
     template_name = "employee_side/employee_side_edit_concern.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-    
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id)
+        
         if request.method == 'GET':
             form = ConcernsEmployeeForm(request.GET or None, instance=concern)
         elif request.method == 'POST':
@@ -3535,19 +3945,19 @@ def side_employee_edit_concern(request, id):
         }
 
         data['html_form'] = render_to_string(template_name, context, request)
-        return JsonResponse(data)
+        return JsonResponse(data) 
     else:
-        raise Http404()
-
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
+    
 @login_required
 def side_employee_delete_concern(request, id):
     data = dict()
     template_name = "employee_side/employee_side_delete_concern.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-    
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id)
         if request.method == 'GET':
             context = { 
             'user': user,  
@@ -3565,17 +3975,17 @@ def side_employee_delete_concern(request, id):
             data['form_is_valid'] = True 
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 @login_required
 def side_employee_view_concern(request, id):
     data = dict()
     template_name = "employee_side/employee_side_view_concern.html"
-    user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-    
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user:  
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id)
         if request.method == 'GET':
             pass
        
@@ -3588,20 +3998,20 @@ def side_employee_view_concern(request, id):
         data['html_form'] = render_to_string(template_name, context, request)
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 
 @login_required
 def side_employee_manage_inbox_concern(request):
     template_name = "employee_side/employee_side_manage_inbox_concern.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
 
-    concern_list = Concerns.objects.all().filter(Q(receiver=employee)).order_by('-id').distinct()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+        concern_list = Concerns.objects.all().filter(Q(receiver=employee)).order_by('-id').distinct()
         if request.method == 'GET':
             pass 
         context = {
@@ -3614,7 +4024,7 @@ def side_employee_manage_inbox_concern(request):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
+       return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 
 @login_required
@@ -3622,10 +4032,10 @@ def side_employee_reply_concern(request, id):
     data = dict()
     template_name = "employee_side/employee_side_reply_concern.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    concern = get_object_or_404(Concerns, id=id)
-
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True)   
+    if user: 
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        concern = get_object_or_404(Concerns, id=id)
         if request.method == 'GET':
             form = ConcernsReplyEmployeeForm(request.GET or None, instance=concern)
         elif request.method == 'POST':
@@ -3646,14 +4056,14 @@ def side_employee_reply_concern(request, id):
         data['html_form'] = render_to_string(template_name, context, request)
         return JsonResponse(data)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 @login_required
 def side_employee_overtime_management(request):
     template_name = "employee_side/employee_side_overtime_management_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
         if request.method == 'GET':
             try: 
                 #employee = get_object_or_404(PersonalInfo, fk_user=user)
@@ -3672,20 +4082,19 @@ def side_employee_overtime_management(request):
 
                 return render(request, template_name, context)
             except PersonalInfo.DoesNotExist:
-                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))  
-        
+                return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))          
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page')) 
 
 @login_required
 def side_employee_create_overtime(request):
     template_name = "employee_side/employee_side_create_overtime.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user) 
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user) 
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
         OvertimeDetailsFormset = inlineformset_factory(Overtime, OvertimeDetails, form=OvertimeDetailsForm, extra=1, can_delete=False)
         try:
             employee_company_details = CompanyInfo.objects.get(fk_company_user=user) 
@@ -3701,7 +4110,7 @@ def side_employee_create_overtime(request):
 
                     instanceformOvertime = formOvertime.save(commit=False)
                     instanceformOvertime.employee_overtime = employee
-                    instanceformOvertime.department = company.department 
+                    instanceformOvertime.department = employee_company_details.department 
                     instanceformOvertime.save()
 
                     instanceformOvertimeDetails = formOvertimeDetails.save(commit=False)
@@ -3715,13 +4124,15 @@ def side_employee_create_overtime(request):
                         Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="You have been received overtime form from {sender}".format(sender=user),category=category_list[9],level=level_list[1])
                     
                     return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
+                else:
+                    print("Error")
 
             context = {
                 'user': user,  
                 'employee': employee,  
                 'notifications': notifications,
                 'notifications_count': notifications_count,
-                #'formOvertime':formOvertime,
+                'formOvertime':formOvertime,
                 'formOvertimeDetails': formOvertimeDetails,
             }
 
@@ -3730,19 +4141,19 @@ def side_employee_create_overtime(request):
             return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
 @login_required
 def side_employee_edit_overtime(request, id):
     template_name = "employee_side/employee_side_edit_overtime.html" 
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    company = get_object_or_404(CompanyInfo, fk_company_user=user)
-    overtime = get_object_or_404(Overtime, id=id)
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
-    
-    if user.is_active and user.is_staff and not user.is_superuser:
+    user = validate(user, is_business_unit_head=True, is_employee=True)   
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        company = get_object_or_404(CompanyInfo, fk_company_user=user)
+        overtime = get_object_or_404(Overtime, id=id)
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
 
         OvertimeDetailsFormset = inlineformset_factory(Overtime, OvertimeDetails, form=OvertimeDetailsForm, extra=0, can_delete=True)
 
@@ -3759,8 +4170,6 @@ def side_employee_edit_overtime(request, id):
                     Notifications.objects.create(sender=user,recipient=admin.fk_user,url=url.url,message="Overtime form from {sender} has been updated!".format(sender=user),category=category_list[10],level=level_list[1])
                
                 return HttpResponseRedirect(reverse_lazy('application:employee_side_manage_overtime_page'))
-
-
         context = {
         'user': user,  
         'employee': employee,  
@@ -3772,9 +4181,8 @@ def side_employee_edit_overtime(request, id):
 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
-  
 @login_required
 def side_employee_delete_overtime(request, id):
     data = dict()
@@ -3810,17 +4218,16 @@ def side_employee_delete_overtime(request, id):
 def side_employee_view_overtime_form(request, id):
     template_name = "employee_side/employee_side_view_overtime.html"
     user = get_object_or_404(User, username=request.user.username)
-    employee = get_object_or_404(PersonalInfo, fk_user=user)
-    overtime = get_object_or_404(Overtime, id=id)
-    overtime_details = OvertimeDetails.objects.all().filter(Q(overtime=overtime)).order_by('-id').distinct()
-    notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
-    notifications_count = notifications.count()
+    user = validate(user, is_business_unit_head=True, is_employee=True)   
+    if user:
+        employee = get_object_or_404(PersonalInfo, fk_user=user)
+        overtime = get_object_or_404(Overtime, id=id)
+        overtime_details = OvertimeDetails.objects.all().filter(Q(overtime=overtime)).order_by('-id').distinct()
+        notifications = Notifications.objects.all().filter(Q(recipient=user) | Q(public=True)).order_by('-id')
+        notifications_count = notifications.count()
 
-    overtime_list = Overtime.objects.all().filter(id=id).order_by('-id').distinct()
-    overtime_sum = OvertimeDetails.objects.all().filter(overtime__in=overtime_list).aggregate(Sum('duration')).get('duration__sum') 
- 
-
-    if user.is_active and user.is_staff and not user.is_superuser:
+        overtime_list = Overtime.objects.all().filter(id=id).order_by('-id').distinct()
+        overtime_sum = OvertimeDetails.objects.all().filter(overtime__in=overtime_list).aggregate(Sum('duration')).get('duration__sum') 
         if request.method == 'GET':
             pass
         elif request.method == 'POST':
@@ -3836,15 +4243,17 @@ def side_employee_view_overtime_form(request, id):
         } 
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
 @login_required
 def employee_side_maintainance_page(request):
     template_name = "employee_side/employee_side_maintainance_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+   
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         if request.method == 'GET':
             search_term = request.GET.get('search_term')
             if search_term.strip(): 
@@ -3860,15 +4269,16 @@ def employee_side_maintainance_page(request):
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
 @login_required
 def employee_side_error_page(request):
     template_name = "employee_side/employee_side_error_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True)  
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         if request.method == 'GET': 
             pass
         elif request.method == 'POST':
@@ -3880,15 +4290,17 @@ def employee_side_error_page(request):
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
 
 @login_required
 def employee_side_error_payroll_page(request):
     template_name = "employee_side/employee_side_error_payroll_page.html"
     user = get_object_or_404(User, username=request.user.username) 
-    notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
-    notifications_count = notifications.count()
-    if user.is_active and user.is_staff and not user.is_superuser: 
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+        
+    if user: 
+        notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+        notifications_count = notifications.count()
         if request.method == 'GET': 
             pass
         elif request.method == 'POST':
@@ -3900,4 +4312,24 @@ def employee_side_error_payroll_page(request):
         }
         return render(request, template_name, context)
     else:
-        raise Http404()
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))
+
+@login_required
+def employee_side_form_manager(request):
+    template_name = "employee_side/employee_side_form_manager.html"
+    user = get_object_or_404(User, username=request.user.username) 
+    user = validate(user, is_business_unit_head=True, is_employee=True) 
+    if user:
+        if request.method == 'GET':
+            notifications = Notifications.objects.all().filter(Q(Q(recipient=user) | Q(public=True)) & Q(is_read=False)).order_by('-id')
+            notifications_count = notifications.count()
+
+            context = {
+                'user': user,   
+                'notifications': notifications,
+                'notifications_count': notifications_count,
+            }
+
+            return render(request, template_name, context)
+    else:
+        return HttpResponseRedirect(reverse_lazy('application:employee_side_error_page'))

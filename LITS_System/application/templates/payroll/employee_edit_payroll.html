@@ -1,5 +1,5 @@
 {% extends 'index.html' %} 
-{% load staticfiles %} 
+{% load static %} 
 {% load humanize %} 
 {% block title %} 
 Edit Employee Payroll Page 
@@ -180,11 +180,19 @@ Edit Employee Payroll Page
                 <p></p>
                 {{ forms.basic_pay.errors|striptags }} 
                 {{ forms.allowance.errors|striptags }} 
-                {{ forms.overtime_pay.errors|striptags }} 
-                {{ forms.legal_holiday.errors|striptags }} 
-                {{ forms.special_holiday.errors|striptags }} 
-                {{ forms.late_or_absences.errors|striptags }} 
+
+                {{ forms.ot_hours.errors|striptags }} 
+                {{ forms.ot_pay.errors|striptags }} 
+                {{ forms.holiday_pay.errors|striptags }}  
+
                 {{ forms.salary_or_cash_advance.errors|striptags }} 
+
+                {{ forms.late_min.errors|striptags }} 
+                {{ forms.undertime_min.errors|striptags }} 
+                {{ forms.late_undertime_min_amount.errors|striptags }} 
+                {{ forms.absences.errors|striptags }} 
+                {{ forms.absences_amount.errors|striptags }} 
+
                 {{ forms.sss_premiums.errors|striptags }} 
                 {{ forms.philhealth_contribution.errors|striptags }} 
                 {{ forms.pagibig_contribution.errors|striptags }} 
@@ -219,45 +227,40 @@ Edit Employee Payroll Page
                                     </div>
                                 </td>
                             </tr>
+
+                            <tr>
+                                <th>Overtime Hours:</th>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&#8369;</span>
+                                        {{ forms.ot_hours }}
+                                            <span class="input-group-addon">.00</span>
+                                    </div>
+                                </td>
+                            </tr>
+
                             <tr>
                                 <th>Overtime Pay:</th>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        {{ forms.overtime_pay }}
+                                        {{ forms.ot_pay }}
                                             <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
                             </tr>
-                            <!-- <tr>
-                                <th>Legal Holiday:</th>
+
+                            <tr>
+                                <th>Holiday Pay:</th>
                                 <td>
                                     <div class="input-group">
                                         <span class="input-group-addon">&#8369;</span>
-                                        
-                                        <span class="input-group-addon">.00</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Sunday/Special Holiday:</th>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-addon">&#8369;</span> 
+                                        {{ forms.holiday_pay }}
                                             <span class="input-group-addon">.00</span>
                                     </div>
                                 </td>
-                            </tr> -->
-                            <tr>
-                                <th>Late/Absences:</th>
-                                <td>
-                                    <div class="input-group">
-                                        <span class="input-group-addon">&#8369;</span>
-                                        {{ forms.late_or_absences }}
-                                        <span class="input-group-addon">.00</span>
-                                    </div>
-                                </td>
                             </tr>
+                         
                             <tr>
                                 <th>Salary/Cash Advance:</th>
                                 <td>
@@ -328,6 +331,61 @@ Edit Employee Payroll Page
                                 </div>
                             </td>
                         </tr>
+                        <!--  -->
+
+                        <tr>
+                            <th style="width:50%">Late Minutes:</th>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">&#8369;</span>
+                                    {{forms.late_min}}
+                                    <span class="input-group-addon">.00</span> 
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th style="width:50%">Undertime Minutes:</th>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">&#8369;</span>
+                                    {{forms.undertime_min}}
+                                    <span class="input-group-addon">.00</span> 
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="width:50%">Late/Undertime Amount:</th>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">&#8369;</span>
+                                    {{forms.late_undertime_min_amount}}
+                                    <span class="input-group-addon">.00</span> 
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="width:50%">Absences:</th>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">&#8369;</span>
+                                    {{forms.absences}}
+                                    <span class="input-group-addon">.00</span> 
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="width:50%">Absences Amount:</th>
+                            <td>
+                                <div class="input-group">
+                                    <span class="input-group-addon">&#8369;</span>
+                                    {{forms.absences_amount}}
+                                    <span class="input-group-addon">.00</span> 
+                                </div>
+                            </td>
+                        </tr>
+
+
                         <tr>
                             <th>Withholding Tax:</th>
                             <td>

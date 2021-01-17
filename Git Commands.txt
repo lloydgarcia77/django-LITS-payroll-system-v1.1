@@ -1,0 +1,21 @@
+…or create a new repository on the command line
+echo "# test-repository" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/lloydgarcia77/test-repository.git
+git push -u origin master
+                
+…or push an existing repository from the command line
+git remote add origin https://github.com/lloydgarcia77/test-repository.git
+git push -u origin master
+ 
+
+You can do git add -u so that it will stage the modified and deleted files.
+
+You can also do git commit -a to commit only the modified and deleted files
+
+
+Press Esc and then type :wq to save and exit.
+
+3456444Y

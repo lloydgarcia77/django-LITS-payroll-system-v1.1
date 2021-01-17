@@ -1,0 +1,16 @@
+upgrade django to 3.1
+python -c "import django; print(django.get_version())"
+pip install -U django==2.2.3
+
+
+
+ 
+I use this command for upgrading any package using pip:
+
+pip install <package-name> --upgrade 
+Example: pip install django --upgrade
+
+you need to use the --upgrade or -U flag for upgrading.
+
+Alternatively, you can use python -m pip install -U Django.
+

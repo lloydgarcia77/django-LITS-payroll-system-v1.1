@@ -28,8 +28,11 @@ handler500 = 'application.views.error_500'
  
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.PayrollAttendanceIndexPage.as_view(), name="index"),
-    path('employee/index/', views.PayrallAttendanceEmployeeIndexPage.as_view(), name="employee_index"),
+    # path('', views.PayrollAttendanceIndexPage.as_view(), name="index"),
+    path('', views.PayrollAttendanceIndexPage, name="index"),
+    # path('employee/index/', views.PayrallAttendanceEmployeeIndexPage.as_view(), name="employee_index"),
+    path('employee/index/', views.PayrallAttendanceEmployeeIndexPage, name="employee_index"),
+    
     
     # Update password    
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),

@@ -139,7 +139,7 @@ $(document).ready(function () {
         }
         
     }
-
+   
     $('.timeIn').each(function(index){
         $(this).timepicker({
             maxHours: 24,
